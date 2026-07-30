@@ -147,13 +147,15 @@
                 <!-- Aba 2: Agenda -->
                 <div class="tab-content" id="abaAgenda">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                        <h2>Agenda do Departamento</h2>
-                        <button class="btn btn-primary">+ Novo Evento</button>
+                        <div>
+                            <h2>Agenda e Eventos</h2>
+                            <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">Cronograma de reuniões, ensaios e confraternizações.</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="abrirModalEvento()">+ Novo Evento</button>
                     </div>
-                    <div class="placeholder-card">
-                        <div class="placeholder-icon">📅</div>
-                        <h3>Calendário Vazio</h3>
-                        <p style="margin-top: 8px;">Nenhuma escala ou evento agendado. (Módulo em Construção)</p>
+                    
+                    <div id="listAgenda" style="display: flex; flex-direction: column; gap: 16px;">
+                        <div style="color: var(--text-muted); font-size: 13px;">Carregando agenda...</div>
                     </div>
                 </div>
 
@@ -253,6 +255,53 @@
                 <div class="modal-actions" style="margin-top: 24px;">
                     <button type="button" class="btn btn-secondary" onclick="fecharModalDoc()">Cancelar</button>
                     <button type="submit" class="btn btn-primary" id="btnSaveDoc">Salvar Documento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal Adicionar Evento -->
+    <div class="modal-overlay" id="modalEvento">
+        <div class="modal-content" style="max-width: 500px;">
+            <h2 style="margin-bottom: 16px;">Agendar Novo Evento</h2>
+            <form id="formEvento">
+                <div class="form-group">
+                    <label>Título do Evento *</label>
+                    <input type="text" id="inEvTitulo" required placeholder="Ex: Ensaio Geral, Reunião de Pauta">
+                </div>
+                
+                <div style="display: flex; gap: 16px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Data/Hora Início *</label>
+                        <input type="datetime-local" id="inEvInicio" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Data/Hora Término (Opcional)</label>
+                        <input type="datetime-local" id="inEvFim">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Local / Sala</label>
+                    <input type="text" id="inEvLocal" placeholder="Ex: Sala 3, Auditório, Online (Link)">
+                </div>
+                
+                <div class="form-group">
+                    <label>Visibilidade (Público-Alvo) *</label>
+                    <select id="inEvVisibilidade" required>
+                        <option value="Local">Apenas para este Departamento</option>
+                        <option value="Global">GLOBAL: Destacar na tela inicial para Todos</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Descrição (Opcional)</label>
+                    <textarea id="inEvDescricao" rows="3" placeholder="Pauta ou informações extras..."></textarea>
+                </div>
+
+                <div class="modal-actions" style="margin-top: 24px;">
+                    <button type="button" class="btn btn-secondary" onclick="fecharModalEvento()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnSaveEvento">Salvar Evento</button>
                 </div>
             </form>
         </div>

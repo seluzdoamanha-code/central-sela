@@ -36,6 +36,17 @@
             </header>
 
             <div class="content-body" id="mainBody">
+                
+                <!-- Vitrine de Eventos Globais -->
+                <div id="vitrineEventos" style="display: none; margin-bottom: 24px; display: flex; flex-direction: column; gap: 12px;">
+                    <div style="font-size: 14px; font-weight: 600; color: #ef4444; display: flex; align-items: center; gap: 8px;">
+                        <span>🚨</span> Próximos Eventos da Casa
+                    </div>
+                    <div id="listaEventosGlobais" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
+                        <!-- Eventos injetados aqui via JS -->
+                    </div>
+                </div>
+
                 <div class="loading-state" id="loadingState">Aguardando Conexão...</div>
                 
                 <div class="table-container" style="display: none;" id="tableContainer">

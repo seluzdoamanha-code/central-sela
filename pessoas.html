@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Central SELA - Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <script>
+        window.onerror = function(message, source, lineno, colno, error) {
+            const errDiv = document.createElement('div');
+            errDiv.style.background = 'red';
+            errDiv.style.color = 'white';
+            errDiv.style.padding = '20px';
+            errDiv.style.position = 'fixed';
+            errDiv.style.top = '0';
+            errDiv.style.left = '0';
+            errDiv.style.zIndex = '9999';
+            errDiv.innerHTML = `<h1>Erro de JS:</h1><p>${message}</p><p>Linha: ${lineno}</p><pre>${error && error.stack ? error.stack : ''}</pre>`;
+            document.body.appendChild(errDiv);
+        };
+        window.addEventListener('unhandledrejection', function(event) {
+            const errDiv = document.createElement('div');
+            errDiv.style.background = 'darkred';
+            errDiv.style.color = 'white';
+            errDiv.style.padding = '20px';
+            errDiv.style.position = 'fixed';
+            errDiv.style.top = '100px';
+            errDiv.style.left = '0';
+            errDiv.style.zIndex = '9999';
+            errDiv.innerHTML = `<h1>Promise Rejeitada:</h1><p>${event.reason}</p><pre>${event.reason && event.reason.stack ? event.reason.stack : ''}</pre>`;
+            document.body.appendChild(errDiv);
+        });
+    </script>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-area">
+                <h2>Central SELA</h2>
+            </div>
+            <nav class="main-nav">
+                <a href="entidade.html" class="nav-item" data-target="entidade">🏛️ Entidade & Atividades</a>
+                <a href="index.html" class="nav-item active" data-target="pessoas">👥 Pessoas & Perfis</a>
+                <a href="#" class="nav-item" data-target="assistencia">🤝 Assistência Social</a>
+                <a href="#" class="nav-item" data-target="evangelizacao">🌱 Evangelização</a>
+                <a href="#" class="nav-item" data-target="biblioteca">📚 Biblioteca</a>
+                <a href="#" class="nav-item" data-target="financeiro">💰 Financeiro</a>
+                <a href="#" class="nav-item" style="margin-top: 24px;" data-target="config">⚙️ Configurações</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="content-area">
+            <header class="topbar">
+                <h1>Gestão de Pessoas</h1>
+                <div class="actions">
+                    <button id="btnNovaPessoa" class="btn btn-primary">+ Nova Pessoa</button>
+                </div>
+            </header>
+
+            <div class="content-body" id="mainBody">
+                
+                <!-- Vitrine de Eventos Globais -->
+                <div id="vitrineEventos" style="display: none; margin-bottom: 24px; display: flex; flex-direction: column; gap: 12px;">
+                    <div style="font-size: 14px; font-weight: 600; color: #ef4444; display: flex; align-items: center; gap: 8px;">
+                        <span>🚨</span> Próximos Eventos da Casa
+                    </div>
+                    <div id="listaEventosGlobais" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
+                        <!-- Eventos injetados aqui via JS -->
+                    </div>
+                </div>
+
+                <div id="statsRibbon" style="display: none; gap: 16px; margin-bottom: 24px;">
+                    <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; flex: 1; border-left: 4px solid var(--primary);">
+                        <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 4px; letter-spacing: 0.5px;">Total Listado</div>
+                        <div id="statTotal" style="font-size: 24px; font-weight: 700; color: white;">0</div>
+                    </div>
+                    <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; flex: 1; border-left: 4px solid #818cf8;">
+                        <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 4px; letter-spacing: 0.5px;">Pessoas Físicas</div>
+                        <div id="statFisica" style="font-size: 24px; font-weight: 700; color: #818cf8;">0</div>
+                    </div>
+                    <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; flex: 1; border-left: 4px solid #34d399;">
+                        <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 4px; letter-spacing: 0.5px;">Pessoas Jurídicas</div>
+                        <div id="statJuridica" style="font-size: 24px; font-weight: 700; color: #34d399;">0</div>
+                    </div>
+                </div>
+                
+                <div class="loading-state" id="loadingState">Aguardando Conexão...</div>
+                
+                <div class="table-container" style="display: none;" id="tableContainer">
+                    <div class="search-bar" style="display: flex; gap: 12px; margin-bottom: 24px;">
+                <input type="text" id="searchInput" class="input-field" placeholder="Buscar por Nome, CPF ou CNPJ..." style="flex: 1;">
+                
+                <select id="filterTag" class="input-field" style="width: 200px; background-color: var(--bg-dark);">
+                    <option value="">Todos os Tipos</option>
+                    <option value="Física">Apenas Pessoa Física</option>
+                    <option value="Jurídica">Apenas Pessoa Jurídica</option>
+                    <option disabled>──────</option>
+                    <option value="Assistido">Assistidos</option>
+                    <option value="Membro da Família">Membros da Família</option>
+                    <option value="Empresa">Empresas</option>
+                </select>
+                
+                <select id="sortOrder" class="input-field" style="width: 200px; background-color: var(--bg-dark);">
+                    <option value="nome_az">Nome (A - Z)</option>
+                    <option value="nome_za">Nome (Z - A)</option>
+                    <option value="recentes">Mais Recentes</option>
+                </select>
+            </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nome Completo</th>
+                                <th>Papéis / Tags</th>
+                                <th>Celular</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Injetado via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Nova Pessoa -->
+    <div id="modalPessoa" class="modal-overlay">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2 id="modalTitle">Nova Pessoa/Entidade</h2>
+                <button class="btn-close" id="btnCloseModal">×</button>
+            </header>
+            <form id="formPessoa" class="modal-body">
+                <div class="form-group">
+                    <label>Tipo</label>
+                    <select id="inTipo" required>
+                        <option value="Física">Pessoa Física</option>
+                        <option value="Jurídica">Pessoa Jurídica</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label id="lblCpfCnpj">CPF</label>
+                    <input type="text" id="inCpfCnpj">
+                </div>
+                <div class="form-group">
+                    <label id="lblNome">Nome Completo</label>
+                    <input type="text" id="inNome" required>
+                </div>
+                <div class="form-group">
+                    <label id="lblNomeCurto">Nome de Tratamento (Nome Curto)</label>
+                    <input type="text" id="inNomeCurto" required>
+                </div>
+                <div class="form-group">
+                    <label>Celular / WhatsApp</label>
+                    <input type="text" id="inCelular">
+                </div>
+                <div class="form-group">
+                    <label>Papéis / Tags</label>
+                    <div style="background: rgba(0,0,0,0.15); border: 1px solid var(--border); border-radius: 8px; padding: 12px;">
+                        <input type="text" id="tagSearchInput" class="input-field" placeholder="🔍 Buscar papéis..." style="margin-bottom: 12px;">
+                        
+                        <div class="tags-container custom-scrollbar" id="tagsCheckboxContainer" style="display: flex; flex-wrap: wrap; gap: 8px; max-height: 160px; overflow-y: auto; padding-right: 8px;">
+                            <!-- Tags injetadas via app.js -->
+                        </div>
+                    </div>
+                </div>
+                <footer class="modal-footer">
+                    <button type="button" class="btn" id="btnCancelModal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnSaveModal">Salvar</button>
+                </footer>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script src="sidebar.js"></script>
+</body>
+</html>

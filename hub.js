@@ -21,6 +21,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Formulario de Documentos
     document.getElementById('formDoc').addEventListener('submit', salvarDocumento);
+    
+    // Iniciar Aba de Agenda
+    await carregarAgenda();
+    document.getElementById('formEvento').addEventListener('submit', salvarEvento);
 });
 
 async function carregarDadosEstrutura() {
@@ -276,3 +280,141 @@ window.fecharViewer = function() {
     document.getElementById('modalViewer').style.display = 'none';
     document.getElementById('viewerContent').innerHTML = '';
 };
+
+// ==========================================
+// MÓDULO DE AGENDA
+// ==========================================
+
+async function carregarAgenda() {
+    const listAgenda = document.getElementById('listAgenda');
+    listAgenda.innerHTML = '<div style="color: var(--text-muted); font-size: 13px;">Carregando...</div>';
+    
+    try {
+        const hojeIso = new Date().toISOString();
+        
+        // Buscar eventos locais e globais futuros
+        const { data: eventos, error } = await db
+            .from('agenda')
+            .select('*, estruturas(nome)')
+            .or(`estrutura_id.eq.${estruturaId},visibilidade.eq.Global`)
+            .gte('data_hora_inicio', hojeIso)
+            .order('data_hora_inicio', { ascending: true });
+            
+        if (error) throw error;
+        
+        if (!eventos || eventos.length === 0) {
+            listAgenda.innerHTML = '<div style="color: var(--text-muted); font-size: 13px;">Nenhum evento agendado.</div>';
+            return;
+        }
+        
+        let html = '';
+        eventos.forEach(ev => {
+            const dataInicio = new Date(ev.data_hora_inicio);
+            const dataFim = ev.data_hora_fim ? new Date(ev.data_hora_fim) : null;
+            
+            const dataFormatada = dataInicio.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).toUpperCase();
+            const horaFormatada = dataInicio.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            
+            const isGlobal = ev.visibilidade === 'Global';
+            const badgeGloblal = isGlobal ? `<span style="background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-left: 8px;">GLOBAL</span>` : '';
+            const organizador = isGlobal && ev.estruturas ? `Organizado por: ${ev.estruturas.nome}` : '';
+            
+            // Gerar Link Google Calendar (Formato: YYYYMMDDTHHMMSSZ)
+            const gcalInicio = dataInicio.toISOString().split('.')[0].replace(/[-:]/g, "") + "Z";
+            let gcalFim = gcalInicio;
+            if (dataFim) {
+                gcalFim = dataFim.toISOString().split('.')[0].replace(/[-:]/g, "") + "Z";
+            } else {
+                // +1 hora por padrão
+                const tempFim = new Date(dataInicio.getTime() + 60 * 60 * 1000);
+                gcalFim = tempFim.toISOString().split('.')[0].replace(/[-:]/g, "") + "Z";
+            }
+            const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(ev.titulo)}&dates=${gcalInicio}/${gcalFim}&details=${encodeURIComponent(ev.descricao || '')}&location=${encodeURIComponent(ev.local || '')}`;
+
+            // Gerar conteudo ICS
+            const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+DTSTART:${gcalInicio}
+DTEND:${gcalFim}
+SUMMARY:${ev.titulo}
+DESCRIPTION:${ev.descricao || ''}
+LOCATION:${ev.local || ''}
+END:VEVENT
+END:VCALENDAR`;
+            
+            const icsEncoded = encodeURIComponent(icsContent);
+
+            html += `
+            <div style="background: var(--bg-panel); border: 1px solid ${isGlobal ? '#ef4444' : 'var(--border)'}; border-radius: 8px; padding: 16px; display: flex; gap: 16px; position: relative;">
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 8px; min-width: 60px;">
+                    <div style="font-size: 14px; color: var(--primary); font-weight: bold;">${dataFormatada.split(' de ')[0]}</div>
+                    <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">${dataFormatada.split(' de ')[1] || ''}</div>
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-size: 16px; font-weight: 600; color: white;">${ev.titulo} ${badgeGloblal}</div>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">⏰ ${horaFormatada} ${ev.local ? `| 📍 ${ev.local}` : ''}</div>
+                    ${ev.descricao ? `<div style="font-size: 13px; color: #cbd5e1; margin-top: 8px; line-height: 1.4;">${ev.descricao}</div>` : ''}
+                    ${organizador ? `<div style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">${organizador}</div>` : ''}
+                    
+                    <div style="margin-top: 12px; display: flex; gap: 8px;">
+                        <a href="${gcalUrl}" target="_blank" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px; text-decoration: none;">+ Google Agenda</a>
+                        <a href="data:text/calendar;charset=utf8,${icsEncoded}" download="${ev.titulo.replace(/\s+/g, '_')}.ics" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px; text-decoration: none;">+ Apple/Outlook (.ics)</a>
+                    </div>
+                </div>
+            </div>
+            `;
+        });
+        
+        listAgenda.innerHTML = html;
+    } catch (err) {
+        console.warn("Erro ao carregar agenda", err);
+        listAgenda.innerHTML = '<div style="color: #ef4444; font-size: 13px;">⚠️ Erro: Tabela agenda não encontrada.</div>';
+    }
+}
+
+window.abrirModalEvento = function() {
+    document.getElementById('formEvento').reset();
+    document.getElementById('modalEvento').style.display = 'flex';
+};
+
+window.fecharModalEvento = function() {
+    document.getElementById('modalEvento').style.display = 'none';
+};
+
+async function salvarEvento(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnSaveEvento');
+    btn.disabled = true;
+    btn.textContent = 'Salvando...';
+
+    const titulo = document.getElementById('inEvTitulo').value;
+    const inicio = document.getElementById('inEvInicio').value;
+    const fim = document.getElementById('inEvFim').value;
+    const local = document.getElementById('inEvLocal').value;
+    const visibilidade = document.getElementById('inEvVisibilidade').value;
+    const descricao = document.getElementById('inEvDescricao').value;
+
+    try {
+        const { error } = await db.from('agenda').insert([{
+            estrutura_id: estruturaId,
+            titulo: titulo,
+            data_hora_inicio: inicio ? new Date(inicio).toISOString() : null,
+            data_hora_fim: fim ? new Date(fim).toISOString() : null,
+            local: local,
+            visibilidade: visibilidade,
+            descricao: descricao
+        }]);
+
+        if (error) throw error;
+        
+        fecharModalEvento();
+        await carregarAgenda();
+    } catch (err) {
+        console.error("Erro ao salvar evento:", err);
+        alert("Erro ao salvar o evento.");
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Salvar Evento';
+    }
+}

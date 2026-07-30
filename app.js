@@ -20,6 +20,64 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Configura as Tags Dinâmicas
     window.renderizarTagsDisponiveis();
+    
+    // ==========================================
+    // VITRINE DE EVENTOS GLOBAIS
+    // ==========================================
+    async function carregarEventosGlobais() {
+        const containerVitrine = document.getElementById('vitrineEventos');
+        const listaEventos = document.getElementById('listaEventosGlobais');
+        
+        if (!containerVitrine || !listaEventos) return;
+        
+        try {
+            const hojeIso = new Date().toISOString();
+            
+            const { data, error } = await db
+                .from('agenda')
+                .select('*, estruturas(nome)')
+                .eq('visibilidade', 'Global')
+                .gte('data_hora_inicio', hojeIso)
+                .order('data_hora_inicio', { ascending: true })
+                .limit(3);
+                
+            if (error) throw error;
+            
+            if (data && data.length > 0) {
+                containerVitrine.style.display = 'flex';
+                
+                let html = '';
+                data.forEach(ev => {
+                    const dataInicio = new Date(ev.data_hora_inicio);
+                    const dataFormatada = dataInicio.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).toUpperCase();
+                    const horaFormatada = dataInicio.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                    const organizador = ev.estruturas ? ev.estruturas.nome : 'Central SELA';
+                    
+                    html += `
+                    <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; border-radius: 8px; padding: 12px; display: flex; gap: 12px; align-items: center;">
+                        <div style="background: #ef4444; color: white; border-radius: 6px; padding: 6px 10px; text-align: center; min-width: 55px;">
+                            <div style="font-size: 14px; font-weight: bold;">${dataFormatada.split(' de ')[0]}</div>
+                            <div style="font-size: 10px; text-transform: uppercase;">${dataFormatada.split(' de ')[1] || ''}</div>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; color: white; font-size: 14px;">${ev.titulo}</div>
+                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">${organizador} | ⏰ ${horaFormatada} ${ev.local ? `| 📍 ${ev.local}` : ''}</div>
+                        </div>
+                    </div>
+                    `;
+                });
+                
+                listaEventos.innerHTML = html;
+            } else {
+                containerVitrine.style.display = 'none';
+            }
+        } catch (err) {
+            console.warn('Tabela agenda ainda não criada ou erro:', err);
+        }
+    }
+    
+    // Carrega Vitrine de Eventos Globais
+    carregarEventosGlobais();
 });
 
 window.aplicarFiltros = () => {
