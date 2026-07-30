@@ -291,30 +291,27 @@ body {
         flex-direction: column;
     }
     
-    /* Navbar Superior com Scroll Horizontal */
+    /* Navbar Superior Retrátil no Celular */
     .sidebar {
         width: 100%;
-        flex-direction: row;
+        flex-direction: column;
         border-right: none;
         border-bottom: 1px solid var(--border);
-        align-items: center;
-        overflow-x: auto;
-        /* Esconde a barra de rolagem mas permite o scroll */
-        -ms-overflow-style: none;  
-        scrollbar-width: none;  
-    }
-    .sidebar::-webkit-scrollbar { 
-        display: none; 
+        overflow: hidden;
     }
     
     .logo-area {
         padding: 16px;
         border-bottom: none;
-        border-right: 1px solid var(--border);
-        flex-shrink: 0;
+        border-right: none;
+        width: 100%;
     }
     .logo-area h2 {
         font-size: 16px;
+    }
+    
+    .mobile-menu-btn {
+        display: block !important;
     }
     
     .sidebar-footer {
@@ -322,22 +319,28 @@ body {
     }
     
     .main-nav {
-        flex-direction: row;
+        flex-direction: column;
         padding: 0;
-        flex-shrink: 0;
+        width: 100%;
+        display: none; /* Oculto por padrão no celular */
+    }
+    
+    .main-nav.show-mobile {
+        display: flex;
+        border-top: 1px solid rgba(255,255,255,0.05);
     }
     
     .nav-item {
-        padding: 12px 14px;
-        font-size: 13px;
-        white-space: nowrap;
+        padding: 12px 16px;
+        font-size: 14px;
+        white-space: normal;
         border-right: none;
-        border-bottom: 3px solid transparent;
+        border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+        border-left: none !important;
     }
     
     .nav-item[style*="margin-top: 24px"] {
         margin-top: 0 !important;
-        border-left: 1px solid var(--border);
     }
 
     .nav-item.active {

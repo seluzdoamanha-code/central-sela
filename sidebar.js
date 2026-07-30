@@ -17,9 +17,12 @@
         
         const sidebarHTML = `
             <aside class="sidebar" style="display: flex; flex-direction: column;">
-                <div class="logo-area" style="display: flex; align-items: center; justify-content: flex-start; gap: 12px; padding: 0 16px;">
-                    <img src="logo_sela.png" alt="Logo SELA" style="height: 40px; width: auto; border-radius: 50%;">
-                    <h2 style="margin: 0;">Central SELA</h2>
+                <div class="logo-area" style="display: flex; align-items: center; justify-content: space-between; padding: 0 16px;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <img src="logo_sela.png" alt="Logo SELA" style="height: 40px; width: auto; border-radius: 50%;">
+                        <h2 style="margin: 0;">Central SELA</h2>
+                    </div>
+                    <button id="mobileMenuBtn" class="mobile-menu-btn" style="background: none; border: none; color: white; font-size: 28px; cursor: pointer; display: none;">=</button>
                 </div>
                 <nav class="main-nav" id="sidebarNav" style="flex: 1;">
                     <a href="index.html" class="nav-item ${currentPage === 'index.html' ? 'active' : ''}">🏠 Início / Mural</a>
@@ -54,6 +57,15 @@
         } else {
             const container = document.querySelector('.app-container');
             if (container) container.insertAdjacentHTML('afterbegin', sidebarHTML);
+        }
+        
+        // Lógica do Menu Hambúrguer (Mobile)
+        const btnMenu = document.getElementById('mobileMenuBtn');
+        const navMenu = document.getElementById('sidebarNav');
+        if(btnMenu && navMenu) {
+            btnMenu.addEventListener('click', () => {
+                navMenu.classList.toggle('show-mobile');
+            });
         }
         
         await carregarAtalhosDinamicos();
