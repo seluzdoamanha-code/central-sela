@@ -199,6 +199,18 @@ function configurarAbas() {
             }
         });
     });
+
+    // Auto-navegar para aba passada na URL (?id=XXX&tab=abaApps)
+    const urlTab = urlParams.get('tab');
+    if (urlTab) {
+        // Usamos um timeout curto para garantir que outras manipulações (como carregarDadosEstrutura) já renderizaram o botão
+        setTimeout(() => {
+            const btn = document.querySelector(`[data-target="${urlTab}"]`);
+            if (btn && btn.style.display !== 'none') {
+                btn.click();
+            }
+        }, 300);
+    }
 }
 
 // Assumir o controle do Menu Hambúrguer (Mobile)
