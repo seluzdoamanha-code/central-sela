@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Central SELA - Configurações Globais</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        .config-section {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 32px;
+            margin-bottom: 24px;
+        }
+        .config-header {
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 16px;
+        }
+        .config-title {
+            font-size: 20px;
+            color: white;
+            font-weight: 600;
+        }
+        .config-desc {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-top: 4px;
+        }
+        
+        .toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px dashed rgba(255,255,255,0.05);
+        }
+        
+        /* Toggle Switch CSS */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #334155;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: var(--primary);
+        }
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+        input:disabled + .slider {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .social-input-group {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .social-input-group .input-field {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar injetada pelo sidebar.js -->
+
+        <main class="content-area">
+            <header class="topbar">
+                <h1>Configurações Globais</h1>
+            </header>
+
+            <div class="content-body">
+                
+                <div id="alertMessage" style="display: none; padding: 16px; background: rgba(59, 130, 246, 0.1); border: 1px solid #3b82f6; color: #60a5fa; border-radius: 8px; margin-bottom: 24px;">
+                    Mensagem aqui
+                </div>
+                
+                <!-- Seção de Menu Principal -->
+                <div class="config-section">
+                    <div class="config-header">
+                        <h2 class="config-title">Fixar Departamentos no Menu (Sidebar)</h2>
+                        <p class="config-desc">Selecione quais Departamentos, Atividades ou Famílias devem aparecer permanentemente na barra lateral como atalhos de acesso rápido.</p>
+                    </div>
+                    
+                    <div id="loadingDepartamentos" style="color: var(--text-muted); padding: 16px 0;">Carregando estruturas...</div>
+                    <div id="listaDepartamentos">
+                        <!-- Injetado via JS -->
+                    </div>
+                </div>
+                
+                <!-- Seção de Redes Sociais -->
+                <div class="config-section">
+                    <div class="config-header">
+                        <h2 class="config-title">Redes Sociais Oficiais</h2>
+                        <p class="config-desc">Estes ícones aparecerão no rodapé do Menu Lateral. Preencha o link para ativar a rede.</p>
+                    </div>
+                    
+                    <form id="formSociais">
+                        <div class="social-input-group">
+                            <label class="switch">
+                                <input type="checkbox" id="chkYoutube">
+                                <span class="slider"></span>
+                            </label>
+                            <span style="font-size: 24px;">▶️</span>
+                            <input type="text" id="inYoutube" class="input-field" placeholder="Link do Canal do YouTube (ex: https://youtube.com/...)">
+                        </div>
+                        
+                        <div class="social-input-group">
+                            <label class="switch">
+                                <input type="checkbox" id="chkInstagram">
+                                <span class="slider"></span>
+                            </label>
+                            <span style="font-size: 24px;">📸</span>
+                            <input type="text" id="inInstagram" class="input-field" placeholder="Link do Perfil no Instagram (ex: https://instagram.com/...)">
+                        </div>
+                        
+                        <div class="social-input-group">
+                            <label class="switch">
+                                <input type="checkbox" id="chkFacebook">
+                                <span class="slider"></span>
+                            </label>
+                            <span style="font-size: 24px;">📘</span>
+                            <input type="text" id="inFacebook" class="input-field" placeholder="Link da Página no Facebook (ex: https://facebook.com/...)">
+                        </div>
+                        
+                        <div class="social-input-group">
+                            <label class="switch">
+                                <input type="checkbox" id="chkTiktok">
+                                <span class="slider"></span>
+                            </label>
+                            <span style="font-size: 24px;">🎵</span>
+                            <input type="text" id="inTiktok" class="input-field" placeholder="Link do TikTok">
+                        </div>
+                        
+                        <button type="button" id="btnSalvarSociais" class="btn btn-primary" style="margin-top: 16px;">Salvar Redes Sociais</button>
+                    </form>
+                </div>
+                
+            </div>
+        </main>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="sidebar.js"></script>
+</body>
+</html>
