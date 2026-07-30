@@ -54,7 +54,7 @@
         <main class="content-area">
             <header class="topbar">
                 <div style="display: flex; gap: 16px; align-items: center;">
-                    <a href="entidade.html" class="btn" style="text-decoration: none; padding: 6px 12px; background: var(--bg-dark); color: var(--text-muted);">&larr; Voltar</a>
+                    <a id="btnVoltar" href="entidade.html" class="btn" style="text-decoration: none; padding: 6px 12px; background: var(--bg-dark); color: var(--text-muted);">&larr; Voltar</a>
                     <div>
                         <h1 id="nomeEstrutura" style="font-size: 24px; font-weight: 600; margin: 0;">Carregando Organograma...</h1>
                         <div id="tipoEstrutura" style="font-size: 14px; color: var(--text-muted); margin-top: 4px;">Aguarde</div>
@@ -87,8 +87,8 @@
                 
                 <div class="form-group">
                     <label>Pessoa (Busque e Selecione)</label>
-                    <select id="inPessoa" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-dark); color: white;">
-                        <option value="">Carregando pessoas...</option>
+                    <select id="inPessoa" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-dark); color: var(--text-main);">
+                        <option value="">Selecione a pessoa...</option>
                     </select>
                 </div>
                 
@@ -99,8 +99,8 @@
                 
                 <div class="form-group">
                     <label>Líder / Superior / Pai (Deixe em branco se for a Raiz da árvore)</label>
-                    <select id="inParent" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-dark); color: white;">
-                        <option value="">-- Ninguém (Será o topo da Árvore) --</option>
+                    <select id="inParent" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-dark); color: var(--text-main);">
+                        <option value="">Nenhum (Raiz)</option>
                         <!-- Pessoas já na árvore aparecerão aqui -->
                     </select>
                 </div>

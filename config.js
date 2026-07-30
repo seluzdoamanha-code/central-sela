@@ -7,7 +7,42 @@ document.addEventListener('DOMContentLoaded', async () => {
     await carregarSociais();
     
     document.getElementById('btnSalvarSociais').addEventListener('click', salvarSociais);
+    
+    // Configurar Temas
+    configurarTemas();
 });
+
+// ----------------------------------------------------
+// LÓGICA DOS TEMAS
+// ----------------------------------------------------
+function configurarTemas() {
+    const botoesTema = document.querySelectorAll('.theme-selector-btn');
+    const temaSalvo = localStorage.getItem('central_sela_theme') || 'theme-dark';
+
+    // Marca o ativo no carregamento
+    botoesTema.forEach(btn => {
+        if (btn.dataset.theme === temaSalvo) {
+            btn.classList.add('active');
+        }
+        
+        btn.addEventListener('click', (e) => {
+            const novoTema = e.currentTarget.dataset.theme;
+            
+            // Remove active de todos
+            botoesTema.forEach(b => b.classList.remove('active'));
+            
+            // Adiciona active no clicado
+            e.currentTarget.classList.add('active');
+            
+            // Salva e aplica
+            localStorage.setItem('central_sela_theme', novoTema);
+            document.body.className = novoTema === 'theme-dark' ? '' : novoTema;
+            
+            showAviso('Tema visual alterado com sucesso! ✅');
+        });
+    });
+}
+
 
 function showAviso(msg) {
     const alertBox = document.getElementById('alertMessage');
@@ -40,7 +75,7 @@ async function carregarDepartamentos() {
             html += `
             <div class="toggle-row">
                 <div>
-                    <div style="color: white; font-weight: 500;">${d.nome}</div>
+                    <div style="color: var(--text-main); font-weight: 500;">${d.nome}</div>
                     <div style="color: var(--text-muted); font-size: 12px; margin-top: 2px;">Tipo: ${d.tipo}</div>
                 </div>
                 <label class="switch">

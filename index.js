@@ -104,7 +104,7 @@
                 <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px;">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
                         <div>
-                            <h3 style="font-size: 16px; margin: 0; color: white;">${post.titulo}</h3>
+                            <h3 style="font-size: 16px; margin: 0; color: var(--text-main);">${post.titulo}</h3>
                             <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Por <strong>${post.autor}</strong> em ${dataFormatada}</div>
                         </div>
                         <button onclick="excluirPost('${post.id}')" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 4px;" title="Excluir Post">🗑️</button>

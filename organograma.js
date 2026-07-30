@@ -27,6 +27,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
+    // Atualiza o link do botão voltar para o Hub da Estrutura
+    const btnVoltar = document.getElementById('btnVoltar');
+    if (btnVoltar) {
+        btnVoltar.href = `hub.html?id=${estruturaId}`;
+    }
+
     setupModal();
     await carregarEstrutura();
     await carregarPessoasParaSelect();

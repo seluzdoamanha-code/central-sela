@@ -1,4 +1,10 @@
 (function() {
+    // Aplica o tema salvo imediatamente para evitar piscar cores
+    const temaSalvo = localStorage.getItem('central_sela_theme');
+    if (temaSalvo && temaSalvo !== 'theme-dark') {
+        document.body.className = temaSalvo;
+    }
+
     // Usamos variáveis locais (não exportadas pro window) para não dar conflito
     // com outros arquivos js (ex: app.js, entidade.js) que também declaram SUPABASE_URL.
     const SUPABASE_URL = 'https://aymdooyafimliiggxeqs.supabase.co';

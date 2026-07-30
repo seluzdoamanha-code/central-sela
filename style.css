@@ -11,6 +11,39 @@
     --warning: #f59e0b;
 }
 
+/* Tema Claro / Cinza */
+body.theme-light {
+    --primary: #475569;
+    --primary-hover: #334155;
+    --bg-dark: #f1f5f9;
+    --bg-panel: #ffffff;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+}
+
+/* Tema Pastel */
+body.theme-pastel {
+    --primary: #f28b82;
+    --primary-hover: #e07a71;
+    --bg-dark: #fcfbf9;
+    --bg-panel: #f9f6f0;
+    --text-main: #4a3b32;
+    --text-muted: #8b7d72;
+    --border: #eedacb;
+}
+
+/* Tema Alaranjado (Dark Energético) */
+body.theme-orange {
+    --primary: #f97316;
+    --primary-hover: #ea580c;
+    --bg-dark: #1c1917;
+    --bg-panel: #292524;
+    --text-main: #f5f5f4;
+    --text-muted: #a8a29e;
+    --border: #44403c;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -200,7 +233,7 @@ body {
 .form-group label { display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 14px; }
 .form-group input, .form-group select {
     width: 100%; padding: 10px; border-radius: 6px;
-    border: 1px solid var(--border); background: var(--bg-dark); color: white;
+    border: 1px solid var(--border); background: var(--bg-dark); color: var(--text-main);
 }
 
 .modal-footer {

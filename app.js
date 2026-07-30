@@ -50,17 +50,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 data.forEach(ev => {
                     const dataInicio = new Date(ev.data_hora_inicio);
                     const dataFormatada = dataInicio.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).toUpperCase();
+                    const evDia = dataInicio.toLocaleDateString('pt-BR', { day: '2-digit' });
+                    const evMes = dataInicio.toLocaleDateString('pt-BR', { month: 'short' }).toUpperCase();
                     const horaFormatada = dataInicio.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
                     const organizador = ev.estruturas ? ev.estruturas.nome : 'Central SELA';
                     
                     html += `
                     <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; border-radius: 8px; padding: 12px; display: flex; gap: 12px; align-items: center;">
-                        <div style="background: #ef4444; color: white; border-radius: 6px; padding: 6px 10px; text-align: center; min-width: 55px;">
-                            <div style="font-size: 14px; font-weight: bold;">${dataFormatada.split(' de ')[0]}</div>
-                            <div style="font-size: 10px; text-transform: uppercase;">${dataFormatada.split(' de ')[1] || ''}</div>
+                        <div style="background: #ef4444; color: var(--text-main); border-radius: 6px; padding: 6px 10px; text-align: center; min-width: 55px;">
+                            <div style="font-weight: bold; font-size: 16px;">${evDia}</div>
+                            <div style="font-size: 11px; text-transform: uppercase;">${evMes}</div>
                         </div>
                         <div>
-                            <div style="font-weight: 600; color: white; font-size: 14px;">${ev.titulo}</div>
+                            <div style="font-weight: 600; color: var(--text-main); font-size: 14px;">${ev.titulo}</div>
                             <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">${organizador} | ⏰ ${horaFormatada} ${ev.local ? `| 📍 ${ev.local}` : ''}</div>
                         </div>
                     </div>
@@ -353,6 +355,7 @@ function setupModal() {
         const nome = document.getElementById('inNome').value;
         const nome_curto = document.getElementById('inNomeCurto').value;
         const celular = document.getElementById('inCelular').value || null;
+        const email = document.getElementById('inEmail').value || null;
         
         // Coleta tags selecionadas
         const checkboxes = document.querySelectorAll('input[name="papeis"]:checked');
@@ -363,6 +366,7 @@ function setupModal() {
             nome_completo: nome,
             nome_curto: nome_curto,
             celular: celular,
+            email: email,
             tipo_pessoa: tipo,
             papeis: papeis
         };
@@ -403,6 +407,7 @@ window.editarPessoa = async (id) => {
     document.getElementById('inNome').value = pessoa.nome_completo || '';
     document.getElementById('inNomeCurto').value = pessoa.nome_curto || '';
     document.getElementById('inCelular').value = pessoa.celular || '';
+    document.getElementById('inEmail').value = pessoa.email || '';
     
     // Marcar as tags corretas
     const papeis = pessoa.papeis || [];

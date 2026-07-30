@@ -15,6 +15,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     await carregarDadosEstrutura();
     configurarAbas();
     
+    // Iniciar Aba de Equipe
+    await carregarEquipe();
+    
     // Iniciar Aba de Documentos
     await carregarDocumentos();
     await popularSelectDepartamentos();
@@ -41,6 +44,86 @@ async function carregarDadosEstrutura() {
     } catch (err) {
         console.error("Erro ao carregar estrutura:", err);
         document.getElementById('loadingState').textContent = "Erro ao carregar dados. Verifique sua conexão.";
+    }
+}
+
+// ==========================================
+// MÓDULO DE EQUIPE
+// ==========================================
+async function carregarEquipe() {
+    try {
+        const { data, error } = await db
+            .from('vinculos_estrutura')
+            .select(`
+                papel,
+                pessoas (nome_completo, papeis, celular, email)
+            `)
+            .eq('estrutura_id', estruturaId);
+            
+        if (error) throw error;
+        
+        const gridLideranca = document.getElementById('gridLideranca');
+        const gridMembros = document.getElementById('gridMembros');
+        const status = document.getElementById('equipeStatus');
+        
+        if (!data || data.length === 0) {
+            status.textContent = 'Nenhum membro vinculado a este departamento.';
+            return;
+        }
+        
+        status.textContent = `${data.length} membro(s) na equipe.`;
+        
+        let htmlLider = '';
+        let htmlMembro = '';
+        
+        data.forEach(rel => {
+            const pessoa = rel.pessoas;
+            if (!pessoa) return;
+            
+            const isLider = rel.papel && (
+                rel.papel.toLowerCase().includes('diretor') ||
+                rel.papel.toLowerCase().includes('líder') ||
+                rel.papel.toLowerCase().includes('lider') ||
+                rel.papel.toLowerCase().includes('coordenador')
+            );
+            
+            // Format phone if it exists
+            const telefone = pessoa.celular ? `<div style="font-size: 11px; margin-top: 4px; color: var(--text-muted);">📱 ${pessoa.celular}</div>` : '';
+            const emailIcon = pessoa.email ? `<div style="font-size: 11px; margin-top: 2px; color: var(--text-muted);">✉️ ${pessoa.email}</div>` : '';
+            
+            const cardHtml = `
+            <div style="background: var(--bg-panel); border: 1px solid ${isLider ? 'var(--primary)' : 'var(--border)'}; border-radius: 8px; padding: 16px; display: flex; flex-direction: column;">
+                <div style="font-size: 15px; font-weight: 600; color: var(--text-main);">${pessoa.nome_completo}</div>
+                <div style="font-size: 13px; color: var(--primary); margin-top: 4px; font-weight: 500;">${rel.papel || 'Membro'}</div>
+                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);">
+                    ${telefone}
+                    ${emailIcon}
+                </div>
+                ${pessoa.papeis && pessoa.papeis.length > 0 ? 
+                    `<div style="margin-top: 12px; display: flex; gap: 4px; flex-wrap: wrap;">
+                        ${pessoa.papeis.map(t => `<span style="background: rgba(129, 140, 248, 0.1); color: #818cf8; padding: 2px 8px; border-radius: 12px; font-size: 10px;">${t}</span>`).join('')}
+                    </div>` 
+                : ''}
+            </div>
+            `;
+            
+            if (isLider) htmlLider += cardHtml;
+            else htmlMembro += cardHtml;
+        });
+        
+        if (htmlLider) {
+            document.getElementById('containerLideranca').style.display = 'block';
+            gridLideranca.innerHTML = htmlLider;
+        }
+        
+        if (htmlMembro) {
+            document.getElementById('containerMembros').style.display = 'block';
+            gridMembros.innerHTML = htmlMembro;
+        }
+        
+    } catch (err) {
+        console.error("Erro ao carregar equipe:", err);
+        document.getElementById('equipeStatus').textContent = "Erro: " + (err.message || "Falha ao buscar membros no banco de dados.");
     }
 }
 
@@ -137,11 +220,11 @@ function renderizarDocumentos(docs, container, isLocal) {
         html += `
         <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                <div style="font-size: 16px; font-weight: 600; color: white;">${icon} ${doc.titulo}</div>
+                <div style="font-size: 16px; font-weight: 600; color: var(--text-main);">${icon} ${doc.titulo}</div>
                 ${deleteBtn}
             </div>
             <div style="font-size: 12px; color: var(--text-muted);">${dono}</div>
-            <div style="margin-top: auto; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: flex-end;">
+            <div style="margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end;">
                 ${actionBtn}
             </div>
         </div>
@@ -188,8 +271,8 @@ async function popularSelectDepartamentos() {
             let html = '';
             data.forEach(d => {
                 html += `
-                <label style="display: flex; align-items: center; gap: 8px; color: white; cursor: pointer;">
-                    <input type="checkbox" class="chk-dept" value="${d.id}"> ${d.nome}
+                <label style="display: flex; align-items: center; gap: 8px; color: var(--text-main); cursor: pointer;">
+                    <input type="checkbox" class="chk-dept" value="${d.id}" style="width: auto;"> ${d.nome}
                 </label>
                 `;
             });
@@ -351,10 +434,10 @@ END:VCALENDAR`;
                     <div style="font-size: 14px; color: var(--primary); font-weight: bold;">${dataFormatada.split(' de ')[0]}</div>
                     <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase;">${dataFormatada.split(' de ')[1] || ''}</div>
                 </div>
-                <div style="flex: 1;">
-                    <div style="font-size: 16px; font-weight: 600; color: white;">${ev.titulo} ${badgeGloblal}</div>
+                <div style="flex: 1; padding-right: 24px;">
+                    <div style="font-size: 16px; font-weight: 600; color: var(--text-main);">${ev.titulo} ${badgeGloblal}</div>
                     <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">⏰ ${horaFormatada} ${ev.local ? `| 📍 ${ev.local}` : ''}</div>
-                    ${ev.descricao ? `<div style="font-size: 13px; color: #cbd5e1; margin-top: 8px; line-height: 1.4;">${ev.descricao}</div>` : ''}
+                    ${ev.descricao ? `<div style="font-size: 13px; color: var(--text-muted); margin-top: 8px; line-height: 1.4;">${ev.descricao}</div>` : ''}
                     ${organizador ? `<div style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">${organizador}</div>` : ''}
                     
                     <div style="margin-top: 12px; display: flex; gap: 8px;">
@@ -362,6 +445,7 @@ END:VCALENDAR`;
                         <a href="data:text/calendar;charset=utf8,${icsEncoded}" download="${ev.titulo.replace(/\s+/g, '_')}.ics" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px; text-decoration: none;">+ Apple/Outlook (.ics)</a>
                     </div>
                 </div>
+                <button onclick="excluirEventoAgenda('${ev.id}')" style="position: absolute; top: 12px; right: 12px; background: none; border: none; font-size: 14px; cursor: pointer; color: var(--text-muted);" title="Excluir Evento">🗑️</button>
             </div>
             `;
         });
@@ -418,3 +502,16 @@ async function salvarEvento(e) {
         btn.textContent = 'Salvar Evento';
     }
 }
+
+window.excluirEventoAgenda = async (id) => {
+    if (!confirm("Tem certeza que deseja apagar este evento da agenda?")) return;
+    
+    try {
+        const { error } = await db.from('agenda').delete().eq('id', id);
+        if (error) throw error;
+        carregarAgenda();
+    } catch (err) {
+        console.error("Erro ao excluir evento:", err);
+        alert("Erro ao excluir evento.");
+    }
+};
