@@ -1,0 +1,171 @@
+const SUPABASE_URL = 'https://aymdooyafimliiggxeqs.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5bWRvb3lhZmltbGlpZ2d4ZXFzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUxMDUxNDksImV4cCI6MjEwMDY4MTE0OX0.-NBhiyGDlrWq4QKNLx9Ll5GlIk0mV_rBWnr0vdbUCOU';
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let estruturasGlobais = [];
+let estruturaEditandoId = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    carregarEstruturas();
+    setupModal();
+    
+    const inputSearch = document.getElementById('searchEstrutura');
+    const filterTipo = document.getElementById('filterTipoEstrutura');
+
+    inputSearch.addEventListener('input', window.aplicarFiltros);
+    filterTipo.addEventListener('change', window.aplicarFiltros);
+});
+
+window.aplicarFiltros = () => {
+    try {
+        const inputSearch = document.getElementById('searchEstrutura');
+        const filterTipo = document.getElementById('filterTipoEstrutura');
+        
+        const termoBusca = (inputSearch ? inputSearch.value : '').toLowerCase();
+        const tipoSelecionado = filterTipo ? filterTipo.value : '';
+        
+        let filtrados = estruturasGlobais.filter(e => {
+            const nomeMatch = (e.nome || '').toLowerCase().includes(termoBusca);
+            const tipoMatch = tipoSelecionado ? e.tipo === tipoSelecionado : true;
+            return nomeMatch && tipoMatch;
+        });
+
+        // Ordem alfabética
+        filtrados.sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
+
+        renderizarTabela(filtrados);
+    } catch (err) {
+        console.error("Erro no aplicarFiltros:", err);
+    }
+};
+
+async function carregarEstruturas() {
+    document.getElementById('loadingState').style.display = 'block';
+    document.getElementById('tableContainer').style.display = 'none';
+    
+    // Na tabela 'estruturas', queremos saber quantas pessoas tem, mas isso está na vinculos_estrutura.
+    // Por enquanto, faremos o select básico. Depois adicionamos as contagens.
+    const { data, error } = await db.from('estruturas').select('*').order('nome');
+    
+    if (error) {
+        document.getElementById('loadingState').textContent = 'Erro ao carregar: ' + error.message;
+        return;
+    }
+    
+    estruturasGlobais = data || [];
+    
+    if (estruturasGlobais.length === 0) {
+        document.getElementById('loadingState').textContent = 'Nenhuma Estrutura (Departamento/Família) cadastrada ainda.';
+        document.getElementById('loadingState').style.display = 'block';
+        document.getElementById('tableContainer').style.display = 'none';
+    } else {
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('tableContainer').style.display = 'block';
+        window.aplicarFiltros(); 
+    }
+}
+
+function renderizarTabela(dados) {
+    const tbody = document.getElementById('tableEstruturas');
+    tbody.innerHTML = '';
+    
+    dados.forEach(estrutura => {
+        let icone = '🏛️';
+        if (estrutura.tipo === 'Família') icone = '👨‍👩‍👧‍👦';
+        if (estrutura.tipo === 'Atividade') icone = '📅';
+        if (estrutura.tipo === 'Turma') icone = '🌱';
+        
+        tbody.innerHTML += `
+            <tr>
+                <td style="font-weight: 500; font-size: 16px;">
+                    ${icone} ${estrutura.nome}
+                </td>
+                <td>
+                    <span style="background: rgba(79,70,229,0.2); color: #818cf8; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
+                        ${estrutura.tipo}
+                    </span>
+                </td>
+                <td style="color: var(--text-muted);">
+                    (Em Breve)
+                </td>
+                <td>
+                    <div style="display: flex; gap: 8px;">
+                        <a href="hub.html?id=${estrutura.id}" class="btn-primary" style="padding: 6px 12px; font-size: 12px; text-decoration: none; min-width: auto;">
+                            Acessar Hub &nearr;
+                        </a>
+                        <button onclick="editarEstrutura('${estrutura.id}')" class="btn-primary" style="padding: 6px 12px; font-size: 12px; min-width: auto; background: transparent; border: 1px solid var(--border); color: var(--text-muted);">
+                            Editar
+                        </button>
+                        <button onclick="excluirEstrutura('${estrutura.id}')" class="btn-primary" style="padding: 6px 12px; font-size: 12px; min-width: auto; background: var(--bg-dark); border: 1px solid var(--border); color: #ef4444;">
+                            Excluir
+                        </button>
+                    </div>
+                </td>
+        `;
+    });
+}
+
+function setupModal() {
+    const modal = document.getElementById('modalEstrutura');
+    const btnNovo = document.getElementById('btnNovaEstrutura');
+    const btnClose = document.getElementById('btnCloseModal');
+    const btnCancel = document.getElementById('btnCancelModal');
+    const form = document.getElementById('formEstrutura');
+    
+    const fecharModal = () => { 
+        modal.classList.remove('show'); 
+        form.reset(); 
+        estruturaEditandoId = null;
+    };
+    
+    btnNovo.addEventListener('click', () => modal.classList.add('show'));
+    btnClose.addEventListener('click', fecharModal);
+    btnCancel.addEventListener('click', fecharModal);
+    
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const btnSave = document.getElementById('btnSaveModal');
+        btnSave.disabled = true;
+        btnSave.textContent = 'Salvando...';
+        
+        const tipo = document.getElementById('inTipoEstrutura').value;
+        const nome = document.getElementById('inNomeEstrutura').value;
+        
+        const dados = {
+            tipo: tipo,
+            nome: nome
+        };
+        
+        try {
+            if (estruturaEditandoId) {
+                const { error } = await db.from('estruturas').update(dados).eq('id', estruturaEditandoId);
+                if (error) throw error;
+            } else {
+                const { error } = await db.from('estruturas').insert([dados]);
+                if (error) throw error;
+            }
+            
+            fecharModal();
+            carregarEstruturas();
+        } catch (error) {
+            console.error('Erro ao salvar:', error);
+            alert('Erro ao salvar. Verifique o console.');
+        } finally {
+            btnSave.disabled = false;
+            btnSave.textContent = 'Salvar Estrutura';
+        }
+    });
+}
+
+window.editarEstrutura = async (id) => {
+    const estr = estruturasGlobais.find(e => e.id === id);
+    if (!estr) return;
+    
+    estruturaEditandoId = id;
+    
+    document.getElementById('inTipoEstrutura').value = estr.tipo;
+    document.getElementById('inNomeEstrutura').value = estr.nome;
+    
+    document.getElementById('modalEstrutura').classList.add('show');
+};

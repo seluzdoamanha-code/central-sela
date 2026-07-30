@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Central SELA - Hub da Entidade</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Estilos específicos para o Hub */
+        .hub-header {
+            background: linear-gradient(135deg, rgba(79,70,229,0.1) 0%, rgba(192,132,252,0.05) 100%);
+            padding: 32px;
+            border-bottom: 1px solid var(--border);
+        }
+        .hub-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: white;
+        }
+        .hub-subtitle {
+            color: #818cf8;
+            font-size: 14px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .tabs-nav {
+            display: flex;
+            gap: 24px;
+            padding: 0 32px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-panel);
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 15px;
+            font-weight: 500;
+            padding: 16px 0;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.2s;
+        }
+        .tab-btn:hover {
+            color: var(--text-main);
+        }
+        .tab-btn.active {
+            color: var(--primary);
+        }
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: var(--primary);
+            border-radius: 3px 3px 0 0;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 32px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Placeholder Cards */
+        .placeholder-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px dashed var(--border);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+        .placeholder-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-area">
+                <h2>Central SELA</h2>
+            </div>
+            <nav class="main-nav">
+                <a href="entidade.html" class="nav-item active" data-target="entidade">🏛️ Entidade & Atividades</a>
+                <a href="index.html" class="nav-item" data-target="pessoas">👥 Pessoas & Perfis</a>
+                <a href="#" class="nav-item" data-target="assistencia">🤝 Assistência Social</a>
+                <a href="#" class="nav-item" data-target="evangelizacao">🌱 Evangelização</a>
+                <a href="#" class="nav-item" data-target="biblioteca">📚 Biblioteca</a>
+                <a href="#" class="nav-item" data-target="financeiro">💰 Financeiro</a>
+                <a href="#" class="nav-item" style="margin-top: 24px;" data-target="config">⚙️ Configurações</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="content-area">
+            
+            <div id="loadingState" style="padding: 40px; text-align: center; color: var(--text-muted);">Carregando Hub...</div>
+            
+            <div id="hubContent" style="display: none;">
+                <!-- Cabeçalho do Hub -->
+                <div class="hub-header">
+                    <a href="entidade.html" style="color: var(--text-muted); text-decoration: none; font-size: 14px; display: inline-block; margin-bottom: 16px;">&larr; Voltar para Entidade</a>
+                    <div class="hub-subtitle" id="hubType">Tipo da Estrutura</div>
+                    <h1 class="hub-title" id="hubName">Nome da Estrutura</h1>
+                </div>
+                
+                <!-- Sistema de Abas -->
+                <div class="tabs-nav">
+                    <button class="tab-btn active" data-target="abaEquipe">👥 Equipe & Organograma</button>
+                    <button class="tab-btn" data-target="abaAgenda">📅 Agenda & Atividades</button>
+                    <button class="tab-btn" data-target="abaProjetos">🚀 Projetos</button>
+                    <button class="tab-btn" data-target="abaProcessos">🔄 Processos (SOPs)</button>
+                    <button class="tab-btn" data-target="abaDocumentos">📁 Documentos</button>
+                </div>
+                
+                <!-- Conteúdo das Abas -->
+                
+                <!-- Aba 1: Equipe -->
+                <div class="tab-content active" id="abaEquipe">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <h2>Gestão de Pessoas</h2>
+                        <button class="btn btn-primary" onclick="abrirOrganograma()">Abrir Organograma Completo &nearr;</button>
+                    </div>
+                    <div class="placeholder-card">
+                        <div class="placeholder-icon">👥</div>
+                        <h3>Módulo de Equipe</h3>
+                        <p style="margin-top: 8px;">O organograma dinâmico e a lista de membros atrelados a esta estrutura serão exibidos aqui.</p>
+                    </div>
+                </div>
+
+                <!-- Aba 2: Agenda -->
+                <div class="tab-content" id="abaAgenda">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <h2>Agenda do Departamento</h2>
+                        <button class="btn btn-primary">+ Novo Evento</button>
+                    </div>
+                    <div class="placeholder-card">
+                        <div class="placeholder-icon">📅</div>
+                        <h3>Calendário Vazio</h3>
+                        <p style="margin-top: 8px;">Nenhuma escala ou evento agendado. (Módulo em Construção)</p>
+                    </div>
+                </div>
+
+                <!-- Aba 3: Projetos -->
+                <div class="tab-content" id="abaProjetos">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <h2>Projetos e Programas</h2>
+                        <button class="btn btn-primary">+ Novo Projeto</button>
+                    </div>
+                    <div class="placeholder-card">
+                        <div class="placeholder-icon">🚀</div>
+                        <h3>Projetos Ativos</h3>
+                        <p style="margin-top: 8px;">Acompanhe o andamento de Campanhas, Reformas e Iniciativas com prazo determinado. (Módulo em Construção)</p>
+                    </div>
+                </div>
+                
+                <!-- Aba 4: Processos -->
+                <div class="tab-content" id="abaProcessos">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <h2>Processos e Fluxos (SOPs)</h2>
+                        <button class="btn btn-primary">+ Novo Procedimento</button>
+                    </div>
+                    <div class="placeholder-card">
+                        <div class="placeholder-icon">🔄</div>
+                        <h3>Procedimentos Operacionais Padrão</h3>
+                        <p style="margin-top: 8px;">Manuais, roteiros de atendimento e checklists de rotina. (Módulo em Construção)</p>
+                    </div>
+                </div>
+
+                <!-- Aba 5: Documentos -->
+                <div class="tab-content" id="abaDocumentos">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <h2>Arquivos do Departamento</h2>
+                        <button class="btn btn-primary">+ Enviar Arquivo</button>
+                    </div>
+                    <div class="placeholder-card">
+                        <div class="placeholder-icon">📁</div>
+                        <h3>Gaveta Digital</h3>
+                        <p style="margin-top: 8px;">Atas de reunião, ofícios e planilhas financeiras restritas a este setor. (Módulo em Construção)</p>
+                    </div>
+                </div>
+                
+            </div>
+        </main>
+    </div>
+
+    <script src="hub.js"></script>
+</body>
+</html>
