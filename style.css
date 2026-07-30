@@ -317,6 +317,10 @@ body {
         font-size: 16px;
     }
     
+    .sidebar-footer {
+        display: none !important;
+    }
+    
     .main-nav {
         flex-direction: row;
         padding: 0;
@@ -324,7 +328,8 @@ body {
     }
     
     .nav-item {
-        padding: 16px 20px;
+        padding: 12px 14px;
+        font-size: 13px;
         white-space: nowrap;
         border-right: none;
         border-bottom: 3px solid transparent;
