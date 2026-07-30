@@ -4,6 +4,7 @@ const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let pessoasGlobais = [];
 let pessoaEditandoId = null;
+let cameFromProfileEdit = false;
 
 document.addEventListener('DOMContentLoaded', () => {
     carregarPessoas();
@@ -13,10 +14,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputSearch = document.getElementById('searchInput');
     const filterTag = document.getElementById('filterTag');
     const sortOrder = document.getElementById('sortOrder');
+    const showOutros = document.getElementById('showOutros');
 
     inputSearch.addEventListener('input', window.aplicarFiltros);
     filterTag.addEventListener('change', window.aplicarFiltros);
     sortOrder.addEventListener('change', window.aplicarFiltros);
+    if(showOutros) showOutros.addEventListener('change', window.aplicarFiltros);
     
     // Configura as Tags Dinâmicas
     window.renderizarTagsDisponiveis();
@@ -117,6 +120,17 @@ window.aplicarFiltros = () => {
             
             return matchBusca && matchTag;
         });
+        
+        // Filtra "Outros" se a caixa não estiver marcada
+        const showOutros = document.getElementById('showOutros');
+        if (showOutros && !showOutros.checked) {
+            filtrados = filtrados.filter(p => {
+                if (p.papeis && p.papeis.includes('Outros')) {
+                    return false;
+                }
+                return true;
+            });
+        }
 
         // 2. Ordenar
         if (ordem === 'nome_az') {
@@ -162,6 +176,16 @@ async function carregarPessoas() {
         document.getElementById('tableContainer').style.display = 'block';
         pessoasGlobais = data;
         window.aplicarFiltros(); // Usa a lógica unificada em vez de renderizar direto
+        
+        // Verifica se há pedido de edição via URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const editId = urlParams.get('edit');
+        if (editId) {
+            cameFromProfileEdit = true;
+            window.editarPessoa(editId);
+            // Limpa a URL silenciosamente para não reabrir se ele der F5
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
     }
 }
 
@@ -190,19 +214,43 @@ function renderizarTabela(dados) {
     tbody.innerHTML = '';
     
     dados.forEach(pessoa => {
-        const tags = pessoa.papeis || [];
+        // Criar uma cópia e remover duplicatas para evitar mutação do estado original
+        let tags = Array.from(new Set(pessoa.papeis || []));
+        
+        // Remove 'Empresa' solto se existir, para não duplicar com a tag formatada
+        tags = tags.filter(t => t !== 'Empresa' && t !== '🏢 Empresa');
+        
         // Se for PJ, adiciona tag automática visual
         if (pessoa.tipo_pessoa === 'Jurídica') tags.unshift('🏢 Empresa');
         
         const tagsHtml = tags.map(tag => `<span style="background: rgba(79,70,229,0.2); color: #818cf8; padding: 4px 8px; border-radius: 4px; font-size: 12px; margin-right: 4px; white-space: nowrap; display: inline-block; margin-bottom: 4px;">${tag}</span>`).join('');
         
+        // Gerar Avatar em miniatura
+        let avatarHtml = '';
+        if (pessoa.foto_url) {
+            avatarHtml = `<img src="${pessoa.foto_url}" style="width: 32px; height: 32px; border-radius: 16px; object-fit: cover; flex-shrink: 0;">`;
+        } else {
+            const partes = pessoa.nome_completo.trim().split(' ');
+            let iniciais = partes[0].charAt(0);
+            if (partes.length > 1) iniciais += partes[partes.length - 1].charAt(0);
+            
+            const colors = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#ec4899', '#06b6d4'];
+            const colorIndex = pessoa.nome_completo.length % colors.length;
+            avatarHtml = `<div style="width: 32px; height: 32px; border-radius: 16px; background: ${colors[colorIndex]}; color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0;">${iniciais.toUpperCase()}</div>`;
+        }
+        
         tbody.innerHTML += `
             <tr>
-                <td style="font-weight: 500;">
-                    ${pessoa.nome_curto || pessoa.nome_completo}
-                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
-                        <span style="opacity: 0.7;">${pessoa.nome_completo !== pessoa.nome_curto ? pessoa.nome_completo : ''}</span> 
-                        ${pessoa.cpf_cnpj ? `• ${formatarDocumento(pessoa.cpf_cnpj)}` : ''}
+                <td>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        ${avatarHtml}
+                        <div>
+                            <div style="font-weight: 500;">${pessoa.nome_curto || pessoa.nome_completo}</div>
+                            <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+                                <span style="opacity: 0.7;">${pessoa.nome_completo !== pessoa.nome_curto ? pessoa.nome_completo : ''}</span> 
+                                ${pessoa.cpf_cnpj ? `• ${formatarDocumento(pessoa.cpf_cnpj)}` : ''}
+                            </div>
+                        </div>
                     </div>
                 </td>
                 <td>${tagsHtml}</td>
@@ -372,6 +420,29 @@ function setupModal() {
         };
         
         try {
+            // Verifica se tem foto para upload
+            const inputFoto = document.getElementById('inFoto');
+            if (inputFoto.files && inputFoto.files.length > 0) {
+                const file = inputFoto.files[0];
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${Math.random()}.${fileExt}`;
+                const filePath = `${fileName}`;
+
+                const { error: uploadError } = await db.storage
+                    .from('fotos_perfil')
+                    .upload(filePath, file);
+
+                if (uploadError) {
+                    throw uploadError;
+                }
+
+                // Pega a URL publica
+                const { data: publicUrlData } = db.storage
+                    .from('fotos_perfil')
+                    .getPublicUrl(filePath);
+
+                dados.foto_url = publicUrlData.publicUrl;
+            }
             if (pessoaEditandoId) {
                 const { error } = await db.from('pessoas').update(dados).eq('id', pessoaEditandoId);
                 if (error) throw error;
@@ -381,7 +452,12 @@ function setupModal() {
             }
             
             fecharModal();
-            carregarPessoas();
+            
+            if (cameFromProfileEdit && pessoaEditandoId) {
+                window.location.href = `perfil.html?id=${pessoaEditandoId}`;
+            } else {
+                carregarPessoas();
+            }
         } catch (error) {
             console.error('Erro ao salvar pessoa:', error);
             alert('Erro ao salvar os dados: ' + JSON.stringify(error));
@@ -408,6 +484,7 @@ window.editarPessoa = async (id) => {
     document.getElementById('inNomeCurto').value = pessoa.nome_curto || '';
     document.getElementById('inCelular').value = pessoa.celular || '';
     document.getElementById('inEmail').value = pessoa.email || '';
+    document.getElementById('inFoto').value = ''; // Limpa o input de arquivo
     
     // Marcar as tags corretas
     const papeis = pessoa.papeis || [];

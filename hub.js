@@ -18,12 +18,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Iniciar Aba de Equipe
     await carregarEquipe();
     
-    // Iniciar Aba de Documentos
+    // Iniciar Aba de Documentos & Projetos
+    await carregarProjetosProcessos();
     await carregarDocumentos();
     await popularSelectDepartamentos();
     
     // Formulario de Documentos
     document.getElementById('formDoc').addEventListener('submit', salvarDocumento);
+    
+    // Formulario de Projetos
+    const formProj = document.getElementById('formProjeto');
+    if(formProj) formProj.addEventListener('submit', salvarProjeto);
     
     // Iniciar Aba de Agenda
     await carregarAgenda();
@@ -71,6 +76,11 @@ async function carregarEquipe() {
             return;
         }
         
+        const tituloGestao = document.getElementById('tituloGestaoPessoas');
+        if (tituloGestao) {
+            tituloGestao.textContent = `Gestão de Pessoas (${data.length})`;
+        }
+        
         status.textContent = `${data.length} membro(s) na equipe.`;
         
         let htmlLider = '';
@@ -90,7 +100,9 @@ async function carregarEquipe() {
                 rel.papel.toLowerCase().includes('lider') ||
                 rel.papel.toLowerCase().includes('coordenador') ||
                 rel.papel.toLowerCase().includes('coordenadora') ||
-                rel.papel.toLowerCase().includes('gerente')
+                rel.papel.toLowerCase().includes('gerente') ||
+                rel.papel.toLowerCase().includes('presidente') ||
+                rel.papel.toLowerCase().includes('presidenta')
             );
             
             // Format phone if it exists
@@ -156,6 +168,49 @@ window.abrirOrganograma = function() {
 // ==========================================
 // MÓDULO DE DOCUMENTOS
 // ==========================================
+let documentosGlobais = [];
+
+window.abrirModalDoc = (id = null) => {
+    const modal = document.getElementById('modalDoc');
+    document.getElementById('formDoc').reset();
+    document.getElementById('inDocId').value = '';
+    
+    // Popular o select de Projetos
+    const selectProj = document.getElementById('inDocProjetoId');
+    if (selectProj && typeof projetosGlobais !== 'undefined') {
+        selectProj.innerHTML = '<option value="">-- Solto (Nenhum Projeto) --</option>';
+        projetosGlobais.forEach(p => {
+            selectProj.innerHTML += `<option value="${p.id}">${p.tipo}: ${p.titulo}</option>`;
+        });
+    }
+
+    if (id) {
+        const doc = documentosGlobais.find(d => d.id === id);
+        if (doc) {
+            document.getElementById('modalDocTitle').textContent = 'Editar Documento';
+            document.getElementById('inDocId').value = doc.id;
+            document.getElementById('inDocTitulo').value = doc.titulo;
+            document.getElementById('inDocTipo').value = doc.tipo;
+            if (selectProj && doc.projeto_processo_id) {
+                selectProj.value = doc.projeto_processo_id;
+            }
+            if (doc.tipo === 'Link') {
+                document.getElementById('inDocLink').value = doc.conteudo;
+            } else {
+                document.getElementById('inDocMd').value = doc.conteudo;
+            }
+        }
+    } else {
+        document.getElementById('modalDocTitle').textContent = 'Adicionar Documento';
+    }
+    
+    window.toggleDocType();
+    modal.classList.add('show');
+};
+
+window.fecharModalDoc = () => {
+    document.getElementById('modalDoc').classList.remove('show');
+};
 
 async function carregarDocumentos() {
     const listLocais = document.getElementById('listDocsLocais');
@@ -187,8 +242,13 @@ async function carregarDocumentos() {
             herdados = herdadosData || [];
         }
 
-        renderizarDocumentos(locais || [], listLocais, true);
-        renderizarDocumentos(herdados, listOficiais, false);
+        // Filtra para exibir na aba Documentos Gerais apenas os que não tem projeto
+        const locaisSoltos = (locais || []).filter(d => !d.projeto_processo_id);
+        const herdadosSoltos = herdados.filter(d => !d.projeto_processo_id);
+
+        documentosGlobais = locais || []; // Mantemos todos globais para os Projetos poderem acessá-los
+        renderizarDocumentos(locaisSoltos, listLocais, true);
+        renderizarDocumentos(herdadosSoltos, listOficiais, false);
         
     } catch (err) {
         console.warn("Erro ao buscar documentos. Tabelas criadas?", err);
@@ -218,18 +278,23 @@ function renderizarDocumentos(docs, container, isLocal) {
             actionBtn = `<button class="btn btn-primary" style="padding: 4px 8px; font-size: 12px;" onclick="abrirViewerMarkdown('${encodedTitle}', '${encodedContent}')">Ler Conteúdo</button>`;
         }
         
-        let deleteBtn = '';
-        if (isLocal) {
-            deleteBtn = `<button onclick="excluirDocumento('${doc.id}')" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 16px; padding: 4px;" title="Excluir Documento">🗑️</button>`;
-        }
+            let editBtn = '';
+            let deleteBtn = '';
+            if (isLocal) {
+                editBtn = `<button onclick="abrirModalDoc('${doc.id}')" style="background: none; border: none; color: #60a5fa; cursor: pointer; font-size: 16px; padding: 4px;" title="Editar Documento">✏️</button>`;
+                deleteBtn = `<button onclick="excluirDocumento('${doc.id}')" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 16px; padding: 4px;" title="Excluir Documento">🗑️</button>`;
+            }
 
-        html += `
-        <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                <div style="font-size: 16px; font-weight: 600; color: var(--text-main);">${icon} ${doc.titulo}</div>
-                ${deleteBtn}
-            </div>
-            <div style="font-size: 12px; color: var(--text-muted);">${dono}</div>
+            html += `
+            <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div style="font-size: 16px; font-weight: 600; color: var(--text-main);">${icon} ${doc.titulo}</div>
+                    <div style="display: flex; gap: 8px;">
+                        ${editBtn}
+                        ${deleteBtn}
+                    </div>
+                </div>
+                <div style="font-size: 12px; color: var(--text-muted);">${dono}</div>
             <div style="margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end;">
                 ${actionBtn}
             </div>
@@ -240,19 +305,7 @@ function renderizarDocumentos(docs, container, isLocal) {
     container.innerHTML = html;
 }
 
-window.abrirModalDoc = function() {
-    document.getElementById('formDoc').reset();
-    toggleDocType();
-    
-    // Desmarca todos os checkboxes de departamento
-    document.querySelectorAll('.chk-dept').forEach(chk => chk.checked = false);
-    
-    document.getElementById('modalDoc').style.display = 'flex';
-};
-
-window.fecharModalDoc = function() {
-    document.getElementById('modalDoc').style.display = 'none';
-};
+// Removido declaração duplicada de abrirModalDoc e fecharModalDoc
 
 window.toggleDocType = function() {
     const tipo = document.getElementById('inDocTipo').value;
@@ -291,45 +344,81 @@ async function popularSelectDepartamentos() {
 
 async function salvarDocumento(e) {
     e.preventDefault();
-    const btn = document.getElementById('btnSaveDoc');
-    btn.disabled = true;
-    btn.textContent = 'Salvando...';
-
+    
+    const btnSave = document.getElementById('btnSaveDoc');
+    btnSave.disabled = true;
+    btnSave.textContent = 'Salvando...';
+    
+    const docId = document.getElementById('inDocId').value;
     const titulo = document.getElementById('inDocTitulo').value;
     const tipo = document.getElementById('inDocTipo').value;
-    const conteudo = tipo === 'Link' ? document.getElementById('inDocLink').value : document.getElementById('inDocMd').value;
+    const projetoId = document.getElementById('inDocProjetoId').value || null;
     
-    const compartilhamentos = Array.from(document.querySelectorAll('.chk-dept:checked')).map(chk => chk.value);
-
+    let conteudo = '';
+    if (tipo === 'Link') {
+        conteudo = document.getElementById('inDocLink').value;
+    } else {
+        conteudo = document.getElementById('inDocMd').value;
+    }
+    
     try {
-        // 1. Inserir Documento Principal
-        const { data: docData, error: docError } = await db.from('documentos').insert([{
-            estrutura_id: estruturaId,
-            titulo: titulo,
-            tipo: tipo,
-            conteudo: conteudo
-        }]).select('id').single();
-
-        if (docError) throw docError;
+        let savedDocId = null;
         
-        // 2. Inserir Compartilhamentos (se houver)
-        if (compartilhamentos.length > 0 && docData) {
-            const insertsVisibilidade = compartilhamentos.map(deptId => ({
-                documento_id: docData.id,
-                estrutura_id: deptId
-            }));
-            const { error: visError } = await db.from('documentos_visibilidade').insert(insertsVisibilidade);
-            if (visError) console.error("Erro ao salvar visibilidade", visError);
+        if (docId) {
+            // Atualizar
+            const { error } = await db.from('documentos').update({
+                titulo: titulo,
+                tipo: tipo,
+                conteudo: conteudo,
+                projeto_processo_id: projetoId
+            }).eq('id', docId);
+            if (error) throw error;
+            savedDocId = docId;
+        } else {
+            // Inserir
+            const { data: newDoc, error } = await db.from('documentos').insert([{
+                estrutura_id: estruturaId,
+                titulo: titulo,
+                tipo: tipo,
+                conteudo: conteudo,
+                projeto_processo_id: projetoId
+            }]).select();
+            
+            if (error) throw error;
+            if (newDoc && newDoc.length > 0) {
+                savedDocId = newDoc[0].id;
+            }
         }
-
+        
+        // Tratar Visibilidade (Herança)
+        const checkDepartamentos = document.getElementById('checkDepartamentos');
+        if (checkDepartamentos) {
+            const checks = checkDepartamentos.querySelectorAll('.chk-dept:checked');
+            
+            if (docId) {
+                // Deletar visibilidade antiga
+                await db.from('documentos_visibilidade').delete().eq('documento_id', savedDocId);
+            }
+            
+            if (checks.length > 0 && savedDocId) {
+                const inserts = Array.from(checks).map(chk => ({
+                    documento_id: savedDocId,
+                    estrutura_id: chk.value
+                }));
+                const { error: visError } = await db.from('documentos_visibilidade').insert(inserts);
+                if (visError) console.warn("Erro ao vincular visibilidade:", visError);
+            }
+        }
+        
         fecharModalDoc();
         await carregarDocumentos();
+        if(typeof carregarProjetosProcessos === 'function') await carregarProjetosProcessos(); // refresh pra mostrar no projeto
     } catch (err) {
         console.error("Erro ao salvar documento:", err);
-        alert("Erro ao salvar. Verifique se as tabelas foram criadas no Supabase corretamente.");
+        alert("Erro ao salvar documento. Detalhes no console.");
     } finally {
-        btn.disabled = false;
-        btn.textContent = 'Salvar Documento';
+        btnSave.disabled = false;
+        btnSave.textContent = 'Salvar Documento';
     }
 }
 
@@ -519,5 +608,190 @@ window.excluirEventoAgenda = async (id) => {
     } catch (err) {
         console.error("Erro ao excluir evento:", err);
         alert("Erro ao excluir evento.");
+    }
+};
+
+// ==========================================
+// MÓDULO DE PROJETOS & PROCESSOS
+// ==========================================
+let projetosGlobais = [];
+
+window.abrirModalProjeto = (tipo) => {
+    document.getElementById('formProjeto').reset();
+    document.getElementById('inProjetoId').value = '';
+    document.getElementById('inProjetoTipo').value = tipo;
+    document.getElementById('modalProjetoTitle').textContent = `Adicionar ${tipo}`;
+    document.getElementById('modalProjeto').style.display = 'flex';
+};
+
+window.fecharModalProjeto = () => {
+    document.getElementById('modalProjeto').style.display = 'none';
+};
+
+window.carregarProjetosProcessos = async () => {
+    const container = document.getElementById('listProjetos');
+    if(!container) return;
+    
+    container.innerHTML = '<div style="color: var(--text-muted); font-size: 13px;">Carregando...</div>';
+    
+    try {
+        const { data, error } = await db
+            .from('projetos_processos')
+            .select('*')
+            .eq('estrutura_id', estruturaId)
+            .order('created_at', { ascending: false });
+            
+        if (error) throw error;
+        
+        projetosGlobais = data || [];
+        renderizarProjetosProcessos();
+    } catch (err) {
+        console.warn("Erro ao buscar projetos:", err);
+        container.innerHTML = '<div style="color: #ef4444; font-size: 13px;">⚠️ Erro: A tabela de projetos_processos não foi criada no Supabase.</div>';
+    }
+};
+
+window.renderizarProjetosProcessos = () => {
+    const container = document.getElementById('listProjetos');
+    if (!projetosGlobais || projetosGlobais.length === 0) {
+        container.innerHTML = `<div style="color: var(--text-muted); font-size: 13px;">Nenhum Projeto ou Processo encontrado.</div>`;
+        return;
+    }
+    
+    let html = '';
+    projetosGlobais.forEach(proj => {
+        const icon = proj.tipo === 'Projeto' ? '🚀' : '🔄';
+        let badgeColor = 'var(--text-muted)';
+        if(proj.status === 'Ativo') badgeColor = '#10b981';
+        if(proj.status === 'Pausado') badgeColor = '#f59e0b';
+        
+        // Filtra documentos vinculados a este projeto
+        const docsVinculados = typeof documentosGlobais !== 'undefined' ? documentosGlobais.filter(d => d.projeto_processo_id === proj.id) : [];
+        let docsHtml = '';
+        if (docsVinculados.length > 0) {
+            docsHtml = '<div style="margin-top: 16px; border-top: 1px solid var(--border); padding-top: 12px; display: flex; flex-direction: column; gap: 8px;">';
+            docsVinculados.forEach(doc => {
+                const dIcon = doc.tipo === 'Link' ? '🔗' : '📝';
+                
+                let actionBtn = '';
+                if (doc.tipo === 'Link') {
+                    actionBtn = `onclick="window.open('${doc.conteudo}', '_blank')"`;
+                } else {
+                    const encodedContent = encodeURIComponent(doc.conteudo || '');
+                    const encodedTitle = encodeURIComponent(doc.titulo || '');
+                    actionBtn = `onclick="abrirViewerMarkdown('${encodedTitle}', '${encodedContent}')"`;
+                }
+                
+                docsHtml += `
+                <div style="background: rgba(255,255,255,0.03); border-radius: 6px; padding: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border);">
+                    <div style="display: flex; align-items: center; gap: 12px; cursor: pointer;" ${actionBtn}>
+                        <div style="background: var(--bg-dark); padding: 8px; border-radius: 6px;">${dIcon}</div>
+                        <span style="font-size: 14px; font-weight: 500;">${doc.titulo}</span>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="abrirModalDoc('${doc.id}')" style="background: none; border: none; color: #60a5fa; cursor: pointer; font-size: 14px;" title="Editar Documento">✏️</button>
+                        <button onclick="excluirDocumento('${doc.id}')" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 14px;" title="Excluir Documento">🗑️</button>
+                    </div>
+                </div>
+                `;
+            });
+            docsHtml += '</div>';
+        } else {
+            docsHtml = '<div style="margin-top: 16px; font-size: 12px; color: var(--text-muted); font-style: italic;">Nenhum documento/bloco vinculado.</div>';
+        }
+
+        html += `
+        <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="font-size: 24px;">${icon}</div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 18px; color: var(--text-main);">${proj.titulo}</h3>
+                        <div style="font-size: 13px; color: ${badgeColor}; margin-top: 4px;">● ${proj.status}</div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button onclick="editarProjeto('${proj.id}')" style="background: none; border: none; color: #60a5fa; cursor: pointer; font-size: 16px;" title="Editar">✏️</button>
+                    <button onclick="excluirProjeto('${proj.id}')" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 16px;" title="Excluir">🗑️</button>
+                </div>
+            </div>
+            <p style="margin-top: 12px; color: var(--text-muted); font-size: 14px; line-height: 1.5;">${proj.descricao || ''}</p>
+            ${docsHtml}
+        </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+};
+
+window.editarProjeto = (id) => {
+    const proj = projetosGlobais.find(p => p.id === id);
+    if (!proj) return;
+    
+    document.getElementById('inProjetoId').value = proj.id;
+    document.getElementById('inProjetoTipo').value = proj.tipo;
+    document.getElementById('inProjetoTitulo').value = proj.titulo;
+    document.getElementById('inProjetoDescricao').value = proj.descricao;
+    document.getElementById('inProjetoStatus').value = proj.status;
+    
+    document.getElementById('modalProjetoTitle').textContent = `Editar ${proj.tipo}`;
+    document.getElementById('modalProjeto').style.display = 'flex';
+};
+
+window.excluirProjeto = async (id) => {
+    if (!confirm("Tem certeza que deseja excluir este item? Os documentos dentro dele não serão apagados, apenas ficarão 'soltos'.")) return;
+    
+    try {
+        const { error } = await db.from('projetos_processos').delete().eq('id', id);
+        if (error) throw error;
+        await carregarProjetosProcessos();
+    } catch (err) {
+        console.error("Erro ao excluir", err);
+        alert("Erro ao excluir.");
+    }
+};
+
+window.salvarProjeto = async (e) => {
+    e.preventDefault();
+    const btnSave = document.getElementById('btnSaveProjeto');
+    btnSave.disabled = true;
+    
+    const id = document.getElementById('inProjetoId').value;
+    const tipo = document.getElementById('inProjetoTipo').value;
+    const titulo = document.getElementById('inProjetoTitulo').value;
+    const descricao = document.getElementById('inProjetoDescricao').value;
+    const status = document.getElementById('inProjetoStatus').value;
+    
+    const dados = {
+        estrutura_id: estruturaId,
+        tipo, titulo, descricao, status
+    };
+    
+    try {
+        if (id) {
+            const { error } = await db.from('projetos_processos').update(dados).eq('id', id);
+            if(error) throw error;
+        } else {
+            const { error } = await db.from('projetos_processos').insert([dados]);
+            if(error) throw error;
+        }
+        
+        fecharModalProjeto();
+        await carregarProjetosProcessos();
+        
+        // Atualiza o select de projetos no modal de Documentos
+        const selectProj = document.getElementById('inDocProjetoId');
+        if (selectProj) {
+            selectProj.innerHTML = '<option value="">-- Solto (Nenhum Projeto) --</option>';
+            projetosGlobais.forEach(p => {
+                selectProj.innerHTML += `<option value="${p.id}">${p.tipo}: ${p.titulo}</option>`;
+            });
+        }
+        
+    } catch(err) {
+        console.error("Erro ao salvar projeto:", err);
+        alert("Erro ao salvar. Verifique se a tabela projetos_processos existe.");
+    } finally {
+        btnSave.disabled = false;
     }
 };

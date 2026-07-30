@@ -124,9 +124,8 @@
                 <div class="tabs-nav">
                     <button class="tab-btn active" data-target="abaEquipe">👥 Equipe & Organograma</button>
                     <button class="tab-btn" data-target="abaAgenda">📅 Agenda & Atividades</button>
-                    <button class="tab-btn" data-target="abaProjetos">🚀 Projetos</button>
-                    <button class="tab-btn" data-target="abaProcessos">🔄 Processos (SOPs)</button>
-                    <button class="tab-btn" data-target="abaDocumentos">📁 Documentos</button>
+                    <button class="tab-btn" data-target="abaProjetosProcessos">🚀 Projetos & Processos</button>
+                    <button class="tab-btn" data-target="abaDocumentos">📁 Documentos Gerais</button>
                 </div>
                 
                 <!-- Conteúdo das Abas -->
@@ -135,7 +134,7 @@
                 <div class="tab-content active" id="abaEquipe">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                         <div>
-                            <h2>Gestão de Pessoas</h2>
+                            <h2 id="tituloGestaoPessoas">Gestão de Pessoas</h2>
                             <div id="equipeStatus" style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Carregando equipe...</div>
                         </div>
                         <button class="btn btn-primary" onclick="abrirOrganograma()">Abrir Organograma Completo &nearr;</button>
@@ -169,29 +168,21 @@
                     </div>
                 </div>
 
-                <!-- Aba 3: Projetos -->
-                <div class="tab-content" id="abaProjetos">
+                <!-- Aba 3: Projetos & Processos -->
+                <div class="tab-content" id="abaProjetosProcessos">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                        <h2>Projetos e Programas</h2>
-                        <button class="btn btn-primary">+ Novo Projeto</button>
+                        <div>
+                            <h2>Projetos e Processos Ativos</h2>
+                            <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">Agrupadores de tarefas, processos estruturados e blocos de documentos.</p>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn" style="background: var(--bg-dark); color: var(--text-muted);" onclick="abrirModalProjeto('Processo')">+ Novo Processo</button>
+                            <button class="btn btn-primary" onclick="abrirModalProjeto('Projeto')">+ Novo Projeto</button>
+                        </div>
                     </div>
-                    <div class="placeholder-card">
-                        <div class="placeholder-icon">🚀</div>
-                        <h3>Projetos Ativos</h3>
-                        <p style="margin-top: 8px;">Acompanhe o andamento de Campanhas, Reformas e Iniciativas com prazo determinado. (Módulo em Construção)</p>
-                    </div>
-                </div>
-                
-                <!-- Aba 4: Processos -->
-                <div class="tab-content" id="abaProcessos">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                        <h2>Processos e Fluxos (SOPs)</h2>
-                        <button class="btn btn-primary">+ Novo Procedimento</button>
-                    </div>
-                    <div class="placeholder-card">
-                        <div class="placeholder-icon">🔄</div>
-                        <h3>Procedimentos Operacionais Padrão</h3>
-                        <p style="margin-top: 8px;">Manuais, roteiros de atendimento e checklists de rotina. (Módulo em Construção)</p>
+                    
+                    <div id="listProjetos" style="display: flex; flex-direction: column; gap: 24px;">
+                        <div style="color: var(--text-muted); font-size: 13px;">Carregando projetos e processos...</div>
                     </div>
                 </div>
 
@@ -231,6 +222,14 @@
         <div class="modal-content" style="max-width: 600px;">
             <h2 id="modalDocTitle" style="margin-bottom: 16px;">Adicionar Documento</h2>
             <form id="formDoc">
+                <input type="hidden" id="inDocId">
+                <div class="form-group">
+                    <label>Vincular a um Projeto/Processo? (Opcional)</label>
+                    <select id="inDocProjetoId">
+                        <option value="">-- Solto (Nenhum Projeto) --</option>
+                        <!-- Preenchido via JS -->
+                    </select>
+                </div>
                 <div class="form-group">
                     <label>Título do Documento *</label>
                     <input type="text" id="inDocTitulo" required placeholder="Ex: Regimento Interno 2026">
@@ -261,10 +260,45 @@
                         <span style="color: var(--text-muted); font-size: 12px;">Carregando departamentos...</span>
                     </div>
                 </div>
-
-                <div class="modal-actions" style="margin-top: 24px;">
-                    <button type="button" class="btn btn-secondary" onclick="fecharModalDoc()">Cancelar</button>
+                
+                <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+                    <button type="button" class="btn" onclick="fecharModalDoc()" style="background: var(--bg-dark); color: var(--text-muted);">Cancelar</button>
                     <button type="submit" class="btn btn-primary" id="btnSaveDoc">Salvar Documento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Adicionar Projeto/Processo -->
+    <div class="modal-overlay" id="modalProjeto">
+        <div class="modal-content" style="max-width: 600px;">
+            <h2 id="modalProjetoTitle" style="margin-bottom: 16px;">Adicionar</h2>
+            <form id="formProjeto">
+                <input type="hidden" id="inProjetoId">
+                <input type="hidden" id="inProjetoTipo" value="Projeto">
+                
+                <div class="form-group">
+                    <label>Título *</label>
+                    <input type="text" id="inProjetoTitulo" required placeholder="Ex: Reforma da Sala">
+                </div>
+                
+                <div class="form-group">
+                    <label>Descrição / Objetivo *</label>
+                    <textarea id="inProjetoDescricao" rows="3" required placeholder="Qual o objetivo principal deste item?"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="inProjetoStatus">
+                        <option value="Ativo">🟢 Em Andamento / Ativo</option>
+                        <option value="Pausado">🟡 Pausado / Em Revisão</option>
+                        <option value="Concluido">✅ Concluído</option>
+                    </select>
+                </div>
+                
+                <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+                    <button type="button" class="btn" onclick="fecharModalProjeto()" style="background: var(--bg-dark); color: var(--text-muted);">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnSaveProjeto">Salvar</button>
                 </div>
             </form>
         </div>

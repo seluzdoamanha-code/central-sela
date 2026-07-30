@@ -72,7 +72,7 @@
         <main class="content-area">
             <header class="topbar">
                 <div style="display: flex; gap: 16px; align-items: center;">
-                    <a href="index.html" class="btn" style="text-decoration: none; padding: 6px 12px; background: var(--bg-dark); color: var(--text-muted);">&larr; Voltar</a>
+                    <a href="pessoas.html" class="btn" style="text-decoration: none; padding: 6px 12px; background: var(--bg-dark); color: var(--text-muted);">&larr; Voltar</a>
                     <h1 id="nomePessoa" style="font-size: 24px; font-weight: 600; margin: 0;">Carregando Perfil...</h1>
                 </div>
             </header>
@@ -81,12 +81,16 @@
                 <div class="perfil-container">
             <!-- Coluna Esquerda: Dados Cadastrais -->
             <div class="card-perfil">
-                <div class="avatar-placeholder">Foto</div>
+                <div id="fotoPerfilContainer" class="avatar-placeholder">Foto</div>
                 
                 <h3 class="secao-titulo">Dados Cadastrais</h3>
                 <div class="info-row">
                     <div class="info-label">Nome Completo</div>
                     <div class="info-value" id="infoNome">-</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Nome de Tratamento</div>
+                    <div class="info-value" id="infoNomeCurto">-</div>
                 </div>
                 <div class="info-row">
                     <div class="info-label">CPF / CNPJ</div>
@@ -96,8 +100,15 @@
                     <div class="info-label">Celular</div>
                     <div class="info-value" id="infoCelular">-</div>
                 </div>
+                <div class="info-row">
+                    <div class="info-label">E-mail</div>
+                    <div class="info-value" id="infoEmail">-</div>
+                </div>
                 
-                <button class="btn-primary" style="width: 100%; margin-top: 16px;">Editar Cadastro</button>
+                <h3 class="secao-titulo" style="margin-top: 24px;">Papéis / Tags</h3>
+                <div id="infoPapeis" style="margin-bottom: 24px; min-height: 28px;">-</div>
+                
+                <button id="btnEditarCadastro" class="btn-primary" style="width: 100%; margin-top: 24px; padding: 10px;">Editar Cadastro</button>
             </div>
 
             <!-- Coluna Direita: Os Satélites (Conceito) -->
@@ -136,15 +147,7 @@
 
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>
-        // Nós vamos programar a busca do banco de dados na próxima etapa, 
-        // mas o visual já está desenhado para você entender o conceito!
-        const urlParams = new URLSearchParams(window.location.search);
-        const pessoaId = urlParams.get('id');
-        if(pessoaId) {
-            document.getElementById('nomePessoa').textContent = "Visualização do Perfil";
-        }
-    </script>
+    <script src="perfil.js"></script>
     <script src="sidebar.js"></script>
 </body>
 </html>
