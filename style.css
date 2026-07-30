@@ -408,12 +408,12 @@ body {
         padding: 20px 16px;
     }
     .tabs-nav {
-        flex-direction: column;
-        padding: 0;
-        display: none; /* Hide by default on mobile, toggled by hamburger */
+        flex-direction: column !important;
+        padding: 0 !important;
+        display: none !important; /* Hide by default on mobile, toggled by hamburger */
     }
     .tabs-nav.show-mobile {
-        display: flex;
+        display: flex !important;
         border-top: 1px solid rgba(255,255,255,0.05);
     }
     .tab-btn {
