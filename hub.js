@@ -82,9 +82,15 @@ async function carregarEquipe() {
             
             const isLider = rel.papel && (
                 rel.papel.toLowerCase().includes('diretor') ||
+                rel.papel.toLowerCase().includes('diretora') ||
+                rel.papel.toLowerCase().includes('diretoria') ||
+                rel.papel.toLowerCase().includes('direção') ||
+                rel.papel.toLowerCase().includes('direcao') ||
                 rel.papel.toLowerCase().includes('líder') ||
                 rel.papel.toLowerCase().includes('lider') ||
-                rel.papel.toLowerCase().includes('coordenador')
+                rel.papel.toLowerCase().includes('coordenador') ||
+                rel.papel.toLowerCase().includes('coordenadora') ||
+                rel.papel.toLowerCase().includes('gerente')
             );
             
             // Format phone if it exists
