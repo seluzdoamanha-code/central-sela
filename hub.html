@@ -125,8 +125,9 @@
                     <button class="tab-btn mobile-only" onclick="window.location.href='index.html'" style="color: #60a5fa; font-weight: bold;">🏠 Início / Mural</button>
                     <button class="tab-btn active" data-target="abaEquipe">👥 Equipe & Organograma</button>
                     <button class="tab-btn" data-target="abaAgenda">📅 Agenda & Atividades</button>
-                    <button class="tab-btn" data-target="abaProjetosProcessos">🚀 Projetos & Processos</button>
-                    <button class="tab-btn" data-target="abaDocumentos">📁 Documentos Gerais</button>
+                    <button class="tab-btn" data-target="abaProjetosProcessos" id="btnAbaProjetos">🚀 Projetos & Processos</button>
+                    <button class="tab-btn" data-target="abaDocumentos" id="btnAbaDocumentos">📁 Documentos Gerais</button>
+                    <button class="tab-btn" data-target="abaApps" id="btnAbaApps" style="display: none;">🧩 Apps & Serviços</button>
                 </div>
                 
                 <!-- Conteúdo das Abas -->
@@ -211,6 +212,21 @@
                         <div id="listDocsLocais" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
                             <div style="color: var(--text-muted); font-size: 13px;">Carregando documentos locais...</div>
                         </div>
+                    </div>
+                </div>
+                
+                <!-- Aba 6: Apps & Serviços -->
+                <div class="tab-content" id="abaApps">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <div>
+                            <h2>Ferramentas & Serviços</h2>
+                            <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">Recursos específicos desta área.</p>
+                        </div>
+                    </div>
+                    
+                    <div id="containerApps" style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; padding: 24px;">
+                        <!-- Conteúdo injetado via JS (Ex: Formulário de Irradiação) -->
+                        <div style="color: var(--text-muted); font-size: 13px;">Carregando serviços...</div>
                     </div>
                 </div>
                 

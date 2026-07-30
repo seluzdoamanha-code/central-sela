@@ -43,6 +43,40 @@ async function carregarDadosEstrutura() {
         if (data) {
             document.getElementById('hubName').textContent = data.nome;
             document.getElementById('hubType').textContent = data.tipo;
+            
+            // Configuração Dinâmica de Abas
+            let config = data.abas_config;
+            
+            const nomeStr = (data.nome || '').toLowerCase();
+            const isIrradiacao = nomeStr.includes('irradi') || nomeStr.includes('irradia');
+            
+            if (!config || Object.keys(config).length === 0) {
+                // Regras default se não houver config salva
+                config = {
+                    equipe: true,
+                    agenda: true,
+                    projetos: !['Família', 'Atividade', 'Turma'].includes(data.tipo),
+                    documentos: true,
+                    apps: isIrradiacao
+                };
+            } else if (isIrradiacao) {
+                // Forçar habilitar apps se for Irradiação, mesmo que a config default do banco diga false
+                config.apps = true;
+            }
+            
+            // Ocultar Abas desativadas
+            if (!config.equipe) document.querySelector('[data-target="abaEquipe"]').style.display = 'none';
+            if (!config.agenda) document.querySelector('[data-target="abaAgenda"]').style.display = 'none';
+            if (!config.projetos) document.querySelector('[data-target="abaProjetosProcessos"]').style.display = 'none';
+            if (!config.documentos) document.querySelector('[data-target="abaDocumentos"]').style.display = 'none';
+            
+            if (config.apps) {
+                const btnApps = document.querySelector('[data-target="abaApps"]');
+                if(btnApps) btnApps.style.display = 'block';
+                if (isIrradiacao) {
+                    carregarAppIrradiacao();
+                }
+            }
         }
         document.getElementById('loadingState').style.display = 'none';
         document.getElementById('hubContent').style.display = 'block';
@@ -807,5 +841,147 @@ window.salvarProjeto = async (e) => {
         alert("Erro ao salvar. Verifique se a tabela projetos_processos existe.");
     } finally {
         btnSave.disabled = false;
+    }
+};
+
+// ==========================================
+// MÓDULO DE APPS & SERVIÇOS (Ex: Irradiação)
+// ==========================================
+async function carregarAppIrradiacao() {
+    const container = document.getElementById('containerApps');
+    
+    // HTML do Formulário e da Tabela
+    container.innerHTML = `
+        <div style="background: rgba(79, 70, 229, 0.1); border: 1px solid var(--primary); border-radius: 12px; padding: 20px; margin-bottom: 32px;">
+            <h3 style="color: var(--primary); margin-bottom: 16px;">📝 Nova Solicitação de Irradiação</h3>
+            <form id="formIrradiacao" style="display: flex; flex-direction: column; gap: 16px;">
+                <div>
+                    <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 6px;">Nome Completo do Necessitado *</label>
+                    <input type="text" id="inIrrNome" required class="input-field" placeholder="Ex: Maria da Silva" style="width: 100%;">
+                </div>
+                <div>
+                    <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 6px;">Endereço Completo</label>
+                    <input type="text" id="inIrrEndereco" class="input-field" placeholder="Rua, Número, Bairro, Cidade" style="width: 100%;">
+                </div>
+                <div>
+                    <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 8px;">Dias para Irradiação *</label>
+                    <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                        <label class="tag-checkbox-ui"><input type="checkbox" class="chk-dia" value="Segunda-feira"> Segunda-feira</label>
+                        <label class="tag-checkbox-ui"><input type="checkbox" class="chk-dia" value="Terça-feira"> Terça-feira</label>
+                        <label class="tag-checkbox-ui"><input type="checkbox" class="chk-dia" value="Quarta-feira"> Quarta-feira</label>
+                        <label class="tag-checkbox-ui"><input type="checkbox" class="chk-dia" value="Quinta-feira"> Quinta-feira</label>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
+                    <button type="submit" class="btn btn-primary" id="btnSaveIrr">Enviar Solicitação</button>
+                </div>
+            </form>
+        </div>
+        
+        <div>
+            <h3 style="color: var(--text-main); margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">📥 Caixa de Entrada (Aguardando Transcrição)</h3>
+            <div id="listaIrradiacoes" style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="color: var(--text-muted); font-size: 13px;">Carregando solicitações...</div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('formIrradiacao').addEventListener('submit', salvarIrradiacao);
+    await carregarListaIrradiacao();
+}
+
+async function carregarListaIrradiacao() {
+    const lista = document.getElementById('listaIrradiacoes');
+    try {
+        const { data, error } = await db.from('app_irradiacao_solicitacoes')
+                                        .select('*')
+                                        .eq('estrutura_id', estruturaId)
+                                        .order('criado_em', { ascending: false });
+        if (error) throw error;
+        
+        if (!data || data.length === 0) {
+            lista.innerHTML = '<div style="color: var(--text-muted); font-size: 14px; text-align: center; padding: 24px; background: rgba(255,255,255,0.02); border-radius: 8px;">Nenhuma solicitação pendente no momento.</div>';
+            return;
+        }
+        
+        let html = '';
+        data.forEach(item => {
+            const dataPed = new Date(item.criado_em).toLocaleDateString('pt-BR');
+            html += `
+                <div style="background: var(--bg-dark); border: 1px solid var(--border); border-radius: 8px; padding: 16px; display: flex; justify-content: space-between; gap: 16px;">
+                    <div style="flex: 1;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <h4 style="color: var(--text-main); margin: 0 0 8px 0;">${item.nome_solicitado}</h4>
+                            <span style="font-size: 11px; color: var(--text-muted);">${dataPed}</span>
+                        </div>
+                        <p style="color: var(--text-muted); font-size: 13px; margin: 0 0 8px 0;">📍 ${item.endereco || 'Endereço não informado'}</p>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            ${(item.dias_semana||'').split(',').filter(d=>d).map(d => `<span style="background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px; font-size: 11px; color: #cbd5e1;">${d.trim()}</span>`).join('')}
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; justify-content: center;">
+                        <button onclick="excluirIrradiacao('${item.id}')" class="btn" style="background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid #10b981; padding: 8px 12px;">✅ Transcrito (Apagar)</button>
+                    </div>
+                </div>
+            `;
+        });
+        lista.innerHTML = html;
+        
+    } catch (e) {
+        console.error(e);
+        lista.innerHTML = '<div style="color: #ef4444;">Erro ao carregar solicitações.</div>';
+    }
+}
+
+async function salvarIrradiacao(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnSaveIrr');
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+    
+    const nome = document.getElementById('inIrrNome').value;
+    const endereco = document.getElementById('inIrrEndereco').value;
+    
+    const checkboxes = document.querySelectorAll('.chk-dia:checked');
+    const dias = Array.from(checkboxes).map(c => c.value).join(', ');
+    
+    if (dias.length === 0) {
+        alert("Selecione pelo menos um dia para a Irradiação.");
+        btn.disabled = false;
+        btn.textContent = 'Enviar Solicitação';
+        return;
+    }
+    
+    try {
+        const { error } = await db.from('app_irradiacao_solicitacoes').insert([{
+            estrutura_id: estruturaId,
+            nome_solicitado: nome,
+            endereco: endereco,
+            dias_semana: dias
+        }]);
+        if (error) throw error;
+        
+        document.getElementById('formIrradiacao').reset();
+        await carregarListaIrradiacao();
+        alert("Solicitação enviada com sucesso!");
+    } catch (err) {
+        console.error(err);
+        alert("Erro ao enviar solicitação.");
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Enviar Solicitação';
+    }
+}
+
+window.excluirIrradiacao = async function(id) {
+    if(!confirm("Atenção! Confirma que já transcreveu este nome para o livro e deseja APAGÁ-LO do sistema?")) return;
+    
+    try {
+        const { error } = await db.from('app_irradiacao_solicitacoes').delete().eq('id', id);
+        if (error) throw error;
+        await carregarListaIrradiacao();
+    } catch (err) {
+        console.error(err);
+        alert("Erro ao excluir solicitação.");
     }
 };
