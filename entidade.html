@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Central SELA - Entidade & Atividades</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-area">
+                <h2>Central SELA</h2>
+            </div>
+            <nav class="main-nav">
+                <a href="entidade.html" class="nav-item active" data-target="entidade">🏛️ Entidade & Atividades</a>
+                <a href="index.html" class="nav-item" data-target="pessoas">👥 Pessoas & Perfis</a>
+                <a href="#" class="nav-item" data-target="assistencia">🤝 Assistência Social</a>
+                <a href="#" class="nav-item" data-target="evangelizacao">🌱 Evangelização</a>
+                <a href="#" class="nav-item" data-target="biblioteca">📚 Biblioteca</a>
+                <a href="#" class="nav-item" data-target="financeiro">💰 Financeiro</a>
+                <a href="#" class="nav-item" style="margin-top: 24px;" data-target="config">⚙️ Configurações</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="content-area">
+            <header class="topbar">
+                <h1>Entidade & Atividades</h1>
+                <div class="actions">
+                    <button id="btnNovaEstrutura" class="btn btn-primary">+ Novo Departamento / Atividade</button>
+                </div>
+            </header>
+
+            <div class="content-body" id="mainBody">
+                <div class="loading-state" id="loadingState">Aguardando Conexão...</div>
+                
+                <div class="table-container" style="display: none;" id="tableContainer">
+                    <div class="search-bar" style="display: flex; gap: 12px; margin-bottom: 24px; padding: 16px;">
+                        <input type="text" id="searchEstrutura" class="input-field" placeholder="Buscar por Nome do Departamento ou Atividade..." style="flex: 1;">
+                        <select id="filterTipoEstrutura" class="input-field" style="width: 200px; background-color: var(--bg-dark);">
+                            <option value="">Todos os Tipos</option>
+                            <option value="Departamento">Departamentos</option>
+                            <option value="Atividade">Atividades (Palestras/Passes)</option>
+                            <option value="Família">Famílias</option>
+                            <option value="Turma">Turmas (Evangelização)</option>
+                        </select>
+                    </div>
+
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Nome da Estrutura</th>
+                                <th>Tipo</th>
+                                <th>Total de Pessoas Vinculadas</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableEstruturas">
+                            <!-- Injetado via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Nova Estrutura -->
+    <div id="modalEstrutura" class="modal-overlay">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2 id="modalTitle">Nova Estrutura (Organograma)</h2>
+                <button class="btn-close" id="btnCloseModal">×</button>
+            </header>
+            <form id="formEstrutura" class="modal-body">
+                <div class="form-group">
+                    <label>Tipo de Estrutura</label>
+                    <select id="inTipoEstrutura" required>
+                        <option value="Departamento">Departamento (Ex: Assistência Social, Diretoria)</option>
+                        <option value="Atividade">Atividade (Ex: Palestra Pública, Atendimento)</option>
+                        <option value="Família">Família Assistida</option>
+                        <option value="Turma">Turma de Estudo/Evangelização</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Nome / Título</label>
+                    <input type="text" id="inNomeEstrutura" required placeholder="Ex: Diretoria Executiva">
+                </div>
+                
+                <footer class="modal-footer" style="margin-top: 24px;">
+                    <button type="button" class="btn" id="btnCancelModal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnSaveModal">Salvar Estrutura</button>
+                </footer>
+            </form>
+        </div>
+    </div>
+
+    <script src="entidade.js"></script>
+</body>
+</html>

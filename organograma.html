@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Central SELA - Organograma</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- D3.js e dependências -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-flextree@2.1.2/build/d3-flextree.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-org-chart@3.1.0"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        .org-container {
+            width: 100%;
+            height: calc(100vh - 200px);
+            background-color: #0f172a;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .svg-chart-container {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-area">
+                <h2>Central SELA</h2>
+            </div>
+            <nav class="main-nav">
+                <a href="entidade.html" class="nav-item" data-target="entidade">🏛️ Entidade & Atividades</a>
+                <a href="index.html" class="nav-item" data-target="pessoas">👥 Pessoas & Perfis</a>
+                <a href="#" class="nav-item" data-target="assistencia">🤝 Assistência Social</a>
+                <a href="#" class="nav-item" data-target="evangelizacao">🌱 Evangelização</a>
+                <a href="#" class="nav-item" data-target="biblioteca">📚 Biblioteca</a>
+                <a href="#" class="nav-item" data-target="financeiro">💰 Financeiro</a>
+                <a href="#" class="nav-item" style="margin-top: 24px;" data-target="config">⚙️ Configurações</a>
+            </nav>
+        </aside>
+
+        <main class="content-area">
+            <header class="topbar">
+                <div style="display: flex; gap: 16px; align-items: center;">
+                    <a href="entidade.html" class="btn" style="text-decoration: none; padding: 6px 12px; background: var(--bg-dark); color: var(--text-muted);">&larr; Voltar</a>
+                    <div>
+                        <h1 id="nomeEstrutura" style="font-size: 24px; font-weight: 600; margin: 0;">Carregando Organograma...</h1>
+                        <div id="tipoEstrutura" style="font-size: 14px; color: var(--text-muted); margin-top: 4px;">Aguarde</div>
+                    </div>
+                </div>
+                <div class="actions">
+                    <button id="btnNovoVinculo" class="btn btn-primary">+ Adicionar Membro na Árvore</button>
+                </div>
+            </header>
+
+            <div class="content-body">
+                <div class="org-container">
+                    <div id="loadingChart" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--text-muted);">
+                        Carregando nós da árvore...
+                    </div>
+                    <div class="svg-chart-container" id="chartContainer"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Novo Vínculo (Adicionar pessoa à árvore) -->
+    <div id="modalVinculo" class="modal-overlay">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2>Vincular Pessoa na Árvore</h2>
+                <button class="btn-close" id="btnCloseModal">×</button>
+            </header>
+            <form id="formVinculo" class="modal-body">
+                
+                <div class="form-group">
+                    <label>Pessoa (Busque e Selecione)</label>
+                    <select id="inPessoa" required style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-dark); color: white;">
+                        <option value="">Carregando pessoas...</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="groupPapel" style="display: none;">
+                    <label>Cargo / Papel neste Organograma</label>
+                    <select id="inPapel" required></select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Líder / Superior / Pai (Deixe em branco se for a Raiz da árvore)</label>
+                    <select id="inParent" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-dark); color: white;">
+                        <option value="">-- Ninguém (Será o topo da Árvore) --</option>
+                        <!-- Pessoas já na árvore aparecerão aqui -->
+                    </select>
+                </div>
+
+                <footer class="modal-footer" style="margin-top: 24px;">
+                    <button type="button" class="btn" id="btnCancelModal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnSaveModal">Salvar Vínculo</button>
+                </footer>
+            </form>
+        </div>
+    </div>
+
+    <script src="organograma.js"></script>
+</body>
+</html>
