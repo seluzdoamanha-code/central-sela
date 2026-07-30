@@ -342,7 +342,7 @@ body {
         font-size: 14px;
         white-space: normal;
         border-right: none;
-        border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+        border-bottom: none !important;
         border-left: none !important;
     }
     
@@ -421,7 +421,7 @@ body {
         text-align: left;
         border-radius: 0;
         padding: 16px;
-        border-bottom: 1px solid rgba(255,255,255,0.05);
+        border-bottom: none !important;
     }
     .tab-content {
         padding: 20px 16px;
@@ -431,4 +431,16 @@ body {
         align-items: stretch !important;
         gap: 12px;
     }
+    
+    .mural-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+}
+
+.mural-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 32px;
 }
