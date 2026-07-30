@@ -20,7 +20,7 @@
                 <div class="logo-area" style="display: flex; align-items: center; justify-content: space-between; padding: 0 16px;">
                     <div style="display: flex; align-items: center; gap: 12px;">
                         <img src="logo_sela.png" alt="Logo SELA" style="height: 40px; width: auto; border-radius: 50%;">
-                        <h2 style="margin: 0;">Central SELA</h2>
+                        <h2 style="margin: 0;">Portal SELA</h2>
                     </div>
                     <button id="mobileMenuBtn" class="mobile-menu-btn" style="background: none; border: none; color: white; font-size: 28px; cursor: pointer; display: none;">=</button>
                 </div>
@@ -45,7 +45,7 @@
                     </div>
                     <div class="desktop-only">
                         <div>&copy; 2026 Luz do Amanhã</div>
-                        <div style="opacity: 0.6; margin-top: 4px;">Dev by Central SELA</div>
+                        <div style="opacity: 0.6; margin-top: 4px;">Dev by Portal SELA</div>
                     </div>
                 </div>
             </aside>
@@ -64,7 +64,11 @@
         const navMenu = document.getElementById('sidebarNav');
         if(btnMenu && navMenu) {
             btnMenu.addEventListener('click', () => {
-                navMenu.classList.toggle('show-mobile');
+                if (typeof window.onMobileMenuClick === 'function') {
+                    window.onMobileMenuClick();
+                } else {
+                    navMenu.classList.toggle('show-mobile');
+                }
             });
         }
         
@@ -182,7 +186,7 @@
                     const dataInicio = new Date(ev.data_hora_inicio);
                     const dataFormatada = dataInicio.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).toUpperCase();
                     const horaFormatada = dataInicio.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                    const organizador = ev.estruturas ? ev.estruturas.nome : 'Central SELA';
+                    const organizador = ev.estruturas ? ev.estruturas.nome : 'Portal SELA';
                     
                     html += `
                     <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; border-radius: 8px; padding: 12px; display: flex; gap: 12px; align-items: center; min-width: 300px;">

@@ -282,10 +282,17 @@ body {
     cursor: pointer;
     accent-color: var(--primary);
 }
+.desktop-only {
+    display: block;
+}
 
-/* =========================================================
-   RESPONSIVIDADE (MOBILE)
-   ========================================================= */
+.mobile-only {
+    display: none !important;
+}
+
+/* =========================================
+   2. Componentes de UI Básicos
+   ========================================= */
 @media (max-width: 768px) {
     .app-container {
         flex-direction: column;
@@ -401,10 +408,20 @@ body {
         padding: 20px 16px;
     }
     .tabs-nav {
-        padding: 0 16px;
-        overflow-x: auto;
-        white-space: nowrap;
-        -webkit-overflow-scrolling: touch;
+        flex-direction: column;
+        padding: 0;
+        display: none; /* Hide by default on mobile, toggled by hamburger */
+    }
+    .tabs-nav.show-mobile {
+        display: flex;
+        border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .tab-btn {
+        width: 100%;
+        text-align: left;
+        border-radius: 0;
+        padding: 16px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
     }
     .tab-content {
         padding: 20px 16px;

@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const evDia = dataInicio.toLocaleDateString('pt-BR', { day: '2-digit' });
                     const evMes = dataInicio.toLocaleDateString('pt-BR', { month: 'short' }).toUpperCase();
                     const horaFormatada = dataInicio.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                    const organizador = ev.estruturas ? ev.estruturas.nome : 'Central SELA';
+                    const organizador = ev.estruturas ? ev.estruturas.nome : 'Portal SELA';
                     
                     html += `
                     <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; border-radius: 8px; padding: 12px; display: flex; gap: 12px; align-items: center;">

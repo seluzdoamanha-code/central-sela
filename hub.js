@@ -157,9 +157,23 @@ function configurarAbas() {
             btn.classList.add('active');
             const targetId = btn.getAttribute('data-target');
             document.getElementById(targetId).classList.add('active');
+
+            // No celular, recolhe o menu após clicar em uma aba
+            const tabsNav = document.querySelector('.tabs-nav');
+            if (tabsNav) {
+                tabsNav.classList.remove('show-mobile');
+            }
         });
     });
 }
+
+// Assumir o controle do Menu Hambúrguer (Mobile)
+window.onMobileMenuClick = () => {
+    const tabsNav = document.querySelector('.tabs-nav');
+    if (tabsNav) {
+        tabsNav.classList.toggle('show-mobile');
+    }
+};
 
 window.abrirOrganograma = function() {
     window.location.href = `organograma.html?id=${estruturaId}`;
