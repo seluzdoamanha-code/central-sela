@@ -6,6 +6,7 @@
     <title>Central SELA - Hub da Entidade</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
@@ -185,19 +186,108 @@
                 <!-- Aba 5: Documentos -->
                 <div class="tab-content" id="abaDocumentos">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                        <h2>Arquivos do Departamento</h2>
-                        <button class="btn btn-primary">+ Enviar Arquivo</button>
+                        <div>
+                            <h2>Gestão do Conhecimento & Documentos</h2>
+                            <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">Atas, links, ofícios e documentações (Markdown) deste setor.</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="abrirModalDoc()">+ Novo Documento</button>
                     </div>
-                    <div class="placeholder-card">
-                        <div class="placeholder-icon">📁</div>
-                        <h3>Gaveta Digital</h3>
-                        <p style="margin-top: 8px;">Atas de reunião, ofícios e planilhas financeiras restritas a este setor. (Módulo em Construção)</p>
+                    
+                    <!-- Seção 1: Documentos Oficiais / Herdados -->
+                    <div style="margin-bottom: 32px;">
+                        <h3 style="color: #60a5fa; margin-bottom: 16px; border-bottom: 1px solid rgba(96,165,250,0.2); padding-bottom: 8px;">🛡️ Documentos Oficiais (Obrigatórios)</h3>
+                        <div id="listDocsOficiais" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
+                            <div style="color: var(--text-muted); font-size: 13px;">Carregando documentos oficiais...</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Seção 2: Documentos Locais -->
+                    <div>
+                        <h3 style="color: white; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">📁 Documentos do Departamento</h3>
+                        <div id="listDocsLocais" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
+                            <div style="color: var(--text-muted); font-size: 13px;">Carregando documentos locais...</div>
+                        </div>
                     </div>
                 </div>
                 
             </div>
         </main>
     </div>
+
+    <!-- Modal Adicionar Documento -->
+    <div class="modal-overlay" id="modalDoc">
+        <div class="modal-content" style="max-width: 600px;">
+            <h2 id="modalDocTitle" style="margin-bottom: 16px;">Adicionar Documento</h2>
+            <form id="formDoc">
+                <div class="form-group">
+                    <label>Título do Documento *</label>
+                    <input type="text" id="inDocTitulo" required placeholder="Ex: Regimento Interno 2026">
+                </div>
+                
+                <div class="form-group">
+                    <label>Tipo *</label>
+                    <select id="inDocTipo" required onchange="toggleDocType()">
+                        <option value="Link">🔗 Link Externo (Google Drive, Youtube, etc)</option>
+                        <option value="Markdown">📝 Texto Markdown (Obsidian / Rico)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="groupDocLink">
+                    <label>URL (Link) *</label>
+                    <input type="url" id="inDocLink" placeholder="https://...">
+                </div>
+                
+                <div class="form-group" id="groupDocMd" style="display: none;">
+                    <label>Conteúdo Markdown *</label>
+                    <textarea id="inDocMd" rows="8" placeholder="# Título 1\n\n- Item 1\n- Item 2\n\nCole o seu conteúdo do Obsidian aqui!" style="width: 100%; padding: 12px; background: var(--bg-main); border: 1px solid var(--border); color: white; border-radius: 8px; font-family: monospace;"></textarea>
+                </div>
+                
+                <div class="form-group" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);">
+                    <label style="color: #60a5fa;">🛡️ Compartilhar Oficialmente (Opcional)</label>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Selecione abaixo os departamentos que devem herdar este documento de forma obrigatória (eles não poderão excluí-lo).</p>
+                    <div id="checkDepartamentos" style="max-height: 150px; overflow-y: auto; background: var(--bg-main); padding: 12px; border-radius: 8px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px;">
+                        <span style="color: var(--text-muted); font-size: 12px;">Carregando departamentos...</span>
+                    </div>
+                </div>
+
+                <div class="modal-actions" style="margin-top: 24px;">
+                    <button type="button" class="btn btn-secondary" onclick="fecharModalDoc()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnSaveDoc">Salvar Documento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal Visualizador Markdown -->
+    <div class="modal-overlay" id="modalViewer" style="align-items: center; justify-content: center; padding: 20px;">
+        <div class="modal-content" style="max-width: 900px; width: 100%; height: 90vh; display: flex; flex-direction: column; background: #0f172a;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 16px;">
+                <h2 id="viewerTitle" style="color: white; margin: 0;">Título</h2>
+                <button class="btn btn-secondary" onclick="fecharViewer()" style="padding: 6px 12px;">Fechar</button>
+            </div>
+            <div id="viewerContent" style="flex: 1; overflow-y: auto; color: #e2e8f0; font-family: 'Inter', sans-serif; line-height: 1.6; padding-right: 12px;">
+                <!-- Markdown Renderizado Entra Aqui -->
+            </div>
+        </div>
+    </div>
+    
+    <style>
+        /* CSS para o Markdown Renderizado ficar bonito igual o Obsidian */
+        #viewerContent h1, #viewerContent h2, #viewerContent h3 { color: white; margin-top: 24px; margin-bottom: 16px; }
+        #viewerContent h1 { border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+        #viewerContent p { margin-bottom: 16px; }
+        #viewerContent ul, #viewerContent ol { margin-bottom: 16px; padding-left: 24px; }
+        #viewerContent li { margin-bottom: 4px; }
+        #viewerContent a { color: #3b82f6; text-decoration: none; }
+        #viewerContent a:hover { text-decoration: underline; }
+        #viewerContent blockquote { border-left: 4px solid #4f46e5; margin: 0 0 16px 0; padding-left: 16px; color: #94a3b8; }
+        #viewerContent code { background: #1e293b; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.9em; }
+        #viewerContent pre { background: #1e293b; padding: 16px; border-radius: 8px; overflow-x: auto; margin-bottom: 16px; }
+        #viewerContent pre code { background: none; padding: 0; }
+        #viewerContent table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+        #viewerContent th, #viewerContent td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; }
+        #viewerContent th { background: rgba(255,255,255,0.05); }
+    </style>
 
     <script src="hub.js"></script>
     <script src="sidebar.js"></script>

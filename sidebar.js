@@ -11,8 +11,9 @@
         
         const sidebarHTML = `
             <aside class="sidebar" style="display: flex; flex-direction: column;">
-                <div class="logo-area">
-                    <h2>Central SELA</h2>
+                <div class="logo-area" style="display: flex; align-items: center; justify-content: flex-start; gap: 12px; padding: 0 16px;">
+                    <img src="logo_sela.png" alt="Logo SELA" style="height: 40px; width: auto; border-radius: 50%;">
+                    <h2 style="margin: 0;">Central SELA</h2>
                 </div>
                 <nav class="main-nav" id="sidebarNav" style="flex: 1;">
                     <a href="entidade.html" class="nav-item ${currentPage === 'entidade.html' || currentPage === 'hub.html' ? 'active' : ''}">🏛️ Entidade & Atividades</a>
@@ -32,8 +33,10 @@
                     <div id="socialLinks" style="display: flex; justify-content: center; gap: 12px; margin-bottom: 12px;">
                         <!-- Redes sociais injetadas aqui -->
                     </div>
-                    <div>&copy; 2026 Luz do Amanhã</div>
-                    <div style="opacity: 0.6; margin-top: 4px;">Dev by Central SELA</div>
+                    <div class="desktop-only">
+                        <div>&copy; 2026 Luz do Amanhã</div>
+                        <div style="opacity: 0.6; margin-top: 4px;">Dev by Central SELA</div>
+                    </div>
                 </div>
             </aside>
         `;
