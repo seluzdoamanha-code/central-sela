@@ -866,16 +866,30 @@ async function carregarAppIrradiacao() {
     const container = document.getElementById('containerApps');
     
     container.innerHTML = `
+        <style>
+            #formIrradiacao .input-field {
+                border: 2px solid var(--border) !important;
+                padding: 12px 16px !important;
+                background-color: rgba(255, 255, 255, 0.03) !important;
+                border-radius: 8px !important;
+                font-size: 15px !important;
+            }
+            #formIrradiacao .input-field:focus {
+                border-color: var(--primary) !important;
+                background-color: rgba(255, 255, 255, 0.08) !important;
+                outline: none;
+            }
+        </style>
         <div style="background: rgba(79, 70, 229, 0.1); border: 1px solid var(--primary); border-radius: 12px; padding: 20px; margin-bottom: 32px;">
-            <h3 style="color: var(--primary); margin-bottom: 16px;">📝 Nova Solicitação de Irradiação</h3>
+            <h3 style="color: var(--primary); margin-bottom: 16px;">✨ Nova Solicitação de Irradiação Espiritual</h3>
             <form id="formIrradiacao" style="display: flex; flex-direction: column; gap: 16px;">
                 <div>
-                    <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 6px;">Nome Completo do Necessitado *</label>
-                    <input type="text" id="inIrrNome" required class="input-field" placeholder="Ex: Maria da Silva" style="width: 100%;">
+                    <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 6px;">Nome(s) Completo(s) do(s) Necessitado(s) *</label>
+                    <input type="text" id="inIrrNome" required class="input-field" placeholder="EX: MARIA DA SILVA" style="width: 100%; text-transform: uppercase;">
                 </div>
                 <div>
                     <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 6px;">Endereço Completo</label>
-                    <input type="text" id="inIrrEndereco" class="input-field" placeholder="Rua, Número, Bairro, Cidade" style="width: 100%;">
+                    <input type="text" id="inIrrEndereco" class="input-field" placeholder="RUA, NÚMERO, BAIRRO, CIDADE" style="width: 100%; text-transform: uppercase;">
                 </div>
                 <div>
                     <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 8px;">Dias para Irradiação *</label>
