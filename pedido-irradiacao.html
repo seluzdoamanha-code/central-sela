@@ -128,6 +128,19 @@
             margin-top: 16px;
         }
         
+        .input-field {
+            border: 2px solid var(--border) !important;
+            padding: 12px 16px !important;
+            background-color: rgba(255, 255, 255, 0.03) !important;
+            border-radius: 8px !important;
+            font-size: 15px !important;
+        }
+        .input-field:focus {
+            border-color: var(--primary) !important;
+            background-color: rgba(255, 255, 255, 0.08) !important;
+            outline: none;
+        }
+        
         /* Painel de Sucesso */
         #panelSuccess {
             display: none;
@@ -173,20 +186,21 @@
 
     <div class="container-box">
         <div class="logo-area">
-            <h1>✨ Irradiação</h1>
-            <p>Portal SELA - Solicitação de Tratamento Espiritual</p>
+            <img src="logo_sela.png" alt="Portal SELA" style="max-width: 140px; margin-bottom: 16px; border-radius: 8px;">
+            <h1 style="font-size: 22px;">✨ Irradiação Espiritual</h1>
+            <p>Solicitação de Tratamento Espiritual</p>
         </div>
 
         <!-- Formulário -->
         <form id="formIrradiacao">
             <div class="form-group">
-                <label>Nome Completo do Necessitado *</label>
-                <input type="text" id="inNome" class="input-field" required placeholder="Ex: Maria da Silva" style="width: 100%; box-sizing: border-box;">
+                <label>Nome(s) Completo(s) do(s) Necessitado(s) *</label>
+                <input type="text" id="inNome" class="input-field" required placeholder="EX: MARIA DA SILVA" style="width: 100%; box-sizing: border-box; text-transform: uppercase;">
             </div>
             
             <div class="form-group">
                 <label>Endereço Completo</label>
-                <input type="text" id="inEndereco" class="input-field" placeholder="Rua, Número, Bairro, Cidade" style="width: 100%; box-sizing: border-box;">
+                <input type="text" id="inEndereco" class="input-field" placeholder="RUA, NÚMERO, BAIRRO, CIDADE" style="width: 100%; box-sizing: border-box; text-transform: uppercase;">
             </div>
             
             <div class="form-group">
