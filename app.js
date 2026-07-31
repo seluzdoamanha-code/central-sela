@@ -17,18 +17,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Checkboxes de filtros de papel
     const chkOutros = document.getElementById('showOutros');
-    const chkEstudantes = document.getElementById('showEstudantes');
-    const chkMembros = document.getElementById('showMembros');
-    const chkPalestrantes = document.getElementById('showPalestrantes');
 
     if(filterSearch) filterSearch.addEventListener('input', window.aplicarFiltros);
     if(filterTag) filterTag.addEventListener('change', window.aplicarFiltros);
     if(sortOrder) sortOrder.addEventListener('change', window.aplicarFiltros);
     
     if(chkOutros) chkOutros.addEventListener('change', window.aplicarFiltros);
-    if(chkEstudantes) chkEstudantes.addEventListener('change', window.aplicarFiltros);
-    if(chkMembros) chkMembros.addEventListener('change', window.aplicarFiltros);
-    if(chkPalestrantes) chkPalestrantes.addEventListener('change', window.aplicarFiltros);
     
     // Configura as Tags Dinâmicas
     window.renderizarTagsDisponiveis();
@@ -132,9 +126,6 @@ window.aplicarFiltros = () => {
         
         // Filtra papéis que estão desmarcados nas caixas de seleção
         const showOutros = document.getElementById('showOutros');
-        const showEstudantes = document.getElementById('showEstudantes');
-        const showMembros = document.getElementById('showMembros');
-        const showPalestrantes = document.getElementById('showPalestrantes');
 
         filtrados = filtrados.filter(p => {
             if (!p.papeis) return true;
@@ -147,10 +138,7 @@ window.aplicarFiltros = () => {
 
             const papeisUpper = String(p.papeis).toUpperCase();
             
-            if (showOutros && showOutros.checked === false && papeisUpper.includes('OUTROS')) return false;
-            if (showEstudantes && showEstudantes.checked === false && (papeisUpper.includes('ESTUDANTE') || papeisUpper.includes('ESTUDANTES'))) return false;
-            if (showMembros && showMembros.checked === false && (papeisUpper.includes('MEMBRO DA FAMÍLIA') || papeisUpper.includes('MEMBRO DA FAMILIA'))) return false;
-            if (showPalestrantes && showPalestrantes.checked === false && (papeisUpper.includes('PALESTRANTE') || papeisUpper.includes('PALESTRANTES'))) return false;
+            if (showOutros && showOutros.checked === false && papeisUpper.includes('OUTRO')) return false;
             
             return true;
         });
@@ -543,19 +531,36 @@ window.renderizarTagsDisponiveis = () => {
         "Associado Proponente", "Ex-Associado", "Voluntário", "Colaborador(a)", 
         "Palestrante", "Evangelizando", "Estudante", "Assistido(a)", "Paciente", 
         "Membro da Família", "Empresa Parceira", "Parceiro", "Fornecedor", 
-        "Passista", "Líder", "Outro"
+        "Passista", "Líder", "Outros"
     ];
     
     const container = document.getElementById('tagsCheckboxContainer');
-    if (!container) return;
+    if (container) {
+        container.innerHTML = TAGS.map(tag => `
+            <label class="tag-checkbox tag-checkbox-ui">
+                <input type="checkbox" name="papeis" value="${tag}">
+                <span>${tag}</span>
+            </label>
+        `).join('');
+    }
     
-    container.innerHTML = TAGS.map(tag => `
-        <label class="tag-checkbox tag-checkbox-ui">
-            <input type="checkbox" name="papeis" value="${tag}">
-            <span>${tag}</span>
-        </label>
-    `).join('');
-    
+    // Atualiza o select de filtro (pessoas.html)
+    const filterTag = document.getElementById('filterTag');
+    if (filterTag) {
+        // Mantém as opções fixas iniciais e limpa o resto
+        while (filterTag.options.length > 4) {
+            filterTag.remove(4);
+        }
+        // Adiciona as tags organizadas em ordem alfabética
+        const sortedTags = [...TAGS].sort((a, b) => a.localeCompare(b));
+        sortedTags.forEach(tag => {
+            const option = document.createElement('option');
+            option.value = tag;
+            option.textContent = tag;
+            filterTag.appendChild(option);
+        });
+    }
+
     // Logica de Busca das Tags
     const searchInput = document.getElementById('tagSearchInput');
     if (searchInput) {

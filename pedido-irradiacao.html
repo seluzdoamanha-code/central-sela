@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitação de Irradiação | Portal SELA</title>
+    
+    <!-- Fonte Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS Principal -->
+    <link rel="stylesheet" href="index.css">
+    
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            background-color: var(--bg-dark);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-main);
+            box-sizing: border-box;
+        }
+        
+        .container-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        
+        .logo-area {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        
+        .logo-area h1 {
+            color: var(--primary);
+            margin: 0;
+            font-size: 24px;
+        }
+        
+        .logo-area p {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-group label {
+            display: block;
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+        
+        .dias-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        .tag-checkbox-ui {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            line-height: 1.4;
+        }
+        
+        .tag-checkbox-ui:hover {
+            border-color: var(--primary);
+            background: rgba(79, 70, 229, 0.1);
+        }
+        
+        .tag-checkbox-ui input[type="checkbox"] {
+            display: none;
+        }
+        
+        .tag-checkbox-ui input[type="checkbox"]:checked + .tag-content {
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        .tag-checkbox-ui.selected {
+            border-color: var(--primary);
+            background: rgba(79, 70, 229, 0.2);
+            box-shadow: 0 0 10px rgba(79, 70, 229, 0.3);
+        }
+        
+        .tag-content {
+            font-size: 14px;
+        }
+        
+        .tag-sub {
+            font-weight: normal;
+            font-size: 11px;
+            opacity: 0.7;
+            margin-top: 4px;
+            color: var(--text-muted);
+        }
+        
+        .tag-checkbox-ui.selected .tag-sub {
+            color: var(--primary-light, #a5b4fc);
+        }
+        
+        .btn-block {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            margin-top: 16px;
+        }
+        
+        /* Painel de Sucesso */
+        #panelSuccess {
+            display: none;
+            text-align: center;
+        }
+        
+        .success-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        
+        .resume-box {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px 0;
+            text-align: left;
+            font-size: 14px;
+        }
+        
+        .btn-danger {
+            background: transparent;
+            color: #ef4444;
+            border: 1px solid #ef4444;
+            width: 100%;
+            padding: 12px;
+            margin-top: 12px;
+        }
+        
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+        
+        @media (max-width: 480px) {
+            .dias-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container-box">
+        <div class="logo-area">
+            <h1>✨ Irradiação</h1>
+            <p>Portal SELA - Solicitação de Tratamento Espiritual</p>
+        </div>
+
+        <!-- Formulário -->
+        <form id="formIrradiacao">
+            <div class="form-group">
+                <label>Nome Completo do Necessitado *</label>
+                <input type="text" id="inNome" class="input-field" required placeholder="Ex: Maria da Silva" style="width: 100%; box-sizing: border-box;">
+            </div>
+            
+            <div class="form-group">
+                <label>Endereço Completo</label>
+                <input type="text" id="inEndereco" class="input-field" placeholder="Rua, Número, Bairro, Cidade" style="width: 100%; box-sizing: border-box;">
+            </div>
+            
+            <div class="form-group">
+                <label>Selecione os dias para Irradiação *</label>
+                <div class="dias-grid">
+                    <label class="tag-checkbox-ui" onclick="toggleSelected(this)">
+                        <input type="checkbox" class="chk-dia" value="Segunda-feira">
+                        <div class="tag-content">Segunda-feira</div>
+                        <div class="tag-sub">(Influênciação espiritual)</div>
+                    </label>
+                    <label class="tag-checkbox-ui" onclick="toggleSelected(this)">
+                        <input type="checkbox" class="chk-dia" value="Terça-feira">
+                        <div class="tag-content">Terça-feira</div>
+                        <div class="tag-sub">(Saúde física/espiritual)</div>
+                    </label>
+                    <label class="tag-checkbox-ui" onclick="toggleSelected(this)">
+                        <input type="checkbox" class="chk-dia" value="Quarta-feira">
+                        <div class="tag-content">Quarta-feira</div>
+                        <div class="tag-sub">(Desobsessão)</div>
+                    </label>
+                    <label class="tag-checkbox-ui" onclick="toggleSelected(this)">
+                        <input type="checkbox" class="chk-dia" value="Quinta-feira">
+                        <div class="tag-content">Quinta-feira</div>
+                        <div class="tag-sub">(Saúde física/espiritual)</div>
+                    </label>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-block" id="btnSubmit">Enviar Solicitação</button>
+        </form>
+
+        <!-- Painel de Sucesso -->
+        <div id="panelSuccess">
+            <div class="success-icon">✅</div>
+            <h2 style="color: #10b981; margin: 0 0 8px 0;">Solicitação Enviada!</h2>
+            <p style="color: var(--text-muted); font-size: 14px; margin: 0;">O nome foi adicionado à caixa de entrada da equipe de Irradiação.</p>
+            
+            <div class="resume-box" id="resumeContent">
+                <!-- Preenchido via JS -->
+            </div>
+            
+            <button onclick="novaSolicitacao()" class="btn btn-primary btn-block">Fazer Nova Solicitação</button>
+            <button onclick="cancelarSolicitacao()" class="btn btn-danger" id="btnCancel">Apagar Solicitação (Cancelar)</button>
+        </div>
+
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://aymdooyafimliiggxeqs.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5bWRvb3lhZmltbGlpZ2d4ZXFzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUxMDUxNDksImV4cCI6MjEwMDY4MTE0OX0.-NBhiyGDlrWq4QKNLx9Ll5GlIk0mV_rBWnr0vdbUCOU';
+        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        let estruturaId = urlParams.get('id');
+        
+        let lastInsertedIds = [];
+
+        function toggleSelected(labelElement) {
+            const chk = labelElement.querySelector('input');
+            setTimeout(() => {
+                if(chk.checked) {
+                    labelElement.classList.add('selected');
+                } else {
+                    labelElement.classList.remove('selected');
+                }
+            }, 10);
+        }
+
+        document.getElementById('formIrradiacao').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Auto resolve estrutura ID if not provided in URL
+            if (!estruturaId) {
+                const { data } = await db.from('estruturas').select('id').limit(1).single();
+                if (data) estruturaId = data.id;
+            }
+
+            const btn = document.getElementById('btnSubmit');
+            const nome = document.getElementById('inNome').value.toUpperCase();
+            const endereco = document.getElementById('inEndereco').value.toUpperCase();
+            
+            const checkboxes = document.querySelectorAll('.chk-dia:checked');
+            const dias = Array.from(checkboxes).map(c => c.value);
+            
+            if (dias.length === 0) {
+                alert("Selecione pelo menos um dia para a Irradiação.");
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = 'Enviando...';
+            
+            try {
+                const recordsToInsert = dias.map(dia => ({
+                    estrutura_id: estruturaId,
+                    nome_solicitado: nome,
+                    endereco: endereco,
+                    dias_semana: dia,
+                    status: 'pendente',
+                    leituras: 0
+                }));
+                
+                const { data, error } = await db.from('app_irradiacao_solicitacoes').insert(recordsToInsert).select();
+                if (error) throw error;
+                
+                // Salvar IDs em memória para poder cancelar
+                lastInsertedIds = data.map(r => r.id);
+                
+                // Mostrar Sucesso
+                document.getElementById('formIrradiacao').style.display = 'none';
+                document.getElementById('panelSuccess').style.display = 'block';
+                
+                document.getElementById('resumeContent').innerHTML = `
+                    <strong>Nome:</strong> ${nome}<br>
+                    <strong>Endereço:</strong> ${endereco || 'Não informado'}<br>
+                    <strong style="display:block; margin-top:8px;">Dias:</strong> 
+                    ${dias.join('<br>')}
+                `;
+                
+            } catch (err) {
+                console.error(err);
+                alert("Erro ao enviar solicitação. Tente novamente.");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Enviar Solicitação';
+            }
+        });
+
+        function novaSolicitacao() {
+            document.getElementById('formIrradiacao').reset();
+            document.querySelectorAll('.tag-checkbox-ui').forEach(el => el.classList.remove('selected'));
+            document.getElementById('formIrradiacao').style.display = 'block';
+            document.getElementById('panelSuccess').style.display = 'none';
+            lastInsertedIds = []; // Limpa memória
+        }
+
+        async function cancelarSolicitacao() {
+            if (lastInsertedIds.length === 0) return;
+            if (!confirm("Tem certeza que deseja cancelar e apagar esta solicitação?")) return;
+            
+            const btn = document.getElementById('btnCancel');
+            btn.disabled = true;
+            btn.textContent = 'Apagando...';
+            
+            try {
+                for (const id of lastInsertedIds) {
+                    await db.from('app_irradiacao_solicitacoes').delete().eq('id', id);
+                }
+                alert("Solicitação apagada com sucesso.");
+                novaSolicitacao();
+            } catch (err) {
+                console.error(err);
+                alert("Erro ao apagar solicitação.");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Apagar Solicitação (Cancelar)';
+            }
+        }
+    </script>
+</body>
+</html>

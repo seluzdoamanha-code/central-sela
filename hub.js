@@ -880,10 +880,10 @@ async function carregarAppIrradiacao() {
                 <div>
                     <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 8px;">Dias para Irradiação *</label>
                     <div style="display: flex; gap: 16px; flex-wrap: wrap;">
-                        <label class="tag-checkbox-ui"><input type="checkbox" class="chk-dia" value="Segunda-feira"> Segunda-feira (Influênciação espiritual)</label>
-                        <label class="tag-checkbox-ui"><input type="checkbox" class="chk-dia" value="Terça-feira"> Terça-feira (Saúde física)</label>
-                        <label class="tag-checkbox-ui"><input type="checkbox" class="chk-dia" value="Quarta-feira"> Quarta-feira (Desobsessão)</label>
-                        <label class="tag-checkbox-ui"><input type="checkbox" class="chk-dia" value="Quinta-feira"> Quinta-feira (Saúde física)</label>
+                        <label class="tag-checkbox-ui" style="text-align: center; line-height: 1.4;"><input type="checkbox" class="chk-dia" value="Segunda-feira"> Segunda-feira<br><small style="font-weight: normal; font-size: 11px; opacity: 0.8;">(Influênciação espiritual)</small></label>
+                        <label class="tag-checkbox-ui" style="text-align: center; line-height: 1.4;"><input type="checkbox" class="chk-dia" value="Terça-feira"> Terça-feira<br><small style="font-weight: normal; font-size: 11px; opacity: 0.8;">(Saúde física/espiritual)</small></label>
+                        <label class="tag-checkbox-ui" style="text-align: center; line-height: 1.4;"><input type="checkbox" class="chk-dia" value="Quarta-feira"> Quarta-feira<br><small style="font-weight: normal; font-size: 11px; opacity: 0.8;">(Desobsessão)</small></label>
+                        <label class="tag-checkbox-ui" style="text-align: center; line-height: 1.4;"><input type="checkbox" class="chk-dia" value="Quinta-feira"> Quinta-feira<br><small style="font-weight: normal; font-size: 11px; opacity: 0.8;">(Saúde física/espiritual)</small></label>
                     </div>
                 </div>
                 <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
