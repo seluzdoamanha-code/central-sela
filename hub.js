@@ -859,10 +859,12 @@ window.salvarProjeto = async (e) => {
 // ==========================================
 // MÓDULO DE APPS & SERVIÇOS (Ex: Irradiação)
 // ==========================================
+let currentIrradiacaoTab = 'pendentes';
+let currentIrradiacaoDia = 'Segunda-feira';
+
 async function carregarAppIrradiacao() {
     const container = document.getElementById('containerApps');
     
-    // HTML do Formulário e da Tabela
     container.innerHTML = `
         <div style="background: rgba(79, 70, 229, 0.1); border: 1px solid var(--primary); border-radius: 12px; padding: 20px; margin-bottom: 32px;">
             <h3 style="color: var(--primary); margin-bottom: 16px;">📝 Nova Solicitação de Irradiação</h3>
@@ -890,49 +892,136 @@ async function carregarAppIrradiacao() {
             </form>
         </div>
         
-        <div>
-            <h3 style="color: var(--text-main); margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">📥 Caixa de Entrada (Aguardando Transcrição)</h3>
+        <div style="margin-top: 32px;">
+            <div style="display: flex; gap: 16px; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px; overflow-x: auto;">
+                <button onclick="mudarAbaIrradiacao('pendentes')" id="btnIrrPendentes" class="btn btn-secondary" style="white-space: nowrap;">📥 Pendentes</button>
+                <button onclick="mudarAbaIrradiacao('ativos')" id="btnIrrAtivos" class="btn" style="background: rgba(16,185,129,0.1); color: #10b981; border: 1px solid rgba(16,185,129,0.3); white-space: nowrap;">📋 Painel de Leitura</button>
+                <button onclick="mudarAbaIrradiacao('historico')" id="btnIrrHistorico" class="btn" style="background: transparent; color: var(--text-muted); white-space: nowrap;">🗄️ Histórico</button>
+            </div>
+            
+            <div id="filtrosDiasIrr" style="display: none; gap: 12px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 8px;">
+                <button class="btn btn-secondary btn-dia" onclick="setDiaIrradiacao('Segunda-feira')">Segunda-feira</button>
+                <button class="btn btn-secondary btn-dia" onclick="setDiaIrradiacao('Terça-feira')">Terça-feira</button>
+                <button class="btn btn-secondary btn-dia" onclick="setDiaIrradiacao('Quarta-feira')">Quarta-feira</button>
+                <button class="btn btn-secondary btn-dia" onclick="setDiaIrradiacao('Quinta-feira')">Quinta-feira</button>
+            </div>
+
             <div id="listaIrradiacoes" style="display: flex; flex-direction: column; gap: 12px;">
-                <div style="color: var(--text-muted); font-size: 13px;">Carregando solicitações...</div>
+                <div style="color: var(--text-muted); font-size: 13px;">Carregando...</div>
             </div>
         </div>
     `;
 
     document.getElementById('formIrradiacao').addEventListener('submit', salvarIrradiacao);
-    await carregarListaIrradiacao();
+    window.mudarAbaIrradiacao('pendentes');
+}
+
+window.mudarAbaIrradiacao = function(aba) {
+    currentIrradiacaoTab = aba;
+    
+    // Atualiza botões
+    const btnPendentes = document.getElementById('btnIrrPendentes');
+    const btnAtivos = document.getElementById('btnIrrAtivos');
+    const btnHistorico = document.getElementById('btnIrrHistorico');
+    
+    btnPendentes.style.background = aba === 'pendentes' ? 'var(--border)' : 'transparent';
+    btnAtivos.style.background = aba === 'ativos' ? 'rgba(16,185,129,0.2)' : 'transparent';
+    btnHistorico.style.background = aba === 'historico' ? 'var(--border)' : 'transparent';
+    
+    // Filtros de dia só aparecem no "ativos"
+    const filtrosDias = document.getElementById('filtrosDiasIrr');
+    if (aba === 'ativos') {
+        filtrosDias.style.display = 'flex';
+        window.setDiaIrradiacao(currentIrradiacaoDia); // Força render
+    } else {
+        filtrosDias.style.display = 'none';
+        carregarListaIrradiacao();
+    }
+}
+
+window.setDiaIrradiacao = function(dia) {
+    currentIrradiacaoDia = dia;
+    
+    document.querySelectorAll('.btn-dia').forEach(b => {
+        b.style.background = b.textContent === dia ? 'var(--primary)' : 'var(--bg-dark)';
+        b.style.color = b.textContent === dia ? '#fff' : 'var(--text-muted)';
+    });
+    
+    carregarListaIrradiacao();
 }
 
 async function carregarListaIrradiacao() {
     const lista = document.getElementById('listaIrradiacoes');
     try {
-        const { data, error } = await db.from('app_irradiacao_solicitacoes')
-                                        .select('*')
-                                        .eq('estrutura_id', estruturaId)
-                                        .order('criado_em', { ascending: false });
+        let query = db.from('app_irradiacao_solicitacoes')
+                      .select('*')
+                      .eq('estrutura_id', estruturaId);
+                      
+        if (currentIrradiacaoTab === 'pendentes') {
+            query = query.eq('status', 'pendente').order('criado_em', { ascending: false });
+        } else if (currentIrradiacaoTab === 'ativos') {
+            query = query.eq('status', 'ativo').ilike('dias_semana', `%${currentIrradiacaoDia}%`).order('criado_em', { ascending: true });
+        } else if (currentIrradiacaoTab === 'historico') {
+            query = query.eq('status', 'historico').order('criado_em', { ascending: false });
+        }
+        
+        const { data, error } = await query;
         if (error) throw error;
         
         if (!data || data.length === 0) {
-            lista.innerHTML = '<div style="color: var(--text-muted); font-size: 14px; text-align: center; padding: 24px; background: rgba(255,255,255,0.02); border-radius: 8px;">Nenhuma solicitação pendente no momento.</div>';
+            lista.innerHTML = '<div style="color: var(--text-muted); font-size: 14px; text-align: center; padding: 24px; background: rgba(255,255,255,0.02); border-radius: 8px;">Nenhum registro encontrado nesta visão.</div>';
             return;
         }
         
         let html = '';
         data.forEach(item => {
             const dataPed = new Date(item.criado_em).toLocaleDateString('pt-BR');
+            
+            // Botões de Ação
+            let actionsHtml = '';
+            let progressHtml = '';
+            
+            if (currentIrradiacaoTab === 'pendentes') {
+                actionsHtml = `
+                    <button onclick="aprovarIrradiacao('${item.id}')" class="btn btn-primary" style="padding: 6px 12px;">✅ Aprovar p/ Leitura</button>
+                    <button onclick="excluirIrradiacaoDefinitivo('${item.id}')" class="btn" style="color: #ef4444; border: 1px solid #ef4444; padding: 6px 12px; background: transparent;">Apagar</button>
+                `;
+            } else if (currentIrradiacaoTab === 'ativos') {
+                const leituras = item.leituras || 0;
+                let caixinhas = '';
+                for(let i=1; i<=4; i++) {
+                    if (i <= leituras) {
+                        caixinhas += `<span style="display:inline-block; width:16px; height:16px; background:#10b981; border-radius:50%; margin-right:4px;"></span>`;
+                    } else {
+                        caixinhas += `<span style="display:inline-block; width:16px; height:16px; border:2px solid #334155; border-radius:50%; margin-right:4px;"></span>`;
+                    }
+                }
+                
+                progressHtml = `<div style="margin-top: 8px; font-size: 12px; color: var(--text-muted);">Leituras: ${leituras}/4<br><div style="margin-top:4px;">${caixinhas}</div></div>`;
+                
+                actionsHtml = `
+                    <button onclick="marcarLeituraIrr('${item.id}', ${leituras})" class="btn" style="background: rgba(16,185,129,0.1); color: #10b981; border: 1px solid #10b981; padding: 6px 12px;">✅ Registrar Leitura</button>
+                    <button onclick="arquivarIrradiacao('${item.id}')" class="btn btn-secondary" style="padding: 6px 12px;">Forçar Arquivamento</button>
+                `;
+            } else if (currentIrradiacaoTab === 'historico') {
+                actionsHtml = `
+                    <button onclick="reativarIrradiacao('${item.id}')" class="btn btn-secondary" style="padding: 6px 12px;">♻️ Reativar (+4 Semanas)</button>
+                    <button onclick="excluirIrradiacaoDefinitivo('${item.id}')" class="btn" style="color: #ef4444; border: 1px solid #ef4444; padding: 6px 12px; background: transparent;">Apagar</button>
+                `;
+            }
+            
             html += `
-                <div style="background: var(--bg-dark); border: 1px solid var(--border); border-radius: 8px; padding: 16px; display: flex; justify-content: space-between; gap: 16px;">
-                    <div style="flex: 1;">
-                        <div style="display: flex; justify-content: space-between;">
-                            <h4 style="color: var(--text-main); margin: 0 0 8px 0;">${item.nome_solicitado}</h4>
-                            <span style="font-size: 11px; color: var(--text-muted);">${dataPed}</span>
-                        </div>
-                        <p style="color: var(--text-muted); font-size: 13px; margin: 0 0 8px 0;">📍 ${item.endereco || 'Endereço não informado'}</p>
-                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                            ${(item.dias_semana||'').split(',').filter(d=>d).map(d => `<span style="background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px; font-size: 11px; color: #cbd5e1;">${d.trim()}</span>`).join('')}
+                <div style="background: var(--bg-dark); border: 1px solid var(--border); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <div style="flex: 1;">
+                            <h4 style="color: var(--text-main); margin: 0 0 4px 0; font-size: 16px;">${item.nome_solicitado}</h4>
+                            <p style="color: var(--text-muted); font-size: 13px; margin: 0;">📍 ${item.endereco || 'Endereço não informado'}</p>
+                            <span style="font-size: 11px; color: var(--text-muted);">Criado em: ${dataPed} | Dia alvo: <strong style="color: #cbd5e1;">${item.dias_semana}</strong></span>
+                            ${progressHtml}
                         </div>
                     </div>
-                    <div style="display: flex; flex-direction: column; justify-content: center;">
-                        <button onclick="excluirIrradiacao('${item.id}')" class="btn" style="background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid #10b981; padding: 8px 12px;">✅ Transcrito (Apagar)</button>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        ${actionsHtml}
                     </div>
                 </div>
             `;
@@ -955,7 +1044,7 @@ async function salvarIrradiacao(e) {
     const endereco = document.getElementById('inIrrEndereco').value;
     
     const checkboxes = document.querySelectorAll('.chk-dia:checked');
-    const dias = Array.from(checkboxes).map(c => c.value).join(', ');
+    const dias = Array.from(checkboxes).map(c => c.value);
     
     if (dias.length === 0) {
         alert("Selecione pelo menos um dia para a Irradiação.");
@@ -965,12 +1054,17 @@ async function salvarIrradiacao(e) {
     }
     
     try {
-        const { error } = await db.from('app_irradiacao_solicitacoes').insert([{
+        // Criar N registros independentes, um para cada dia selecionado
+        const recordsToInsert = dias.map(dia => ({
             estrutura_id: estruturaId,
             nome_solicitado: nome,
             endereco: endereco,
-            dias_semana: dias
-        }]);
+            dias_semana: dia,
+            status: 'pendente',
+            leituras: 0
+        }));
+        
+        const { error } = await db.from('app_irradiacao_solicitacoes').insert(recordsToInsert);
         if (error) throw error;
         
         document.getElementById('formIrradiacao').reset();
@@ -985,15 +1079,55 @@ async function salvarIrradiacao(e) {
     }
 }
 
-window.excluirIrradiacao = async function(id) {
-    if(!confirm("Atenção! Confirma que já transcreveu este nome para o livro e deseja APAGÁ-LO do sistema?")) return;
-    
+window.aprovarIrradiacao = async function(id) {
+    try {
+        const { error } = await db.from('app_irradiacao_solicitacoes').update({ status: 'ativo', leituras: 0 }).eq('id', id);
+        if (error) throw error;
+        await carregarListaIrradiacao();
+    } catch (err) { console.error(err); alert('Erro ao aprovar'); }
+}
+
+window.marcarLeituraIrr = async function(id, leituras_atuais) {
+    try {
+        const novaLeitura = leituras_atuais + 1;
+        let novoStatus = 'ativo';
+        if (novaLeitura >= 4) {
+            novoStatus = 'historico';
+            alert("4ª Leitura concluída! O nome será movido para o histórico.");
+        }
+        
+        const { error } = await db.from('app_irradiacao_solicitacoes').update({ 
+            leituras: novaLeitura, 
+            status: novoStatus 
+        }).eq('id', id);
+        if (error) throw error;
+        
+        await carregarListaIrradiacao();
+    } catch (err) { console.error(err); alert('Erro ao marcar leitura'); }
+}
+
+window.arquivarIrradiacao = async function(id) {
+    if(!confirm("Deseja forçar o arquivamento deste nome mesmo antes das 4 semanas?")) return;
+    try {
+        const { error } = await db.from('app_irradiacao_solicitacoes').update({ status: 'historico' }).eq('id', id);
+        if (error) throw error;
+        await carregarListaIrradiacao();
+    } catch (err) { console.error(err); alert('Erro ao arquivar'); }
+}
+
+window.reativarIrradiacao = async function(id) {
+    try {
+        const { error } = await db.from('app_irradiacao_solicitacoes').update({ status: 'ativo', leituras: 0 }).eq('id', id);
+        if (error) throw error;
+        await carregarListaIrradiacao();
+    } catch (err) { console.error(err); alert('Erro ao reativar'); }
+}
+
+window.excluirIrradiacaoDefinitivo = async function(id) {
+    if(!confirm("Atenção! Confirma exclusão DEFINITIVA do sistema?")) return;
     try {
         const { error } = await db.from('app_irradiacao_solicitacoes').delete().eq('id', id);
         if (error) throw error;
         await carregarListaIrradiacao();
-    } catch (err) {
-        console.error(err);
-        alert("Erro ao excluir solicitação.");
-    }
+    } catch (err) { console.error(err); alert("Erro ao excluir."); }
 };

@@ -114,10 +114,21 @@
                 </div>
                 
                 <div style="display: flex; justify-content: flex-end; margin-bottom: 16px;">
-                    <label style="display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 13px; cursor: pointer;">
-                        <input type="checkbox" id="showOutros" style="accent-color: var(--primary);"> 
-                        Exibir registros classificados como "Outros"
-                    </label>
+                    <div style="display: flex; align-items: center; gap: 16px; color: var(--text-muted); font-size: 13px; flex-wrap: wrap;">
+                        <span style="font-weight: 500;">Exibir:</span>
+                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                            <input type="checkbox" id="showEstudantes" style="accent-color: var(--primary);"> Estudantes
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                            <input type="checkbox" id="showMembros" style="accent-color: var(--primary);"> Membro da Família
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                            <input type="checkbox" id="showPalestrantes" style="accent-color: var(--primary);"> Palestrantes
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                            <input type="checkbox" id="showOutros" style="accent-color: var(--primary);"> Outros
+                        </label>
+                    </div>
                 </div>
                     <table class="data-table">
                         <thead>

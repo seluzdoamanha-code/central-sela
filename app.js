@@ -11,15 +11,24 @@ document.addEventListener('DOMContentLoaded', () => {
     setupModal();
     
     // Lógica Unificada de Busca, Filtro e Ordenação
-    const inputSearch = document.getElementById('searchInput');
+    const filterSearch = document.getElementById('filterSearch');
     const filterTag = document.getElementById('filterTag');
     const sortOrder = document.getElementById('sortOrder');
-    const showOutros = document.getElementById('showOutros');
+    
+    // Checkboxes de filtros de papel
+    const chkOutros = document.getElementById('showOutros');
+    const chkEstudantes = document.getElementById('showEstudantes');
+    const chkMembros = document.getElementById('showMembros');
+    const chkPalestrantes = document.getElementById('showPalestrantes');
 
-    inputSearch.addEventListener('input', window.aplicarFiltros);
-    filterTag.addEventListener('change', window.aplicarFiltros);
-    sortOrder.addEventListener('change', window.aplicarFiltros);
-    if(showOutros) showOutros.addEventListener('change', window.aplicarFiltros);
+    if(filterSearch) filterSearch.addEventListener('input', window.aplicarFiltros);
+    if(filterTag) filterTag.addEventListener('change', window.aplicarFiltros);
+    if(sortOrder) sortOrder.addEventListener('change', window.aplicarFiltros);
+    
+    if(chkOutros) chkOutros.addEventListener('change', window.aplicarFiltros);
+    if(chkEstudantes) chkEstudantes.addEventListener('change', window.aplicarFiltros);
+    if(chkMembros) chkMembros.addEventListener('change', window.aplicarFiltros);
+    if(chkPalestrantes) chkPalestrantes.addEventListener('change', window.aplicarFiltros);
     
     // Configura as Tags Dinâmicas
     window.renderizarTagsDisponiveis();
@@ -121,16 +130,30 @@ window.aplicarFiltros = () => {
             return matchBusca && matchTag;
         });
         
-        // Filtra "Outros" se a caixa não estiver marcada
+        // Filtra papéis que estão desmarcados nas caixas de seleção
         const showOutros = document.getElementById('showOutros');
-        if (showOutros && !showOutros.checked) {
-            filtrados = filtrados.filter(p => {
-                if (p.papeis && p.papeis.includes('Outros')) {
-                    return false;
-                }
+        const showEstudantes = document.getElementById('showEstudantes');
+        const showMembros = document.getElementById('showMembros');
+        const showPalestrantes = document.getElementById('showPalestrantes');
+
+        filtrados = filtrados.filter(p => {
+            if (!p.papeis) return true;
+            
+            // Se a tag selecionada no Dropdown for EXATAMENTE uma dessas, nós ignoramos a checkbox
+            // para não dar conflito (ex: o usuário escolhe "Estudante" no dropdown, ele quer ver os estudantes)
+            if (tagSelecionada === 'Estudante' || tagSelecionada === 'Membro da Família' || tagSelecionada === 'Palestrante') {
                 return true;
-            });
-        }
+            }
+
+            const papeisUpper = String(p.papeis).toUpperCase();
+            
+            if (showOutros && showOutros.checked === false && papeisUpper.includes('OUTROS')) return false;
+            if (showEstudantes && showEstudantes.checked === false && (papeisUpper.includes('ESTUDANTE') || papeisUpper.includes('ESTUDANTES'))) return false;
+            if (showMembros && showMembros.checked === false && (papeisUpper.includes('MEMBRO DA FAMÍLIA') || papeisUpper.includes('MEMBRO DA FAMILIA'))) return false;
+            if (showPalestrantes && showPalestrantes.checked === false && (papeisUpper.includes('PALESTRANTE') || papeisUpper.includes('PALESTRANTES'))) return false;
+            
+            return true;
+        });
 
         // 2. Ordenar
         if (ordem === 'nome_az') {
