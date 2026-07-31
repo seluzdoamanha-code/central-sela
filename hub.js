@@ -868,9 +868,9 @@ async function carregarAppIrradiacao() {
     container.innerHTML = `
         <style>
             #formIrradiacao .input-field {
-                border: 2px solid var(--border) !important;
+                border: 2px solid rgba(148, 163, 184, 0.6) !important;
                 padding: 12px 16px !important;
-                background-color: rgba(255, 255, 255, 0.03) !important;
+                background-color: rgba(0, 0, 0, 0.02) !important;
                 border-radius: 8px !important;
                 font-size: 15px !important;
             }
