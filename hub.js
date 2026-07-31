@@ -880,10 +880,10 @@ async function carregarAppIrradiacao() {
                 <div>
                     <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 8px;">Dias para Irradiação *</label>
                     <div style="display: flex; gap: 16px; flex-wrap: wrap;">
-                        <label class="tag-checkbox-ui"><input type="checkbox" class="chk-dia" value="Segunda-feira"> Segunda-feira</label>
-                        <label class="tag-checkbox-ui"><input type="checkbox" class="chk-dia" value="Terça-feira"> Terça-feira</label>
-                        <label class="tag-checkbox-ui"><input type="checkbox" class="chk-dia" value="Quarta-feira"> Quarta-feira</label>
-                        <label class="tag-checkbox-ui"><input type="checkbox" class="chk-dia" value="Quinta-feira"> Quinta-feira</label>
+                        <label class="tag-checkbox-ui"><input type="checkbox" class="chk-dia" value="Segunda-feira"> Segunda-feira (Influênciação espiritual)</label>
+                        <label class="tag-checkbox-ui"><input type="checkbox" class="chk-dia" value="Terça-feira"> Terça-feira (Saúde física)</label>
+                        <label class="tag-checkbox-ui"><input type="checkbox" class="chk-dia" value="Quarta-feira"> Quarta-feira (Desobsessão)</label>
+                        <label class="tag-checkbox-ui"><input type="checkbox" class="chk-dia" value="Quinta-feira"> Quinta-feira (Saúde física)</label>
                     </div>
                 </div>
                 <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
@@ -958,11 +958,11 @@ async function carregarListaIrradiacao() {
                       .eq('estrutura_id', estruturaId);
                       
         if (currentIrradiacaoTab === 'pendentes') {
-            query = query.eq('status', 'pendente').order('criado_em', { ascending: false });
+            query = query.eq('status', 'pendente').order('nome_solicitado', { ascending: true });
         } else if (currentIrradiacaoTab === 'ativos') {
-            query = query.eq('status', 'ativo').ilike('dias_semana', `%${currentIrradiacaoDia}%`).order('criado_em', { ascending: true });
+            query = query.eq('status', 'ativo').ilike('dias_semana', `%${currentIrradiacaoDia}%`).order('nome_solicitado', { ascending: true });
         } else if (currentIrradiacaoTab === 'historico') {
-            query = query.eq('status', 'historico').order('criado_em', { ascending: false });
+            query = query.eq('status', 'historico').order('nome_solicitado', { ascending: true });
         }
         
         const { data, error } = await query;
@@ -1040,8 +1040,8 @@ async function salvarIrradiacao(e) {
     btn.disabled = true;
     btn.textContent = 'Enviando...';
     
-    const nome = document.getElementById('inIrrNome').value;
-    const endereco = document.getElementById('inIrrEndereco').value;
+    const nome = document.getElementById('inIrrNome').value.toUpperCase();
+    const endereco = document.getElementById('inIrrEndereco').value.toUpperCase();
     
     const checkboxes = document.querySelectorAll('.chk-dia:checked');
     const dias = Array.from(checkboxes).map(c => c.value);
