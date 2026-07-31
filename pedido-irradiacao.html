@@ -255,7 +255,7 @@
         const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const urlParams = new URLSearchParams(window.location.search);
-        let estruturaId = urlParams.get('id');
+        let estruturaId = urlParams.get('id') || '24c0069b-e161-4a03-8599-c4ae054301e3'; // Default para SELA
         
         let lastInsertedIds = [];
 
@@ -272,12 +272,6 @@
 
         document.getElementById('formIrradiacao').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            // Auto resolve estrutura ID if not provided in URL
-            if (!estruturaId) {
-                const { data } = await db.from('estruturas').select('id').limit(1).single();
-                if (data) estruturaId = data.id;
-            }
 
             const btn = document.getElementById('btnSubmit');
             const nome = document.getElementById('inNome').value.toUpperCase();

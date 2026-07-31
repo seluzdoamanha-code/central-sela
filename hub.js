@@ -74,7 +74,7 @@ async function carregarDadosEstrutura() {
                 const btnApps = document.querySelector('[data-target="abaApps"]');
                 if(btnApps) btnApps.style.display = 'block';
                 if (isIrradiacao) {
-                    carregarAppIrradiacao();
+                    carregarAppMiniApps();
                 }
             }
         }
@@ -862,7 +862,33 @@ window.salvarProjeto = async (e) => {
 let currentIrradiacaoTab = 'pendentes';
 let currentIrradiacaoDia = 'Segunda-feira';
 
-async function carregarAppIrradiacao() {
+async function carregarAppMiniApps() {
+    const container = document.getElementById('containerApps');
+    
+    container.innerHTML = `
+        <div style="margin-bottom: 24px;">
+            <h2 style="font-size: 20px; color: var(--text-main); margin-bottom: 8px;">📱 Mini-Apps</h2>
+            <p style="color: var(--text-muted); font-size: 14px;">Bem-vindo ao ecossistema de módulos da sua casa espírita.</p>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
+            <!-- Card Irradiação -->
+            <div onclick="abrirMiniAppIrradiacao()" style="background: rgba(79, 70, 229, 0.05); border: 1px solid var(--primary); border-radius: 12px; padding: 24px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.05);" onmouseover="this.style.background='rgba(79, 70, 229, 0.1)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(79, 70, 229, 0.05)'; this.style.transform='none'">
+                <div style="font-size: 32px; margin-bottom: 12px;">✨</div>
+                <h3 style="color: var(--primary); margin-bottom: 8px;">Irradiação Espiritual</h3>
+                <p style="color: var(--text-muted); font-size: 13px; line-height: 1.4;">Módulo de gestão de solicitações e leitura diária para tratamento espiritual à distância.</p>
+            </div>
+            
+            <!-- Placeholder para futuros apps -->
+            <div style="background: rgba(255, 255, 255, 0.02); border: 1px dashed var(--border); border-radius: 12px; padding: 24px; text-align: center; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.5;">
+                <div style="font-size: 24px; margin-bottom: 8px;">+</div>
+                <div style="font-size: 13px;">Novos módulos em breve</div>
+            </div>
+        </div>
+    `;
+}
+
+window.abrirMiniAppIrradiacao = async function() {
     const container = document.getElementById('containerApps');
     
     container.innerHTML = `
@@ -891,8 +917,19 @@ async function carregarAppIrradiacao() {
                 background: rgba(79, 70, 229, 0.1) !important;
             }
         </style>
-        <div style="background: rgba(79, 70, 229, 0.1); border: 1px solid var(--primary); border-radius: 12px; padding: 20px; margin-bottom: 32px;">
-            <h3 style="color: var(--primary); margin-bottom: 16px;">✨ Nova Solicitação de Irradiação Espiritual</h3>
+        
+        <div style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+            <div>
+                <button onclick="carregarAppMiniApps()" class="btn btn-secondary" style="margin-bottom: 16px; font-size: 13px;">← Voltar aos Mini-Apps</button>
+                <h2 style="font-size: 20px; color: var(--text-main); margin-bottom: 8px;">✨ App de Irradiação</h2>
+                <p style="color: var(--text-muted); font-size: 14px;">Nova solicitação de tratamento espiritual.</p>
+            </div>
+            
+            <button onclick="carregarPainelGestaoIrradiacao()" class="btn btn-primary" style="background: rgba(16,185,129,0.1); color: #10b981; border: 1px solid rgba(16,185,129,0.3); font-weight: 600;">⚙️ Gerenciar Irradiações (Acesso Equipe)</button>
+        </div>
+
+        <div style="background: rgba(79, 70, 229, 0.05); border: 1px solid var(--border); border-radius: 12px; padding: 24px; max-width: 600px;">
+            <h3 style="color: var(--primary); margin-bottom: 16px;">📝 Inserir Nova Solicitação</h3>
             <form id="formIrradiacao" style="display: flex; flex-direction: column; gap: 16px;">
                 <div>
                     <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 6px;">Nome(s) Completo(s) do(s) Necessitado(s) *</label>
@@ -916,8 +953,22 @@ async function carregarAppIrradiacao() {
                 </div>
             </form>
         </div>
+    `;
+
+    document.getElementById('formIrradiacao').addEventListener('submit', salvarIrradiacao);
+};
+
+window.carregarPainelGestaoIrradiacao = async function() {
+    const container = document.getElementById('containerApps');
+    
+    container.innerHTML = `
+        <div style="margin-bottom: 24px;">
+            <button onclick="abrirMiniAppIrradiacao()" class="btn btn-secondary" style="margin-bottom: 16px; font-size: 13px;">← Voltar para Solicitações</button>
+            <h2 style="font-size: 20px; color: #10b981; margin-bottom: 8px;">⚙️ Gestão de Irradiações</h2>
+            <p style="color: var(--text-muted); font-size: 14px;">Painel exclusivo para a equipe de trabalhadores da Irradiação.</p>
+        </div>
         
-        <div style="margin-top: 32px;">
+        <div>
             <div style="display: flex; gap: 16px; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px; overflow-x: auto;">
                 <button onclick="mudarAbaIrradiacao('pendentes')" id="btnIrrPendentes" class="btn btn-secondary" style="white-space: nowrap;">📥 Pendentes</button>
                 <button onclick="mudarAbaIrradiacao('ativos')" id="btnIrrAtivos" class="btn" style="background: rgba(16,185,129,0.1); color: #10b981; border: 1px solid rgba(16,185,129,0.3); white-space: nowrap;">📋 Painel de Leitura</button>
@@ -936,8 +987,7 @@ async function carregarAppIrradiacao() {
             </div>
         </div>
     `;
-
-    document.getElementById('formIrradiacao').addEventListener('submit', salvarIrradiacao);
+    
     window.mudarAbaIrradiacao('pendentes');
 }
 
