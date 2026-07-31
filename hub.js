@@ -879,6 +879,17 @@ async function carregarAppIrradiacao() {
                 background-color: rgba(255, 255, 255, 0.08) !important;
                 outline: none;
             }
+            #formIrradiacao .tag-checkbox-ui {
+                background: rgba(0, 0, 0, 0.03) !important;
+                border: 2px solid rgba(148, 163, 184, 0.4) !important;
+                padding: 12px !important;
+                border-radius: 12px !important;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            }
+            #formIrradiacao .tag-checkbox-ui:hover {
+                border-color: var(--primary) !important;
+                background: rgba(79, 70, 229, 0.1) !important;
+            }
         </style>
         <div style="background: rgba(79, 70, 229, 0.1); border: 1px solid var(--primary); border-radius: 12px; padding: 20px; margin-bottom: 32px;">
             <h3 style="color: var(--primary); margin-bottom: 16px;">✨ Nova Solicitação de Irradiação Espiritual</h3>
