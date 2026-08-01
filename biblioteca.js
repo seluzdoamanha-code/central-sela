@@ -6,6 +6,10 @@ const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentCategoria = 'DISPONÍVEL';
 let currentLivroId = null;
 let currentLivroTitulo = null;
+let currentLivroCategoria = null;
+
+let searchTerm = '';
+let searchTimeout = null;
 
 let allLoadedBooks = {};
 let currentPage = 0;
@@ -26,6 +30,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load More button
     document.getElementById('btnCarregarMais').addEventListener('click', () => {
         fetchLivros(false);
+    });
+
+    // Search input
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        searchTerm = e.target.value.trim();
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            fetchLivros(true);
+        }, 500); // 500ms debounce
     });
 
     // Modal Confirmation
@@ -57,10 +70,16 @@ async function fetchLivros(reset = false) {
         const from = currentPage * PAGE_SIZE;
         const to = from + PAGE_SIZE - 1;
 
-        const { data, error, count } = await db
+        let query = db
             .from('livros_catalogo')
             .select('*', { count: 'exact' })
-            .eq('categoria', currentCategoria)
+            .eq('categoria', currentCategoria);
+            
+        if (searchTerm) {
+            query = query.or(`titulo.ilike.%${searchTerm}%,autor.ilike.%${searchTerm}%,codigo.ilike.%${searchTerm}%`);
+        }
+            
+        const { data, error, count } = await query
             .order('titulo')
             .range(from, to);
 
@@ -125,6 +144,7 @@ function abrirModal(id) {
 
     currentLivroId = id;
     currentLivroTitulo = livro.titulo;
+    currentLivroCategoria = livro.categoria;
 
     document.getElementById('modalImg').src = `${livro.capa_url}?t=${new Date().getTime()}`;
     document.getElementById('modalImg').onerror = function() {
@@ -143,8 +163,18 @@ function abrirModal(id) {
 
     document.getElementById('modalSinopse').innerHTML = (livro.sinopse || 'Nenhuma sinopse disponível.').replace(/\\n/g, '<br>');
 
-    document.getElementById('formTitle').innerText = currentCategoria === 'DISPONÍVEL' ? 'Reservar este livro' : 'Declarar interesse';
-    document.getElementById('btnConfirmarReserva').innerText = currentCategoria === 'DISPONÍVEL' ? 'Confirmar Reserva' : 'Confirmar Interesse';
+    if (livro.categoria === 'DESIDERATUM') {
+        document.getElementById('formTitle').innerText = 'Declarar interesse em Permutar/Doar';
+        document.getElementById('btnConfirmarReserva').innerText = 'Confirmar Interesse';
+        document.getElementById('desiderataForm').style.display = 'block';
+        document.getElementById('radioDoar').checked = true;
+        document.getElementById('desiderataCodigo').style.display = 'none';
+        document.getElementById('desiderataCodigo').value = '';
+    } else {
+        document.getElementById('formTitle').innerText = 'Reservar este livro';
+        document.getElementById('btnConfirmarReserva').innerText = 'Confirmar Reserva';
+        document.getElementById('desiderataForm').style.display = 'none';
+    }
     
     document.getElementById('reservaNome').value = '';
     document.getElementById('reservaContato').value = '';
@@ -156,15 +186,30 @@ function fecharModal() {
     document.getElementById('modalReserva').classList.remove('show');
     currentLivroId = null;
     currentLivroTitulo = null;
+    currentLivroCategoria = null;
 }
 
 async function enviarReserva() {
     const nome = document.getElementById('reservaNome').value.trim();
-    const contato = document.getElementById('reservaContato').value.trim();
+    let contato = document.getElementById('reservaContato').value.trim();
 
     if (!nome || !contato) {
         alert("Por favor, preencha seu nome e contato.");
         return;
+    }
+    
+    if (currentLivroCategoria === 'DESIDERATUM') {
+        const isPermutar = document.getElementById('radioPermutar').checked;
+        if (isPermutar) {
+            const cod = document.getElementById('desiderataCodigo').value.trim();
+            if (!cod) {
+                alert("Por favor, informe o código do seu livro para permuta.");
+                return;
+            }
+            contato = `[PERMUTA: ${cod}] ` + contato;
+        } else {
+            contato = `[DOAÇÃO] ` + contato;
+        }
     }
 
     const btn = document.getElementById('btnConfirmarReserva');
@@ -193,3 +238,26 @@ async function enviarReserva() {
         btn.disabled = false;
     }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const radioDoar = document.getElementById('radioDoar');
+    const radioPermutar = document.getElementById('radioPermutar');
+    const inputCodigo = document.getElementById('desiderataCodigo');
+    
+    if(radioDoar && radioPermutar && inputCodigo) {
+        radioDoar.addEventListener('change', () => {
+            if(radioDoar.checked) inputCodigo.style.display = 'none';
+        });
+        radioPermutar.addEventListener('change', () => {
+            if(radioPermutar.checked) inputCodigo.style.display = 'block';
+        });
+    }
+    
+    const inputContato = document.getElementById('reservaContato');
+    if(inputContato) {
+        inputContato.addEventListener('input', function(e) {
+            let x = e.target.value.replace(/\D/g, '').match(/(\d{0,2})(\d{0,5})(\d{0,4})/);
+            e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
+        });
+    }
+});

@@ -33,12 +33,12 @@
         .btn-carregar-mais { display: none; margin: 32px auto; background: transparent; border: 1px solid var(--border); color: white; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 500; }
         .btn-carregar-mais:hover { background: rgba(255,255,255,0.05); }
         
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
         .modal.show { display: flex; }
-        .modal-content { background: var(--card-bg); border-radius: 12px; width: 100%; max-width: 800px; border: 1px solid var(--border); display: flex; max-height: 90vh; overflow: hidden; }
-        .modal-cover { width: 300px; background: #111; flex-shrink: 0; }
+        .modal-content { background: #1a1a1a; border-radius: 12px; width: 100%; max-width: 800px; border: 1px solid #333; display: flex; max-height: 90vh; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+        .modal-cover { width: 300px; background: #0a0a0a; flex-shrink: 0; }
         .modal-cover img { width: 100%; height: 100%; object-fit: cover; }
-        .modal-info { padding: 24px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+        .modal-info { padding: 24px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; background: #1a1a1a; color: #fff; }
         .modal-info input { width: 100%; padding: 10px; margin-bottom: 16px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: white; }
         
         @media (max-width: 600px) {
@@ -57,7 +57,7 @@
         <main class="content-area">
             <header class="topbar">
                 <div>
-                    <h1>Biblioteca SELA</h1>
+                    <h1>Biblioteca Dilamar Abreu</h1>
                     <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">Explore nosso acervo e solicite o empréstimo de livros.</p>
                 </div>
             </header>
@@ -67,6 +67,10 @@
                     <button class="tab-btn active" data-categoria="DISPONÍVEL">📖 Acervo Disponível</button>
                     <button class="tab-btn" data-categoria="PERMUTA">♻️ Permutas</button>
                     <button class="tab-btn" data-categoria="DESIDERATUM">🌠 Desiderata</button>
+                </div>
+                
+                <div style="margin-bottom: 24px;">
+                    <input type="text" id="searchInput" placeholder="Pesquisar por Título, Autor ou Código..." style="width: 100%; padding: 14px; border-radius: 8px; border: 1px solid #333; background: var(--card-bg); color: white; font-size: 16px;">
                 </div>
 
                 <div id="loading" style="text-align: center; color: var(--text-muted); padding: 40px;">Buscando livros...</div>
@@ -97,6 +101,19 @@
                 <hr style="border: 0; border-top: 1px solid var(--border); margin-bottom: 24px;">
                 
                 <h4 id="formTitle" style="margin-bottom: 16px;">Reservar este livro</h4>
+                
+                <div id="desiderataForm" style="display: none; margin-bottom: 16px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+                    <div style="margin-bottom: 8px; display: flex; flex-direction: column; gap: 12px;">
+                        <label style="cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                            <input type="radio" name="desiderataAcao" value="Doar" id="radioDoar" checked> Doar
+                        </label>
+                        <label style="cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                            <input type="radio" name="desiderataAcao" value="Permutar" id="radioPermutar"> Permutar
+                            <input type="text" id="desiderataCodigo" placeholder="Código do livro (Ex. SELA-0001)" style="display: none; padding: 4px 8px; font-size: 13px; width: 230px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: white;">
+                        </label>
+                    </div>
+                </div>
+                
                 <input type="text" id="reservaNome" placeholder="Seu Nome Completo" required>
                 <input type="text" id="reservaContato" placeholder="Seu Telefone / WhatsApp" required>
                 
