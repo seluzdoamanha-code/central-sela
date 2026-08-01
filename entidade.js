@@ -47,12 +47,20 @@ async function carregarEstruturas() {
     // Por enquanto, faremos o select básico. Depois adicionamos as contagens.
     const { data, error } = await db.from('estruturas').select('*').order('nome');
     
+    // Busca os vínculos para sabermos o total de pessoas em cada departamento
+    const { data: vinculosData } = await db.from('vinculos_estrutura').select('estrutura_id');
+    const vinculos = vinculosData || [];
+    
     if (error) {
         document.getElementById('loadingState').textContent = 'Erro ao carregar: ' + error.message;
         return;
     }
     
-    estruturasGlobais = data || [];
+    // Conta quantas pessoas tem em cada estrutura e joga dentro do objeto
+    estruturasGlobais = (data || []).map(e => {
+        e.total_pessoas = vinculos.filter(v => v.estrutura_id === e.id).length;
+        return e;
+    });
     
     if (estruturasGlobais.length === 0) {
         document.getElementById('loadingState').textContent = 'Nenhuma Estrutura (Departamento/Família) cadastrada ainda.';
@@ -85,8 +93,8 @@ function renderizarTabela(dados) {
                         ${estrutura.tipo}
                     </span>
                 </td>
-                <td style="color: var(--text-muted);">
-                    (Em Breve)
+                <td style="color: var(--text-muted); font-size: 14px;">
+                    👥 ${estrutura.total_pessoas} pessoa(s)
                 </td>
                 <td>
                     <div style="display: flex; gap: 8px;">

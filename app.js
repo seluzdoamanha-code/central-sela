@@ -4,22 +4,88 @@ const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let pessoasGlobais = [];
 let pessoaEditandoId = null;
+let cameFromProfileEdit = false;
 
 document.addEventListener('DOMContentLoaded', () => {
     carregarPessoas();
     setupModal();
     
     // Lógica Unificada de Busca, Filtro e Ordenação
-    const inputSearch = document.getElementById('searchInput');
+    const filterSearch = document.getElementById('filterSearch');
     const filterTag = document.getElementById('filterTag');
     const sortOrder = document.getElementById('sortOrder');
+    
+    // Checkboxes de filtros de papel
+    const chkOutros = document.getElementById('showOutros');
 
-    inputSearch.addEventListener('input', window.aplicarFiltros);
-    filterTag.addEventListener('change', window.aplicarFiltros);
-    sortOrder.addEventListener('change', window.aplicarFiltros);
+    if(filterSearch) filterSearch.addEventListener('input', window.aplicarFiltros);
+    if(filterTag) filterTag.addEventListener('change', window.aplicarFiltros);
+    if(sortOrder) sortOrder.addEventListener('change', window.aplicarFiltros);
+    
+    if(chkOutros) chkOutros.addEventListener('change', window.aplicarFiltros);
     
     // Configura as Tags Dinâmicas
     window.renderizarTagsDisponiveis();
+    
+    // ==========================================
+    // VITRINE DE EVENTOS GLOBAIS
+    // ==========================================
+    async function carregarEventosGlobais() {
+        const containerVitrine = document.getElementById('vitrineEventos');
+        const listaEventos = document.getElementById('listaEventosGlobais');
+        
+        if (!containerVitrine || !listaEventos) return;
+        
+        try {
+            const hojeIso = new Date().toISOString();
+            
+            const { data, error } = await db
+                .from('agenda')
+                .select('*, estruturas(nome)')
+                .eq('visibilidade', 'Global')
+                .gte('data_hora_inicio', hojeIso)
+                .order('data_hora_inicio', { ascending: true })
+                .limit(3);
+                
+            if (error) throw error;
+            
+            if (data && data.length > 0) {
+                containerVitrine.style.display = 'flex';
+                
+                let html = '';
+                data.forEach(ev => {
+                    const dataInicio = new Date(ev.data_hora_inicio);
+                    const dataFormatada = dataInicio.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).toUpperCase();
+                    const evDia = dataInicio.toLocaleDateString('pt-BR', { day: '2-digit' });
+                    const evMes = dataInicio.toLocaleDateString('pt-BR', { month: 'short' }).toUpperCase();
+                    const horaFormatada = dataInicio.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                    const organizador = ev.estruturas ? ev.estruturas.nome : 'Portal SELA';
+                    
+                    html += `
+                    <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; border-radius: 8px; padding: 12px; display: flex; gap: 12px; align-items: center;">
+                        <div style="background: #ef4444; color: var(--text-main); border-radius: 6px; padding: 6px 10px; text-align: center; min-width: 55px;">
+                            <div style="font-weight: bold; font-size: 16px;">${evDia}</div>
+                            <div style="font-size: 11px; text-transform: uppercase;">${evMes}</div>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; color: var(--text-main); font-size: 14px;">${ev.titulo}</div>
+                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">${organizador} | ⏰ ${horaFormatada} ${ev.local ? `| 📍 ${ev.local}` : ''}</div>
+                        </div>
+                    </div>
+                    `;
+                });
+                
+                listaEventos.innerHTML = html;
+            } else {
+                containerVitrine.style.display = 'none';
+            }
+        } catch (err) {
+            console.warn('Tabela agenda ainda não criada ou erro:', err);
+        }
+    }
+    
+    // Carrega Vitrine de Eventos Globais
+    carregarEventosGlobais();
 });
 
 window.aplicarFiltros = () => {
@@ -56,6 +122,25 @@ window.aplicarFiltros = () => {
             }
             
             return matchBusca && matchTag;
+        });
+        
+        // Filtra papéis que estão desmarcados nas caixas de seleção
+        const showOutros = document.getElementById('showOutros');
+
+        filtrados = filtrados.filter(p => {
+            if (!p.papeis) return true;
+            
+            // Se a tag selecionada no Dropdown for EXATAMENTE uma dessas, nós ignoramos a checkbox
+            // para não dar conflito (ex: o usuário escolhe "Estudante" no dropdown, ele quer ver os estudantes)
+            if (tagSelecionada === 'Estudante' || tagSelecionada === 'Membro da Família' || tagSelecionada === 'Palestrante') {
+                return true;
+            }
+
+            const papeisUpper = String(p.papeis).toUpperCase();
+            
+            if (showOutros && showOutros.checked === false && papeisUpper.includes('OUTRO')) return false;
+            
+            return true;
         });
 
         // 2. Ordenar
@@ -102,6 +187,16 @@ async function carregarPessoas() {
         document.getElementById('tableContainer').style.display = 'block';
         pessoasGlobais = data;
         window.aplicarFiltros(); // Usa a lógica unificada em vez de renderizar direto
+        
+        // Verifica se há pedido de edição via URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const editId = urlParams.get('edit');
+        if (editId) {
+            cameFromProfileEdit = true;
+            window.editarPessoa(editId);
+            // Limpa a URL silenciosamente para não reabrir se ele der F5
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
     }
 }
 
@@ -130,19 +225,43 @@ function renderizarTabela(dados) {
     tbody.innerHTML = '';
     
     dados.forEach(pessoa => {
-        const tags = pessoa.papeis || [];
+        // Criar uma cópia e remover duplicatas para evitar mutação do estado original
+        let tags = Array.from(new Set(pessoa.papeis || []));
+        
+        // Remove 'Empresa' solto se existir, para não duplicar com a tag formatada
+        tags = tags.filter(t => t !== 'Empresa' && t !== '🏢 Empresa');
+        
         // Se for PJ, adiciona tag automática visual
         if (pessoa.tipo_pessoa === 'Jurídica') tags.unshift('🏢 Empresa');
         
         const tagsHtml = tags.map(tag => `<span style="background: rgba(79,70,229,0.2); color: #818cf8; padding: 4px 8px; border-radius: 4px; font-size: 12px; margin-right: 4px; white-space: nowrap; display: inline-block; margin-bottom: 4px;">${tag}</span>`).join('');
         
+        // Gerar Avatar em miniatura
+        let avatarHtml = '';
+        if (pessoa.foto_url) {
+            avatarHtml = `<img src="${pessoa.foto_url}" style="width: 32px; height: 32px; border-radius: 16px; object-fit: cover; flex-shrink: 0;">`;
+        } else {
+            const partes = pessoa.nome_completo.trim().split(' ');
+            let iniciais = partes[0].charAt(0);
+            if (partes.length > 1) iniciais += partes[partes.length - 1].charAt(0);
+            
+            const colors = ['#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#ec4899', '#06b6d4'];
+            const colorIndex = pessoa.nome_completo.length % colors.length;
+            avatarHtml = `<div style="width: 32px; height: 32px; border-radius: 16px; background: ${colors[colorIndex]}; color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0;">${iniciais.toUpperCase()}</div>`;
+        }
+        
         tbody.innerHTML += `
             <tr>
-                <td style="font-weight: 500;">
-                    ${pessoa.nome_curto || pessoa.nome_completo}
-                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
-                        <span style="opacity: 0.7;">${pessoa.nome_completo !== pessoa.nome_curto ? pessoa.nome_completo : ''}</span> 
-                        ${pessoa.cpf_cnpj ? `• ${formatarDocumento(pessoa.cpf_cnpj)}` : ''}
+                <td>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        ${avatarHtml}
+                        <div>
+                            <div style="font-weight: 500;">${pessoa.nome_curto || pessoa.nome_completo}</div>
+                            <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
+                                <span style="opacity: 0.7;">${pessoa.nome_completo !== pessoa.nome_curto ? pessoa.nome_completo : ''}</span> 
+                                ${pessoa.cpf_cnpj ? `• ${formatarDocumento(pessoa.cpf_cnpj)}` : ''}
+                            </div>
+                        </div>
                     </div>
                 </td>
                 <td>${tagsHtml}</td>
@@ -165,7 +284,7 @@ function renderizarTabela(dados) {
                     <button onclick="excluirPessoa('${pessoa.id}')" class="btn-primary" style="padding: 4px 12px; font-size: 12px; min-width: auto; background: var(--bg-dark); border: 1px solid var(--border); color: #ef4444;">
                         Excluir
                     </button>
-                    <a href="perfil.html?id=${pessoa.id}" style="color: var(--primary); text-decoration: none; font-weight: 500; font-size: 14px; margin-left: 8px;">Acessar Perfil &rarr;</a>
+                    <a href="perfil.html?id=${pessoa.id}" class="btn-primary" style="padding: 4px 12px; font-size: 12px; min-width: auto; background: var(--bg-dark); border: 1px solid var(--primary); color: var(--primary); text-decoration: none; margin-left: 8px;">Acessar Perfil &rarr;</a>
                 </td>
             </tr>
         `;
@@ -295,6 +414,7 @@ function setupModal() {
         const nome = document.getElementById('inNome').value;
         const nome_curto = document.getElementById('inNomeCurto').value;
         const celular = document.getElementById('inCelular').value || null;
+        const email = document.getElementById('inEmail').value || null;
         
         // Coleta tags selecionadas
         const checkboxes = document.querySelectorAll('input[name="papeis"]:checked');
@@ -305,11 +425,35 @@ function setupModal() {
             nome_completo: nome,
             nome_curto: nome_curto,
             celular: celular,
+            email: email,
             tipo_pessoa: tipo,
             papeis: papeis
         };
         
         try {
+            // Verifica se tem foto para upload
+            const inputFoto = document.getElementById('inFoto');
+            if (inputFoto.files && inputFoto.files.length > 0) {
+                const file = inputFoto.files[0];
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${Math.random()}.${fileExt}`;
+                const filePath = `${fileName}`;
+
+                const { error: uploadError } = await db.storage
+                    .from('fotos_perfil')
+                    .upload(filePath, file);
+
+                if (uploadError) {
+                    throw uploadError;
+                }
+
+                // Pega a URL publica
+                const { data: publicUrlData } = db.storage
+                    .from('fotos_perfil')
+                    .getPublicUrl(filePath);
+
+                dados.foto_url = publicUrlData.publicUrl;
+            }
             if (pessoaEditandoId) {
                 const { error } = await db.from('pessoas').update(dados).eq('id', pessoaEditandoId);
                 if (error) throw error;
@@ -319,7 +463,12 @@ function setupModal() {
             }
             
             fecharModal();
-            carregarPessoas();
+            
+            if (cameFromProfileEdit && pessoaEditandoId) {
+                window.location.href = `perfil.html?id=${pessoaEditandoId}`;
+            } else {
+                carregarPessoas();
+            }
         } catch (error) {
             console.error('Erro ao salvar pessoa:', error);
             alert('Erro ao salvar os dados: ' + JSON.stringify(error));
@@ -345,6 +494,8 @@ window.editarPessoa = async (id) => {
     document.getElementById('inNome').value = pessoa.nome_completo || '';
     document.getElementById('inNomeCurto').value = pessoa.nome_curto || '';
     document.getElementById('inCelular').value = pessoa.celular || '';
+    document.getElementById('inEmail').value = pessoa.email || '';
+    document.getElementById('inFoto').value = ''; // Limpa o input de arquivo
     
     // Marcar as tags corretas
     const papeis = pessoa.papeis || [];
@@ -380,19 +531,36 @@ window.renderizarTagsDisponiveis = () => {
         "Associado Proponente", "Ex-Associado", "Voluntário", "Colaborador(a)", 
         "Palestrante", "Evangelizando", "Estudante", "Assistido(a)", "Paciente", 
         "Membro da Família", "Empresa Parceira", "Parceiro", "Fornecedor", 
-        "Passista", "Líder", "Outro"
+        "Passista", "Líder", "Outros"
     ];
     
     const container = document.getElementById('tagsCheckboxContainer');
-    if (!container) return;
+    if (container) {
+        container.innerHTML = TAGS.map(tag => `
+            <label class="tag-checkbox tag-checkbox-ui">
+                <input type="checkbox" name="papeis" value="${tag}">
+                <span>${tag}</span>
+            </label>
+        `).join('');
+    }
     
-    container.innerHTML = TAGS.map(tag => `
-        <label class="tag-checkbox tag-checkbox-ui">
-            <input type="checkbox" name="papeis" value="${tag}">
-            <span>${tag}</span>
-        </label>
-    `).join('');
-    
+    // Atualiza o select de filtro (pessoas.html)
+    const filterTag = document.getElementById('filterTag');
+    if (filterTag) {
+        // Mantém as opções fixas iniciais e limpa o resto
+        while (filterTag.options.length > 4) {
+            filterTag.remove(4);
+        }
+        // Adiciona as tags organizadas em ordem alfabética
+        const sortedTags = [...TAGS].sort((a, b) => a.localeCompare(b));
+        sortedTags.forEach(tag => {
+            const option = document.createElement('option');
+            option.value = tag;
+            option.textContent = tag;
+            filterTag.appendChild(option);
+        });
+    }
+
     // Logica de Busca das Tags
     const searchInput = document.getElementById('tagSearchInput');
     if (searchInput) {

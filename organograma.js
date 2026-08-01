@@ -27,6 +27,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
+    // Atualiza o link do botão voltar para o Hub da Estrutura
+    const btnVoltar = document.getElementById('btnVoltar');
+    if (btnVoltar) {
+        btnVoltar.href = `hub.html?id=${estruturaId}`;
+    }
+
     setupModal();
     await carregarEstrutura();
     await carregarPessoasParaSelect();
@@ -239,33 +245,36 @@ function renderizarGrafico(vinculos) {
                         let deleteBtn = '';
                         if (!isVirtual) {
                             deleteBtn = `
-                            <div onclick="window.excluirVinculo('${d.data.id}')" 
-                                 style="position: absolute; top: 6px; right: 8px; cursor: pointer; 
-                                        background: #ef4444; color: white; width: 24px; height: 24px; 
-                                        border-radius: 12px; display: flex; align-items: center; 
-                                        justify-content: center; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-                                🗑️
+                            <div style="width: 100%; display: flex; justify-content: flex-end; padding: 8px 8px 0 0; margin-bottom: -24px; z-index: 10;">
+                                <div onclick="window.excluirVinculo('${d.data.id}')" 
+                                     style="cursor: pointer; background: #ef4444; color: white; width: 24px; height: 24px; 
+                                            border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                                    🗑️
+                                </div>
                             </div>`;
                         }
                         
                         return `
                         <div style="font-family: 'Inter', sans-serif; background-color: #1e293b; 
                                     border: 2px solid ${corBorda}; border-radius: 8px; width: ${d.width}px; height: ${d.height}px; 
-                                    display: flex; flex-direction: column; justify-content: center; align-items: center; 
-                                    color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.3); position: relative; padding: 12px; box-sizing: border-box;">
+                                    display: flex; flex-direction: column; justify-content: flex-start; align-items: center; 
+                                    color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.3); box-sizing: border-box; overflow: hidden;">
                             
                             ${deleteBtn}
-                            <div style="width: 40px; height: 40px; border-radius: 20px; background-color: #0f172a; 
-                                        display: flex; align-items: center; justify-content: center; margin-bottom: 8px; border: 1px solid #334155;">
-                                <span style="font-size: 18px;">👤</span>
+                            
+                            <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; padding: 0 12px;">
+                                <div style="width: 40px; height: 40px; border-radius: 20px; background-color: #0f172a; 
+                                            display: flex; align-items: center; justify-content: center; margin-bottom: 8px; border: 1px solid #334155;">
+                                    <span style="font-size: 18px;">👤</span>
+                                </div>
+                                <div style="font-size: 15px; font-weight: 600; text-align: center; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">
+                                    ${nomeCurto}
+                                </div>
+                                <div style="font-size: 12px; color: #94a3b8; text-align: center; background: rgba(0,0,0,0.2); padding: 2px 8px; border-radius: 4px; margin-bottom: 4px;">
+                                    ${d.data.papel}
+                                </div>
+                                ${aviso}
                             </div>
-                            <div style="font-size: 15px; font-weight: 600; text-align: center; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">
-                                ${nomeCurto}
-                            </div>
-                            <div style="font-size: 12px; color: #94a3b8; text-align: center; background: rgba(0,0,0,0.2); padding: 2px 8px; border-radius: 4px; margin-bottom: 4px;">
-                                ${d.data.papel}
-                            </div>
-                            ${aviso}
                         </div>
                         `;
                     });

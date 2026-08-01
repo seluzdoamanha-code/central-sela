@@ -3,17 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Central SELA - Entidade & Atividades</title>
+    <title>Portal SELA - Entidade & Atividades</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Bloqueio de Acesso -->
+    <script src="auth_guard.js"></script>
 </head>
 <body>
     <div class="app-container">
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="logo-area">
-                <h2>Central SELA</h2>
+                <h2>Portal SELA</h2>
             </div>
             <nav class="main-nav">
                 <a href="entidade.html" class="nav-item active" data-target="entidade">🏛️ Entidade & Atividades</a>
@@ -36,6 +39,17 @@
             </header>
 
             <div class="content-body" id="mainBody">
+                
+                <!-- Vitrine de Eventos Globais -->
+                <div id="vitrineEventos" style="display: none; margin-bottom: 24px; display: flex; flex-direction: column; gap: 12px;">
+                    <div style="font-size: 14px; font-weight: 600; color: #ef4444; display: flex; align-items: center; gap: 8px;">
+                        <span>🚨</span> Próximos Eventos da Casa
+                    </div>
+                    <div id="listaEventosGlobais" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
+                        <!-- Eventos injetados aqui via JS -->
+                    </div>
+                </div>
+
                 <div class="loading-state" id="loadingState">Aguardando Conexão...</div>
                 
                 <div class="table-container" style="display: none;" id="tableContainer">
@@ -99,5 +113,6 @@
     </div>
 
     <script src="entidade.js"></script>
+    <script src="sidebar.js"></script>
 </body>
 </html>

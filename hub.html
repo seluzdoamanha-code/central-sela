@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Central SELA - Hub da Entidade</title>
+    <title>Portal SELA - Hub da Entidade</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
@@ -19,7 +20,7 @@
             font-size: 28px;
             font-weight: 700;
             margin-bottom: 8px;
-            color: white;
+            color: var(--text-main);
         }
         .hub-subtitle {
             color: #818cf8;
@@ -87,13 +88,16 @@
             opacity: 0.5;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Bloqueio de Acesso -->
+    <script src="auth_guard.js"></script>
 </head>
 <body>
     <div class="app-container">
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="logo-area">
-                <h2>Central SELA</h2>
+                <h2>Portal SELA</h2>
             </div>
             <nav class="main-nav">
                 <a href="entidade.html" class="nav-item active" data-target="entidade">🏛️ Entidade & Atividades</a>
@@ -121,11 +125,12 @@
                 
                 <!-- Sistema de Abas -->
                 <div class="tabs-nav">
+                    <button class="tab-btn mobile-only" onclick="window.location.href='index.html'" style="color: #60a5fa; font-weight: bold;">🏠 Início / Mural</button>
                     <button class="tab-btn active" data-target="abaEquipe">👥 Equipe & Organograma</button>
                     <button class="tab-btn" data-target="abaAgenda">📅 Agenda & Atividades</button>
-                    <button class="tab-btn" data-target="abaProjetos">🚀 Projetos</button>
-                    <button class="tab-btn" data-target="abaProcessos">🔄 Processos (SOPs)</button>
-                    <button class="tab-btn" data-target="abaDocumentos">📁 Documentos</button>
+                    <button class="tab-btn" data-target="abaProjetosProcessos" id="btnAbaProjetos">🚀 Projetos & Processos</button>
+                    <button class="tab-btn" data-target="abaDocumentos" id="btnAbaDocumentos">📁 Documentos Gerais</button>
+                    <button class="tab-btn" data-target="abaApps" id="btnAbaApps" style="display: none;">📱 Mini-Apps</button>
                 </div>
                 
                 <!-- Conteúdo das Abas -->
@@ -133,65 +138,98 @@
                 <!-- Aba 1: Equipe -->
                 <div class="tab-content active" id="abaEquipe">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                        <h2>Gestão de Pessoas</h2>
+                        <div>
+                            <h2 id="tituloGestaoPessoas">Gestão de Pessoas</h2>
+                            <div id="equipeStatus" style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Carregando equipe...</div>
+                        </div>
                         <button class="btn btn-primary" onclick="abrirOrganograma()">Abrir Organograma Completo &nearr;</button>
                     </div>
-                    <div class="placeholder-card">
-                        <div class="placeholder-icon">👥</div>
-                        <h3>Módulo de Equipe</h3>
-                        <p style="margin-top: 8px;">O organograma dinâmico e a lista de membros atrelados a esta estrutura serão exibidos aqui.</p>
+                    
+                    <!-- Liderança -->
+                    <div id="containerLideranca" style="margin-bottom: 32px; display: none;">
+                        <h3 style="color: var(--primary); margin-bottom: 16px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">👑 Liderança</h3>
+                        <div id="gridLideranca" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;"></div>
+                    </div>
+                    
+                    <!-- Membros -->
+                    <div id="containerMembros" style="display: none;">
+                        <h3 style="color: var(--text-muted); margin-bottom: 16px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Membros da Equipe</h3>
+                        <div id="gridMembros" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;"></div>
                     </div>
                 </div>
 
                 <!-- Aba 2: Agenda -->
                 <div class="tab-content" id="abaAgenda">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                        <h2>Agenda do Departamento</h2>
-                        <button class="btn btn-primary">+ Novo Evento</button>
+                        <div>
+                            <h2>Agenda e Eventos</h2>
+                            <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">Cronograma de reuniões, ensaios e confraternizações.</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="abrirModalEvento()">+ Novo Evento</button>
                     </div>
-                    <div class="placeholder-card">
-                        <div class="placeholder-icon">📅</div>
-                        <h3>Calendário Vazio</h3>
-                        <p style="margin-top: 8px;">Nenhuma escala ou evento agendado. (Módulo em Construção)</p>
+                    
+                    <div id="listAgenda" style="display: flex; flex-direction: column; gap: 16px;">
+                        <div style="color: var(--text-muted); font-size: 13px;">Carregando agenda...</div>
                     </div>
                 </div>
 
-                <!-- Aba 3: Projetos -->
-                <div class="tab-content" id="abaProjetos">
+                <!-- Aba 3: Projetos & Processos -->
+                <div class="tab-content" id="abaProjetosProcessos">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                        <h2>Projetos e Programas</h2>
-                        <button class="btn btn-primary">+ Novo Projeto</button>
+                        <div>
+                            <h2>Projetos e Processos Ativos</h2>
+                            <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">Agrupadores de tarefas, processos estruturados e blocos de documentos.</p>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn" style="background: var(--bg-dark); color: var(--text-muted);" onclick="abrirModalProjeto('Processo')">+ Novo Processo</button>
+                            <button class="btn btn-primary" onclick="abrirModalProjeto('Projeto')">+ Novo Projeto</button>
+                        </div>
                     </div>
-                    <div class="placeholder-card">
-                        <div class="placeholder-icon">🚀</div>
-                        <h3>Projetos Ativos</h3>
-                        <p style="margin-top: 8px;">Acompanhe o andamento de Campanhas, Reformas e Iniciativas com prazo determinado. (Módulo em Construção)</p>
-                    </div>
-                </div>
-                
-                <!-- Aba 4: Processos -->
-                <div class="tab-content" id="abaProcessos">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                        <h2>Processos e Fluxos (SOPs)</h2>
-                        <button class="btn btn-primary">+ Novo Procedimento</button>
-                    </div>
-                    <div class="placeholder-card">
-                        <div class="placeholder-icon">🔄</div>
-                        <h3>Procedimentos Operacionais Padrão</h3>
-                        <p style="margin-top: 8px;">Manuais, roteiros de atendimento e checklists de rotina. (Módulo em Construção)</p>
+                    
+                    <div id="listProjetos" style="display: flex; flex-direction: column; gap: 24px;">
+                        <div style="color: var(--text-muted); font-size: 13px;">Carregando projetos e processos...</div>
                     </div>
                 </div>
 
                 <!-- Aba 5: Documentos -->
                 <div class="tab-content" id="abaDocumentos">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                        <h2>Arquivos do Departamento</h2>
-                        <button class="btn btn-primary">+ Enviar Arquivo</button>
+                        <div>
+                            <h2>Gestão do Conhecimento & Documentos</h2>
+                            <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">Atas, links, ofícios e documentações (Markdown) deste setor.</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="abrirModalDoc()">+ Novo Documento</button>
                     </div>
-                    <div class="placeholder-card">
-                        <div class="placeholder-icon">📁</div>
-                        <h3>Gaveta Digital</h3>
-                        <p style="margin-top: 8px;">Atas de reunião, ofícios e planilhas financeiras restritas a este setor. (Módulo em Construção)</p>
+                    
+                    <!-- Seção 1: Documentos Oficiais / Herdados -->
+                    <div style="margin-bottom: 32px;">
+                        <h3 style="color: #60a5fa; margin-bottom: 16px; border-bottom: 1px solid rgba(96,165,250,0.2); padding-bottom: 8px;">🛡️ Documentos Oficiais (Obrigatórios)</h3>
+                        <div id="listDocsOficiais" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
+                            <div style="color: var(--text-muted); font-size: 13px;">Carregando documentos oficiais...</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Seção 2: Documentos Locais -->
+                    <div>
+                        <h3 style="color: var(--text-main); margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">📁 Documentos do Departamento</h3>
+                        <div id="listDocsLocais" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
+                            <div style="color: var(--text-muted); font-size: 13px;">Carregando documentos locais...</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Aba 6: Apps & Serviços -->
+                <div class="tab-content" id="abaApps">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <div>
+                            <h2>Ferramentas & Serviços</h2>
+                            <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">Recursos específicos desta área.</p>
+                        </div>
+                    </div>
+                    
+                    <div id="containerApps" style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; padding: 24px;">
+                        <!-- Conteúdo injetado via JS (Ex: Formulário de Irradiação) -->
+                        <div style="color: var(--text-muted); font-size: 13px;">Carregando serviços...</div>
                     </div>
                 </div>
                 
@@ -199,6 +237,172 @@
         </main>
     </div>
 
+    <!-- Modal Adicionar Documento -->
+    <div class="modal-overlay" id="modalDoc">
+        <div class="modal-content" style="max-width: 600px;">
+            <h2 id="modalDocTitle" style="margin-bottom: 16px;">Adicionar Documento</h2>
+            <form id="formDoc">
+                <input type="hidden" id="inDocId">
+                <div class="form-group">
+                    <label>Vincular a um Projeto/Processo? (Opcional)</label>
+                    <select id="inDocProjetoId">
+                        <option value="">-- Solto (Nenhum Projeto) --</option>
+                        <!-- Preenchido via JS -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Título do Documento *</label>
+                    <input type="text" id="inDocTitulo" required placeholder="Ex: Regimento Interno 2026">
+                </div>
+                
+                <div class="form-group">
+                    <label>Tipo *</label>
+                    <select id="inDocTipo" required onchange="toggleDocType()">
+                        <option value="Link">🔗 Link Externo (Google Drive, Youtube, etc)</option>
+                        <option value="Markdown">📝 Texto Markdown (Obsidian / Rico)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="groupDocLink">
+                    <label>URL (Link) *</label>
+                    <input type="url" id="inDocLink" placeholder="https://...">
+                </div>
+                
+                <div class="form-group" id="groupDocMd" style="display: none;">
+                    <label>Conteúdo Markdown *</label>
+                    <textarea id="inDocMd" rows="8" placeholder="# Título 1\n\n- Item 1\n- Item 2\n\nCole o seu conteúdo do Obsidian aqui!" style="width: 100%; padding: 12px; background: var(--bg-main); border: 1px solid var(--border); color: var(--text-main); border-radius: 8px; font-family: monospace;"></textarea>
+                </div>
+                
+                <div class="form-group" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);">
+                    <label style="color: #60a5fa;">🛡️ Compartilhar Oficialmente (Opcional)</label>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Selecione abaixo os departamentos que devem herdar este documento de forma obrigatória (eles não poderão excluí-lo).</p>
+                    <div id="checkDepartamentos" style="max-height: 150px; overflow-y: auto; background: var(--bg-main); padding: 12px; border-radius: 8px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px;">
+                        <span style="color: var(--text-muted); font-size: 12px;">Carregando departamentos...</span>
+                    </div>
+                </div>
+                
+                <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+                    <button type="button" class="btn" onclick="fecharModalDoc()" style="background: var(--bg-dark); color: var(--text-muted);">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnSaveDoc">Salvar Documento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Adicionar Projeto/Processo -->
+    <div class="modal-overlay" id="modalProjeto">
+        <div class="modal-content" style="max-width: 600px;">
+            <h2 id="modalProjetoTitle" style="margin-bottom: 16px;">Adicionar</h2>
+            <form id="formProjeto">
+                <input type="hidden" id="inProjetoId">
+                <input type="hidden" id="inProjetoTipo" value="Projeto">
+                
+                <div class="form-group">
+                    <label>Título *</label>
+                    <input type="text" id="inProjetoTitulo" required placeholder="Ex: Reforma da Sala">
+                </div>
+                
+                <div class="form-group">
+                    <label>Descrição / Objetivo *</label>
+                    <textarea id="inProjetoDescricao" rows="3" required placeholder="Qual o objetivo principal deste item?"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="inProjetoStatus">
+                        <option value="Ativo">🟢 Em Andamento / Ativo</option>
+                        <option value="Pausado">🟡 Pausado / Em Revisão</option>
+                        <option value="Concluido">✅ Concluído</option>
+                    </select>
+                </div>
+                
+                <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+                    <button type="button" class="btn" onclick="fecharModalProjeto()" style="background: var(--bg-dark); color: var(--text-muted);">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnSaveProjeto">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal Adicionar Evento -->
+    <div class="modal-overlay" id="modalEvento">
+        <div class="modal-content" style="max-width: 500px;">
+            <h2 style="margin-bottom: 16px;">Agendar Novo Evento</h2>
+            <form id="formEvento">
+                <div class="form-group">
+                    <label>Título do Evento *</label>
+                    <input type="text" id="inEvTitulo" required placeholder="Ex: Ensaio Geral, Reunião de Pauta">
+                </div>
+                
+                <div style="display: flex; gap: 16px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Data/Hora Início *</label>
+                        <input type="datetime-local" id="inEvInicio" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Data/Hora Término (Opcional)</label>
+                        <input type="datetime-local" id="inEvFim">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Local / Sala</label>
+                    <input type="text" id="inEvLocal" placeholder="Ex: Sala 3, Auditório, Online (Link)">
+                </div>
+                
+                <div class="form-group">
+                    <label>Visibilidade (Público-Alvo) *</label>
+                    <select id="inEvVisibilidade" required>
+                        <option value="Local">Apenas para este Departamento</option>
+                        <option value="Global">GLOBAL: Destacar na tela inicial para Todos</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Descrição (Opcional)</label>
+                    <textarea id="inEvDescricao" rows="3" placeholder="Pauta ou informações extras..."></textarea>
+                </div>
+
+                <div class="modal-actions" style="margin-top: 24px;">
+                    <button type="button" class="btn btn-secondary" onclick="fecharModalEvento()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnSaveEvento">Salvar Evento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal Visualizador Markdown -->
+    <div class="modal-overlay" id="modalViewer" style="align-items: center; justify-content: center; padding: 20px;">
+        <div class="modal-content" style="max-width: 900px; width: 100%; height: 90vh; display: flex; flex-direction: column; background: var(--bg-panel); padding: 32px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 24px;">
+                <h2 id="viewerTitle" style="color: var(--text-main); margin: 0;">Título</h2>
+                <button class="btn btn-secondary" onclick="fecharViewer()" style="padding: 6px 12px;">Fechar</button>
+            </div>
+            <div id="viewerContent" style="flex: 1; overflow-y: auto; color: var(--text-main); font-family: 'Inter', sans-serif; line-height: 1.6; padding-right: 16px;">
+                <!-- Markdown Renderizado Entra Aqui -->
+            </div>
+        </div>
+    </div>
+    
+    <style>
+        /* CSS para o Markdown Renderizado ficar bonito igual o Obsidian */
+        #viewerContent h1, #viewerContent h2, #viewerContent h3 { color: var(--text-main); margin-top: 24px; margin-bottom: 16px; }
+        #viewerContent h1 { border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+        #viewerContent p { margin-bottom: 16px; }
+        #viewerContent ul, #viewerContent ol { margin-bottom: 16px; padding-left: 24px; }
+        #viewerContent li { margin-bottom: 4px; }
+        #viewerContent a { color: #3b82f6; text-decoration: none; }
+        #viewerContent a:hover { text-decoration: underline; }
+        #viewerContent blockquote { border-left: 4px solid #4f46e5; margin: 0 0 16px 0; padding-left: 16px; color: #94a3b8; }
+        #viewerContent code { background: #1e293b; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.9em; }
+        #viewerContent pre { background: #1e293b; padding: 16px; border-radius: 8px; overflow-x: auto; margin-bottom: 16px; }
+        #viewerContent pre code { background: none; padding: 0; }
+        #viewerContent table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+        #viewerContent th, #viewerContent td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; }
+        #viewerContent th { background: rgba(255,255,255,0.05); }
+    </style>
+
     <script src="hub.js"></script>
+    <script src="sidebar.js"></script>
 </body>
 </html>

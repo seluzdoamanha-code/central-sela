@@ -3,171 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Central SELA - Dashboard</title>
+    <title>Início - Portal SELA</title>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Estilos globais -->
     <link rel="stylesheet" href="style.css">
-    <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bloqueio de Acesso -->
+    <script src="auth_guard.js"></script>
 </head>
 <body>
-    <script>
-        window.onerror = function(message, source, lineno, colno, error) {
-            const errDiv = document.createElement('div');
-            errDiv.style.background = 'red';
-            errDiv.style.color = 'white';
-            errDiv.style.padding = '20px';
-            errDiv.style.position = 'fixed';
-            errDiv.style.top = '0';
-            errDiv.style.left = '0';
-            errDiv.style.zIndex = '9999';
-            errDiv.innerHTML = `<h1>Erro de JS:</h1><p>${message}</p><p>Linha: ${lineno}</p><pre>${error && error.stack ? error.stack : ''}</pre>`;
-            document.body.appendChild(errDiv);
-        };
-        window.addEventListener('unhandledrejection', function(event) {
-            const errDiv = document.createElement('div');
-            errDiv.style.background = 'darkred';
-            errDiv.style.color = 'white';
-            errDiv.style.padding = '20px';
-            errDiv.style.position = 'fixed';
-            errDiv.style.top = '100px';
-            errDiv.style.left = '0';
-            errDiv.style.zIndex = '9999';
-            errDiv.innerHTML = `<h1>Promise Rejeitada:</h1><p>${event.reason}</p><pre>${event.reason && event.reason.stack ? event.reason.stack : ''}</pre>`;
-            document.body.appendChild(errDiv);
-        });
-    </script>
     <div class="app-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="logo-area">
-                <h2>Central SELA</h2>
-            </div>
-            <nav class="main-nav">
-                <a href="entidade.html" class="nav-item" data-target="entidade">🏛️ Entidade & Atividades</a>
-                <a href="index.html" class="nav-item active" data-target="pessoas">👥 Pessoas & Perfis</a>
-                <a href="#" class="nav-item" data-target="assistencia">🤝 Assistência Social</a>
-                <a href="#" class="nav-item" data-target="evangelizacao">🌱 Evangelização</a>
-                <a href="#" class="nav-item" data-target="biblioteca">📚 Biblioteca</a>
-                <a href="#" class="nav-item" data-target="financeiro">💰 Financeiro</a>
-                <a href="#" class="nav-item" style="margin-top: 24px;" data-target="config">⚙️ Configurações</a>
-            </nav>
-        </aside>
+        <!-- Sidebar injetada pelo sidebar.js -->
+        <aside class="sidebar" style="display: none;"></aside>
 
         <!-- Main Content -->
         <main class="content-area">
             <header class="topbar">
-                <h1>Gestão de Pessoas</h1>
-                <div class="actions">
-                    <button id="btnNovaPessoa" class="btn btn-primary">+ Nova Pessoa</button>
+                <div>
+                    <h1>Painel Inicial</h1>
+                    <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">Bem-vindo(a) à Portal SELA. Acompanhe os principais acontecimentos da casa.</p>
                 </div>
             </header>
 
             <div class="content-body" id="mainBody">
-                <div id="statsRibbon" style="display: none; gap: 16px; margin-bottom: 24px;">
-                    <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; flex: 1; border-left: 4px solid var(--primary);">
-                        <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 4px; letter-spacing: 0.5px;">Total Listado</div>
-                        <div id="statTotal" style="font-size: 24px; font-weight: 700; color: white;">0</div>
+                
+                <!-- Vitrine de Eventos Globais (Injetada automaticamente pelo sidebar.js se existir este ID) -->
+                <div id="vitrineEventos" style="display: none; margin-bottom: 24px; display: flex; flex-direction: column; gap: 12px;">
+                    <div style="font-size: 14px; font-weight: 600; color: #ef4444; display: flex; align-items: center; gap: 8px;">
+                        <span>🚨</span> Próximos Eventos da Casa
                     </div>
-                    <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; flex: 1; border-left: 4px solid #818cf8;">
-                        <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 4px; letter-spacing: 0.5px;">Pessoas Físicas</div>
-                        <div id="statFisica" style="font-size: 24px; font-weight: 700; color: #818cf8;">0</div>
-                    </div>
-                    <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; flex: 1; border-left: 4px solid #34d399;">
-                        <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 4px; letter-spacing: 0.5px;">Pessoas Jurídicas</div>
-                        <div id="statJuridica" style="font-size: 24px; font-weight: 700; color: #34d399;">0</div>
+                    <div id="listaEventosGlobais" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
+                        <!-- Eventos injetados aqui via JS -->
                     </div>
                 </div>
-                
-                <div class="loading-state" id="loadingState">Aguardando Conexão...</div>
-                
-                <div class="table-container" style="display: none;" id="tableContainer">
-                    <div class="search-bar" style="display: flex; gap: 12px; margin-bottom: 24px;">
-                <input type="text" id="searchInput" class="input-field" placeholder="Buscar por Nome, CPF ou CNPJ..." style="flex: 1;">
-                
-                <select id="filterTag" class="input-field" style="width: 200px; background-color: var(--bg-dark);">
-                    <option value="">Todos os Tipos</option>
-                    <option value="Física">Apenas Pessoa Física</option>
-                    <option value="Jurídica">Apenas Pessoa Jurídica</option>
-                    <option disabled>──────</option>
-                    <option value="Assistido">Assistidos</option>
-                    <option value="Membro da Família">Membros da Família</option>
-                    <option value="Empresa">Empresas</option>
-                </select>
-                
-                <select id="sortOrder" class="input-field" style="width: 200px; background-color: var(--bg-dark);">
-                    <option value="nome_az">Nome (A - Z)</option>
-                    <option value="nome_za">Nome (Z - A)</option>
-                    <option value="recentes">Mais Recentes</option>
-                </select>
-            </div>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Nome Completo</th>
-                                <th>Papéis / Tags</th>
-                                <th>Celular</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody">
-                            <!-- Injetado via JS -->
-                        </tbody>
-                    </table>
+
+                <div class="mural-grid" style="margin-top: 24px;">
+                    
+                    <!-- Lado Esquerdo: Mural de Recados / Posts -->
+                    <div class="feed-section">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                            <h2 style="font-size: 18px;">Mural de Informações</h2>
+                            <button id="btnNovoPost" class="btn btn-primary" style="font-size: 12px; padding: 6px 12px;">+ Novo Post</button>
+                        </div>
+                        
+                        <div id="loadingFeed" style="color: var(--text-muted); font-size: 14px; text-align: center; padding: 24px;">Carregando Mural...</div>
+                        
+                        <div id="listaPosts" style="display: flex; flex-direction: column; gap: 16px;">
+                            <!-- Posts Injetados via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Lado Direito: Atalhos e Resumo -->
+                    <div class="widgets-section" style="display: flex; flex-direction: column; gap: 24px;">
+                        
+                        <!-- Resumo Estatístico -->
+                        <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px;">
+                            <h3 style="font-size: 14px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 16px;">Visão Geral</h3>
+                            
+                            <div style="display: flex; flex-direction: column; gap: 16px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
+                                    <span style="font-size: 13px; color: #cbd5e1;">👥 Assoc. Efetivos</span>
+                                    <span id="statEfetivos" style="font-size: 16px; font-weight: bold; color: var(--text-main);">-</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
+                                    <span style="font-size: 13px; color: #cbd5e1;">👥 Assoc. Proponentes</span>
+                                    <span id="statProponentes" style="font-size: 16px; font-weight: bold; color: var(--text-main);">-</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
+                                    <span style="font-size: 13px; color: #cbd5e1;">👥 Demais Pessoas (PF)</span>
+                                    <span id="statDemaisPessoas" style="font-size: 16px; font-weight: bold; color: var(--text-main);">-</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
+                                    <span style="font-size: 13px; color: #cbd5e1;">🏢 Empresas (PJs)</span>
+                                    <span id="statEmpresas" style="font-size: 16px; font-weight: bold; color: var(--text-main);">-</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
+                                    <span style="font-size: 13px; color: #cbd5e1;">🏛️ Departamentos</span>
+                                    <span id="statDepartamentos" style="font-size: 16px; font-weight: bold; color: var(--text-main);">-</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
+                                    <span style="font-size: 13px; color: #cbd5e1;">🎯 Atividades</span>
+                                    <span id="statAtividades" style="font-size: 16px; font-weight: bold; color: var(--text-main);">-</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-size: 13px; color: var(--text-muted);">📦 Outros</span>
+                                    <span id="statOutros" style="font-size: 16px; font-weight: bold; color: var(--text-muted);">0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
+
             </div>
         </main>
     </div>
 
-    <!-- Modal Nova Pessoa -->
-    <div id="modalPessoa" class="modal-overlay">
-        <div class="modal-content">
+    <!-- Modal Novo Post -->
+    <div id="modalPost" class="modal-overlay">
+        <div class="modal-content" style="max-width: 500px;">
             <header class="modal-header">
-                <h2 id="modalTitle">Nova Pessoa/Entidade</h2>
-                <button class="btn-close" id="btnCloseModal">×</button>
+                <h2>Escrever no Mural</h2>
+                <button class="btn-close" id="btnClosePost">×</button>
             </header>
-            <form id="formPessoa" class="modal-body">
+            <form id="formPost" class="modal-body">
                 <div class="form-group">
-                    <label>Tipo</label>
-                    <select id="inTipo" required>
-                        <option value="Física">Pessoa Física</option>
-                        <option value="Jurídica">Pessoa Jurídica</option>
-                    </select>
+                    <label>Título do Comunicado</label>
+                    <input type="text" id="inPostTitulo" placeholder="Ex: Doações para o Bazar" required>
                 </div>
                 <div class="form-group">
-                    <label id="lblCpfCnpj">CPF</label>
-                    <input type="text" id="inCpfCnpj">
+                    <label>Conteúdo (Use Markdown opcionalmente)</label>
+                    <textarea id="inPostConteudo" rows="6" placeholder="Escreva a mensagem..." required></textarea>
                 </div>
                 <div class="form-group">
-                    <label id="lblNome">Nome Completo</label>
-                    <input type="text" id="inNome" required>
+                    <label>Autor / Departamento</label>
+                    <input type="text" id="inPostAutor" placeholder="Ex: Diretoria SELA" required>
                 </div>
                 <div class="form-group">
-                    <label id="lblNomeCurto">Nome de Tratamento (Nome Curto)</label>
-                    <input type="text" id="inNomeCurto" required>
+                    <label>Link Externo (Opcional - Gera card igual WhatsApp)</label>
+                    <input type="url" id="inPostLink" placeholder="https://youtube.com/...">
                 </div>
-                <div class="form-group">
-                    <label>Celular / WhatsApp</label>
-                    <input type="text" id="inCelular">
+                <div class="form-group" style="display: flex; gap: 12px; margin-top: 24px;">
+                    <button type="submit" class="btn btn-primary" id="btnSavePost" style="flex: 1;">Publicar no Mural</button>
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('modalPost').style.display='none'" style="flex: 1;">Cancelar</button>
                 </div>
-                <div class="form-group">
-                    <label>Papéis / Tags</label>
-                    <div style="background: rgba(0,0,0,0.15); border: 1px solid var(--border); border-radius: 8px; padding: 12px;">
-                        <input type="text" id="tagSearchInput" class="input-field" placeholder="🔍 Buscar papéis..." style="margin-bottom: 12px;">
-                        
-                        <div class="tags-container custom-scrollbar" id="tagsCheckboxContainer" style="display: flex; flex-wrap: wrap; gap: 8px; max-height: 160px; overflow-y: auto; padding-right: 8px;">
-                            <!-- Tags injetadas via app.js -->
-                        </div>
-                    </div>
-                </div>
-                <footer class="modal-footer">
-                    <button type="button" class="btn" id="btnCancelModal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" id="btnSaveModal">Salvar</button>
-                </footer>
             </form>
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <!-- Carrega a biblioteca Marked para posts em markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <!-- Supabase e Scripts -->
+    
+    <script src="sidebar.js"></script>
+    <script src="index.js"></script>
 </body>
 </html>

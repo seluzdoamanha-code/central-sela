@@ -11,6 +11,39 @@
     --warning: #f59e0b;
 }
 
+/* Tema Claro / Cinza */
+body.theme-light {
+    --primary: #475569;
+    --primary-hover: #334155;
+    --bg-dark: #f1f5f9;
+    --bg-panel: #ffffff;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+}
+
+/* Tema Pastel */
+body.theme-pastel {
+    --primary: #f28b82;
+    --primary-hover: #e07a71;
+    --bg-dark: #fcfbf9;
+    --bg-panel: #f9f6f0;
+    --text-main: #4a3b32;
+    --text-muted: #8b7d72;
+    --border: #eedacb;
+}
+
+/* Tema Alaranjado (Dark Energético) */
+body.theme-orange {
+    --primary: #f97316;
+    --primary-hover: #ea580c;
+    --bg-dark: #1c1917;
+    --bg-panel: #292524;
+    --text-main: #f5f5f4;
+    --text-muted: #a8a29e;
+    --border: #44403c;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -200,7 +233,7 @@ body {
 .form-group label { display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 14px; }
 .form-group input, .form-group select {
     width: 100%; padding: 10px; border-radius: 6px;
-    border: 1px solid var(--border); background: var(--bg-dark); color: white;
+    border: 1px solid var(--border); background: var(--bg-dark); color: var(--text-main);
 }
 
 .modal-footer {
@@ -249,57 +282,78 @@ body {
     cursor: pointer;
     accent-color: var(--primary);
 }
+.desktop-only {
+    display: block;
+}
 
-/* =========================================================
-   RESPONSIVIDADE (MOBILE)
-   ========================================================= */
+.mobile-only {
+    display: none !important;
+}
+
+/* =========================================
+   2. Componentes de UI Básicos
+   ========================================= */
+.mural-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 32px;
+}
+
 @media (max-width: 768px) {
     .app-container {
         flex-direction: column;
     }
     
-    /* Navbar Superior com Scroll Horizontal */
+    /* Navbar Superior Retrátil no Celular */
     .sidebar {
         width: 100%;
-        flex-direction: row;
+        flex-direction: column;
         border-right: none;
         border-bottom: 1px solid var(--border);
-        align-items: center;
-        overflow-x: auto;
-        /* Esconde a barra de rolagem mas permite o scroll */
-        -ms-overflow-style: none;  
-        scrollbar-width: none;  
-    }
-    .sidebar::-webkit-scrollbar { 
-        display: none; 
+        overflow: hidden;
     }
     
     .logo-area {
         padding: 16px;
         border-bottom: none;
-        border-right: 1px solid var(--border);
-        flex-shrink: 0;
+        border-right: none;
+        width: 100%;
     }
     .logo-area h2 {
         font-size: 16px;
     }
     
+    .mobile-menu-btn {
+        display: block !important;
+    }
+    
+    .sidebar-footer {
+        display: none !important;
+    }
+    
     .main-nav {
-        flex-direction: row;
+        flex-direction: column;
         padding: 0;
-        flex-shrink: 0;
+        width: 100%;
+        display: none; /* Oculto por padrão no celular */
+    }
+    
+    .main-nav.show-mobile {
+        display: flex;
+        border-top: 1px solid rgba(255,255,255,0.05);
     }
     
     .nav-item {
-        padding: 16px 20px;
-        white-space: nowrap;
+        padding: 12px 16px;
+        font-size: 14px;
+        white-space: normal;
         border-right: none;
-        border-bottom: 3px solid transparent;
+        border-bottom: none !important;
+        border-left: none !important;
     }
     
     .nav-item[style*="margin-top: 24px"] {
         margin-top: 0 !important;
-        border-left: 1px solid var(--border);
     }
 
     .nav-item.active {
@@ -360,10 +414,20 @@ body {
         padding: 20px 16px;
     }
     .tabs-nav {
-        padding: 0 16px;
-        overflow-x: auto;
-        white-space: nowrap;
-        -webkit-overflow-scrolling: touch;
+        flex-direction: column !important;
+        padding: 0 !important;
+        display: none !important; /* Hide by default on mobile, toggled by hamburger */
+    }
+    .tabs-nav.show-mobile {
+        display: flex !important;
+        border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .tab-btn {
+        width: 100%;
+        text-align: left;
+        border-radius: 0;
+        padding: 16px;
+        border-bottom: none !important;
     }
     .tab-content {
         padding: 20px 16px;
@@ -372,5 +436,11 @@ body {
         flex-direction: column;
         align-items: stretch !important;
         gap: 12px;
+    }
+    
+    .mural-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
     }
 }
