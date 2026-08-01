@@ -51,25 +51,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function carregarContadores() {
     try {
-        const { data, error } = await db.from('livros_catalogo').select('categoria');
-        if (error) return;
-        
-        let cDisp = 0, cPermuta = 0, cDesid = 0;
-        data.forEach(item => {
-            const cat = (item.categoria || '').toUpperCase().trim();
-            if (cat.includes('DISPON')) cDisp++;
-            else if (cat.includes('PERMUT')) cPermuta++;
-            else if (cat.includes('DESIDERAT')) cDesid++;
-            // Fallback caso a categoria principal seja nula
-            else if (cat === '') cDisp++; 
-        });
+        const fetchCount = async (catName) => {
+            const { count, error } = await db
+                .from('livros_catalogo')
+                .select('*', { count: 'exact', head: true })
+                .eq('categoria', catName);
+            return count || 0;
+        };
+
+        const cDisp = await fetchCount('DISPONÍVEL');
+        const cPermuta = await fetchCount('PERMUTA');
+        const cDesid = await fetchCount('DESIDERATUM');
 
         const sDisp = document.getElementById('countDisp');
         const sPerm = document.getElementById('countPerm');
         const sDesi = document.getElementById('countDesi');
         
         if (sDisp) sDisp.textContent = `(${cDisp})`;
-        if (sPerm) sPerm.textContent = `(${cPerm})`;
+        if (sPerm) sPerm.textContent = `(${cPermuta})`;
         if (sDesi) sDesi.textContent = `(${cDesid})`;
     } catch(e) { console.error("Erro ao carregar contadores:", e); }
 }
