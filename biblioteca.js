@@ -20,9 +20,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const tabBtns = document.querySelectorAll('.tab-btn');
     tabBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
+            const button = e.currentTarget;
             tabBtns.forEach(b => b.classList.remove('active'));
-            e.target.classList.add('active');
-            currentCategoria = e.target.getAttribute('data-categoria');
+            button.classList.add('active');
+            currentCategoria = button.getAttribute('data-categoria');
             fetchLivros(true);
         });
     });
@@ -45,7 +46,33 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btnConfirmarReserva').addEventListener('click', enviarReserva);
 
     fetchLivros(true);
+    carregarContadores();
 });
+
+async function carregarContadores() {
+    try {
+        const { data, error } = await db.from('livros_catalogo').select('categoria');
+        if (error) return;
+        
+        let cDisp = 0, cPermuta = 0, cDesid = 0;
+        data.forEach(item => {
+            const cat = (item.categoria || '').toUpperCase().trim();
+            if (cat.includes('DISPON')) cDisp++;
+            else if (cat.includes('PERMUT')) cPermuta++;
+            else if (cat.includes('DESIDERAT')) cDesid++;
+            // Fallback caso a categoria principal seja nula
+            else if (cat === '') cDisp++; 
+        });
+
+        const sDisp = document.getElementById('countDisp');
+        const sPerm = document.getElementById('countPerm');
+        const sDesi = document.getElementById('countDesi');
+        
+        if (sDisp) sDisp.textContent = `(${cDisp})`;
+        if (sPerm) sPerm.textContent = `(${cPerm})`;
+        if (sDesi) sDesi.textContent = `(${cDesid})`;
+    } catch(e) { console.error("Erro ao carregar contadores:", e); }
+}
 
 async function fetchLivros(reset = false) {
     const loading = document.getElementById('loading');

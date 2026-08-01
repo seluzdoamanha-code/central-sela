@@ -293,6 +293,12 @@ body {
 /* =========================================
    2. Componentes de UI Básicos
    ========================================= */
+.mural-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 32px;
+}
+
 @media (max-width: 768px) {
     .app-container {
         flex-direction: column;
@@ -437,10 +443,4 @@ body {
         flex-direction: column;
         gap: 24px;
     }
-}
-
-.mural-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 32px;
 }
