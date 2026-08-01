@@ -333,8 +333,8 @@ function renderizarDocumentos(docs, container, isLocal) {
             actionBtn = `<a href="${doc.conteudo}" target="_blank" class="btn btn-primary" style="padding: 4px 8px; font-size: 12px; text-decoration: none;">Abrir Link &nearr;</a>`;
         } else {
             // Encode the markdown content to safely pass it in onclick
-            const encodedContent = encodeURIComponent(doc.conteudo || '');
-            const encodedTitle = encodeURIComponent(doc.titulo || '');
+            const encodedContent = encodeURIComponent(doc.conteudo || '').replace(/'/g, "%27");
+            const encodedTitle = encodeURIComponent(doc.titulo || '').replace(/'/g, "%27");
             actionBtn = `<button class="btn btn-primary" style="padding: 4px 8px; font-size: 12px;" onclick="abrirViewerMarkdown('${encodedTitle}', '${encodedContent}')">Ler Conteúdo</button>`;
         }
         
@@ -737,8 +737,8 @@ window.renderizarProjetosProcessos = () => {
                 if (doc.tipo === 'Link') {
                     actionBtn = `onclick="window.open('${doc.conteudo}', '_blank')"`;
                 } else {
-                    const encodedContent = encodeURIComponent(doc.conteudo || '');
-                    const encodedTitle = encodeURIComponent(doc.titulo || '');
+                    const encodedContent = encodeURIComponent(doc.conteudo || '').replace(/'/g, "%27");
+                    const encodedTitle = encodeURIComponent(doc.titulo || '').replace(/'/g, "%27");
                     actionBtn = `onclick="abrirViewerMarkdown('${encodedTitle}', '${encodedContent}')"`;
                 }
                 
@@ -933,7 +933,7 @@ window.abrirMiniAppIrradiacao = async function() {
             <form id="formIrradiacao" style="display: flex; flex-direction: column; gap: 16px;">
                 <div>
                     <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 6px;">Nome(s) Completo(s) do(s) Necessitado(s) *</label>
-                    <input type="text" id="inIrrNome" required class="input-field" placeholder="EX: MARIA DA SILVA" style="width: 100%; text-transform: uppercase;">
+                    <input type="text" id="inIrrNome" required class="input-field" placeholder="EX: MARIA DA SILVA --- JOSÉ DA SILVA" style="width: 100%; text-transform: uppercase;">
                 </div>
                 <div>
                     <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 6px;">Endereço Completo</label>
@@ -952,10 +952,58 @@ window.abrirMiniAppIrradiacao = async function() {
                     <button type="submit" class="btn btn-primary" id="btnSaveIrr">Enviar Solicitação</button>
                 </div>
             </form>
+
+            <!-- Painel de Sucesso -->
+            <div id="panelSuccess" style="display: none; text-align: center;">
+                <div style="font-size: 48px; margin-bottom: 16px;">✅</div>
+                <h3 style="color: #10b981; margin-bottom: 12px; font-size: 20px;">Pedido Enviado!</h3>
+                <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">O nome foi incluído na lista para os dias selecionados.</p>
+                
+                <div id="resumeContent" style="background: rgba(0,0,0,0.2); padding: 16px; border-radius: 8px; font-size: 13px; color: var(--text-main); text-align: left; margin-bottom: 24px; border: 1px solid var(--border);">
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <button onclick="novaSolicitacaoIrr()" class="btn btn-primary" style="width: 100%;">Fazer Novo Pedido</button>
+                    <button onclick="cancelarSolicitacaoIrr()" id="btnCancelIrr" class="btn" style="width: 100%; border: 1px solid #ef4444; color: #ef4444; background: transparent;">Apagar Solicitação (Cancelar)</button>
+                </div>
+            </div>
         </div>
     `;
 
     document.getElementById('formIrradiacao').addEventListener('submit', salvarIrradiacao);
+};
+
+window.lastInsertedIrrIds = [];
+
+window.novaSolicitacaoIrr = function() {
+    document.getElementById('formIrradiacao').reset();
+    document.querySelectorAll('#formIrradiacao .tag-checkbox-ui').forEach(el => el.classList.remove('selected'));
+    document.getElementById('formIrradiacao').style.display = 'flex';
+    document.getElementById('panelSuccess').style.display = 'none';
+    window.lastInsertedIrrIds = [];
+};
+
+window.cancelarSolicitacaoIrr = async function() {
+    if (window.lastInsertedIrrIds.length === 0) return;
+    if (!confirm("Tem certeza que deseja cancelar e apagar esta solicitação?")) return;
+    
+    const btn = document.getElementById('btnCancelIrr');
+    btn.disabled = true;
+    btn.textContent = 'Apagando...';
+    
+    try {
+        for (const id of window.lastInsertedIrrIds) {
+            await db.from('app_irradiacao_solicitacoes').delete().eq('id', id);
+        }
+        alert("Solicitação apagada com sucesso.");
+        novaSolicitacaoIrr();
+    } catch (err) {
+        console.error(err);
+        alert("Erro ao apagar solicitação.");
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Apagar Solicitação (Cancelar)';
+    }
 };
 
 window.carregarPainelGestaoIrradiacao = async function() {
@@ -1027,6 +1075,8 @@ window.setDiaIrradiacao = function(dia) {
 
 async function carregarListaIrradiacao() {
     const lista = document.getElementById('listaIrradiacoes');
+    if (!lista) return;
+    
     try {
         let query = db.from('app_irradiacao_solicitacoes')
                       .select('*')
@@ -1105,7 +1155,7 @@ async function carregarListaIrradiacao() {
         
     } catch (e) {
         console.error(e);
-        lista.innerHTML = '<div style="color: #ef4444;">Erro ao carregar solicitações.</div>';
+        if (lista) lista.innerHTML = '<div style="color: #ef4444;">Erro ao carregar solicitações.</div>';
     }
 }
 
@@ -1139,12 +1189,21 @@ async function salvarIrradiacao(e) {
             leituras: 0
         }));
         
-        const { error } = await db.from('app_irradiacao_solicitacoes').insert(recordsToInsert);
+        const { data, error } = await db.from('app_irradiacao_solicitacoes').insert(recordsToInsert).select('id');
         if (error) throw error;
         
-        document.getElementById('formIrradiacao').reset();
+        window.lastInsertedIrrIds = data.map(r => r.id);
+        
+        document.getElementById('formIrradiacao').style.display = 'none';
+        document.getElementById('panelSuccess').style.display = 'block';
+        document.getElementById('resumeContent').innerHTML = `
+            <strong>Nome:</strong> ${nome}<br>
+            <strong>Endereço:</strong> ${endereco || 'Não informado'}<br>
+            <strong style="display:block; margin-top:8px;">Dias:</strong> 
+            ${dias.join('<br>')}
+        `;
+        
         await carregarListaIrradiacao();
-        alert("Solicitação enviada com sucesso!");
     } catch (err) {
         console.error(err);
         alert("Erro ao enviar solicitação.");

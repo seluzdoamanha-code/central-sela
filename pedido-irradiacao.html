@@ -5,11 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Solicitação de Irradiação | Portal SELA</title>
     
+    <!-- Metatags para WhatsApp e Redes Sociais (Open Graph) -->
+    <meta property="og:title" content="Irradiação Espiritual | Portal SELA">
+    <meta property="og:description" content="Faça solicitações de tratamento espiritual à distância para você ou seus entes queridos.">
+    <meta property="og:image" content="https://comunidade-sela.vercel.app/logo_sela.png">
+    <meta property="og:url" content="https://comunidade-sela.vercel.app/">
+    <meta property="og:type" content="website">
+    
     <!-- Fonte Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- CSS Principal -->
-    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="style.css">
     
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -195,8 +202,8 @@
         <!-- Formulário -->
         <form id="formIrradiacao">
             <div class="form-group">
-                <label>Nome(s) Completo(s) do(s) Necessitado(s) *</label>
-                <input type="text" id="inNome" class="input-field" required placeholder="EX: MARIA DA SILVA" style="width: 100%; box-sizing: border-box; text-transform: uppercase;">
+                <label for="inNome">Nome(s) Completo(s) do(s) Necessitado(s) *</label>
+                <input type="text" id="inNome" class="input-field" required placeholder="EX: MARIA DA SILVA --- JOSÉ DA SILVA" style="width: 100%; box-sizing: border-box; text-transform: uppercase;">
             </div>
             
             <div class="form-group">

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteca - Portal SELA</title>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Estilos globais -->
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .tabs { display: flex; gap: 16px; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+        .tab-btn { background: none; border: none; color: var(--text-muted); font-size: 16px; font-weight: 500; cursor: pointer; padding: 8px 16px; border-radius: 8px; transition: 0.2s; }
+        .tab-btn:hover { background: rgba(255,255,255,0.05); }
+        .tab-btn.active { color: white; background: var(--card-bg); font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        
+        .books-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 24px; }
+        .book-card { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; display: flex; flex-direction: column; transition: transform 0.2s; cursor: pointer; }
+        .book-card:hover { transform: translateY(-4px); border-color: #555; }
+        .book-cover { width: 100%; height: 300px; object-fit: cover; background: #2a2a2a; }
+        .book-info { padding: 16px; display: flex; flex-direction: column; flex: 1; }
+        .book-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+        .book-author { font-size: 14px; color: var(--text-muted); margin-bottom: 12px; }
+        .book-codigo { font-size: 12px; background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; align-self: flex-start; margin-top: auto; }
+        
+        .btn-carregar-mais { display: none; margin: 32px auto; background: transparent; border: 1px solid var(--border); color: white; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 500; }
+        .btn-carregar-mais:hover { background: rgba(255,255,255,0.05); }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
+        .modal.show { display: flex; }
+        .modal-content { background: var(--card-bg); border-radius: 12px; width: 100%; max-width: 800px; border: 1px solid var(--border); display: flex; max-height: 90vh; overflow: hidden; }
+        .modal-cover { width: 300px; background: #111; flex-shrink: 0; }
+        .modal-cover img { width: 100%; height: 100%; object-fit: cover; }
+        .modal-info { padding: 24px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+        .modal-info input { width: 100%; padding: 10px; margin-bottom: 16px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: white; }
+        
+        @media (max-width: 600px) {
+            .modal-content { flex-direction: column; overflow-y: auto; }
+            .modal-cover { width: 100%; height: 250px; }
+            .modal-info { overflow-y: visible; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" style="display: none;"></aside>
+
+        <!-- Main Content -->
+        <main class="content-area">
+            <header class="topbar">
+                <div>
+                    <h1>Biblioteca SELA</h1>
+                    <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">Explore nosso acervo e solicite o empréstimo de livros.</p>
+                </div>
+            </header>
+
+            <div class="content-body">
+                <div class="tabs">
+                    <button class="tab-btn active" data-categoria="DISPONÍVEL">📖 Acervo Disponível</button>
+                    <button class="tab-btn" data-categoria="PERMUTA">♻️ Permutas</button>
+                    <button class="tab-btn" data-categoria="DESIDERATUM">🌠 Desiderata</button>
+                </div>
+
+                <div id="loading" style="text-align: center; color: var(--text-muted); padding: 40px;">Buscando livros...</div>
+                <div id="booksGrid" class="books-grid" style="display: none;"></div>
+                <button id="btnCarregarMais" class="btn-carregar-mais">Carregar Mais</button>
+                <div id="emptyState" style="display: none; text-align: center; color: var(--text-muted); padding: 40px;">Nenhum livro encontrado nesta categoria.</div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal de Reserva / Detalhes -->
+    <div class="modal" id="modalReserva">
+        <div class="modal-content">
+            <div class="modal-cover">
+                <img id="modalImg" src="" alt="Capa do Livro">
+            </div>
+            <div class="modal-info">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <h2 id="modalTitle" style="margin-top: 0; margin-bottom: 8px;">Título do Livro</h2>
+                    <button onclick="fecharModal()" style="background: none; border: none; color: white; cursor: pointer; font-size: 20px;">&times;</button>
+                </div>
+                <div id="modalAuthor" style="color: var(--text-muted); margin-bottom: 8px;">Autor</div>
+                <div id="modalCodigo" style="display: inline-block; background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; font-size: 12px; margin-bottom: 16px; align-self: flex-start;">#CODIGO</div>
+                
+                <h4 style="margin-bottom: 8px;">Sinopse</h4>
+                <div id="modalSinopse" style="font-size: 14px; line-height: 1.5; color: #ccc; margin-bottom: 24px;"></div>
+                
+                <hr style="border: 0; border-top: 1px solid var(--border); margin-bottom: 24px;">
+                
+                <h4 id="formTitle" style="margin-bottom: 16px;">Reservar este livro</h4>
+                <input type="text" id="reservaNome" placeholder="Seu Nome Completo" required>
+                <input type="text" id="reservaContato" placeholder="Seu Telefone / WhatsApp" required>
+                
+                <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: auto; padding-top: 16px;">
+                    <button class="btn" style="background: transparent;" onclick="fecharModal()">Cancelar</button>
+                    <button class="btn btn-primary" style="background: #27ae60;" id="btnConfirmarReserva">Confirmar Reserva</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts Base -->
+    <script src="sidebar.js"></script>
+    <script src="biblioteca.js"></script>
+</body>
+</html>

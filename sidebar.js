@@ -28,6 +28,7 @@
                     <a href="index.html" class="nav-item ${currentPage === 'index.html' ? 'active' : ''}">🏠 Início / Mural</a>
                     <a href="entidade.html" class="nav-item ${currentPage === 'entidade.html' || currentPage === 'hub.html' ? 'active' : ''}">🏛️ Entidade & Atividades</a>
                     <a href="pessoas.html" class="nav-item ${currentPage === 'pessoas.html' || currentPage === 'perfil.html' ? 'active' : ''}">👥 Pessoas & Perfis</a>
+                    <a href="biblioteca.html" class="nav-item ${currentPage === 'biblioteca.html' ? 'active' : ''}">📚 Biblioteca</a>
                     
                     <div style="height: 1px; background: rgba(255,255,255,0.05); margin: 8px 16px;" class="desktop-only"></div>
 
