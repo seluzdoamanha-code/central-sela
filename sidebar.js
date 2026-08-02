@@ -28,7 +28,6 @@
                     <a href="index.html" class="nav-item ${currentPage === 'index.html' ? 'active' : ''}">🏠 Início / Mural</a>
                     <a href="entidade.html" class="nav-item ${currentPage === 'entidade.html' || currentPage === 'hub.html' ? 'active' : ''}">🏛️ Entidade & Atividades</a>
                     <a href="pessoas.html" class="nav-item ${currentPage === 'pessoas.html' || currentPage === 'perfil.html' ? 'active' : ''}">👥 Pessoas & Perfis</a>
-                    <a href="biblioteca.html" class="nav-item ${currentPage === 'biblioteca.html' ? 'active' : ''}">📚 Biblioteca Dilamar Abreu</a>
                     
                     <div style="height: 1px; background: rgba(255,255,255,0.05); margin: 8px 16px;" class="desktop-only"></div>
 
@@ -47,6 +46,10 @@
                     <div class="desktop-only">
                         <div>&copy; 2026 Luz do Amanhã</div>
                         <div style="opacity: 0.6; margin-top: 4px;">Dev by Portal SELA</div>
+                    </div>
+                    
+                    <div id="userProfileArea" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                        <!-- Injetado via JS -->
                     </div>
                 </div>
             </aside>
@@ -80,7 +83,33 @@
         if (document.getElementById('vitrineEventos')) {
             await carregarEventosGlobais();
         }
+
+        renderUserProfile();
     });
+
+    async function renderUserProfile() {
+        const container = document.getElementById('userProfileArea');
+        if (!container || !sidebarDb) return;
+        
+        const { data: { session } } = await sidebarDb.auth.getSession();
+        if (!session || !session.user) return;
+        
+        const userName = session.user.user_metadata?.full_name || session.user.email;
+        const userFoto = session.user.user_metadata?.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(userName) + '&background=random';
+        
+        container.innerHTML = `
+            <img src="${userFoto}" alt="Foto" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+            <span style="font-weight: 500; color: var(--text-main); font-size: 13px;">${userName}</span>
+            <button id="btnLogout" style="margin-top: 4px; background: transparent; border: 1px solid rgba(239, 68, 68, 0.4); color: #ef4444; padding: 4px 12px; border-radius: 6px; cursor: pointer; transition: 0.2s;">Sair</button>
+        `;
+
+        document.getElementById('btnLogout').addEventListener('click', async () => {
+            if(sidebarDb) {
+                await sidebarDb.auth.signOut();
+                window.location.href = 'login.html';
+            }
+        });
+    }
 
     async function carregarAtalhosDinamicos() {
         const container = document.getElementById('dynamicShortcuts');
