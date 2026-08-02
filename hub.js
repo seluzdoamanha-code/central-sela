@@ -1075,8 +1075,9 @@ window.setDiaIrradiacao = function(dia) {
     currentIrradiacaoDia = dia;
     
     document.querySelectorAll('.btn-dia').forEach(b => {
-        b.style.background = b.textContent === dia ? 'var(--primary)' : 'var(--bg-dark)';
-        b.style.color = b.textContent === dia ? '#fff' : 'var(--text-muted)';
+        const isActive = b.getAttribute('onclick').includes(dia);
+        b.style.background = isActive ? 'var(--primary)' : 'var(--bg-dark)';
+        b.style.color = isActive ? '#fff' : 'var(--text-muted)';
     });
     
     carregarListaIrradiacao();
