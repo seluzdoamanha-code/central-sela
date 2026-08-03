@@ -62,7 +62,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const { data, error } = await supabaseClient.auth.signInWithOAuth({
                     provider: 'azure',
                     options: {
-                        redirectTo: indexUrl
+                        redirectTo: indexUrl,
+                        scopes: 'email'
                     }
                 });
 
