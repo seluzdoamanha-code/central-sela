@@ -32,9 +32,9 @@ async function checkAuth() {
         .single();
 
     if (dbError || !whitelist) {
-        // Usuário tem conta Google, mas não tem permissão na SELA
+        // Usuário tem conta Google/MS, mas não tem permissão na SELA
         await authDb.auth.signOut();
-        window.location.replace('login.html?error=nao_autorizado');
+        window.location.replace('login.html?error=nao_autorizado&email=' + encodeURIComponent(email || 'desconhecido'));
         return;
     }
 

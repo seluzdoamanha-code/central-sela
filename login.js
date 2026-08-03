@@ -76,12 +76,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function verificarStatusAtual() {
-        // Pega possíveis mensagens de erro da URL (ex: ?error=nao_autorizado)
+        // Pega possíveis mensagens de erro da URL (ex: ?error=nao_autorizado&email=xyz)
         const urlParams = new URLSearchParams(window.location.search);
         const errorType = urlParams.get('error');
         
         if (errorType === 'nao_autorizado') {
-            mostrarErro('Acesso Negado: Seu e-mail não está cadastrado na lista de trabalhadores autorizados do Portal.');
+            const rejectedEmail = urlParams.get('email') || 'Desconhecido';
+            mostrarErro(`Acesso Negado: O e-mail "${rejectedEmail}" não está cadastrado na lista de trabalhadores autorizados do Portal.`);
         }
 
         // Checa se já está logado
