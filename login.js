@@ -88,9 +88,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (errorType === 'nao_autorizado') {
             const rejectedEmail = urlParams.get('email') || 'Desconhecido';
             mostrarErro(`Acesso Negado: O e-mail "${rejectedEmail}" não está cadastrado na lista de trabalhadores autorizados do Portal.`);
-            // Garante que a sessão foi destruída localmente
             await supabaseClient.auth.signOut();
-            return; // Sai da função para não tentar redirecionar de volta para o index
+            return;
+        } else if (errorType === 'sem_email') {
+            mostrarErro('Falha no Login: A Microsoft não compartilhou o seu endereço de e-mail com o Portal. Entre nas configurações da sua conta Microsoft e permita o compartilhamento do e-mail.');
+            await supabaseClient.auth.signOut();
+            return;
         }
 
         // Se não tem erro, checa se já está logado para mandar direto pro portal

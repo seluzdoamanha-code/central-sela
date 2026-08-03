@@ -16,11 +16,11 @@ async function checkAuth() {
         return;
     }
 
-    // 2. Se tem sessão, pega o e-mail
+    // 2. Se tem sessão, mas a Microsoft/Google não enviou o e-mail
     const email = session.user.email;
     if (!email) {
         await authDb.auth.signOut();
-        window.location.replace('login.html');
+        window.location.replace('login.html?error=sem_email');
         return;
     }
 
