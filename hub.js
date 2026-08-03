@@ -680,6 +680,8 @@ window.abrirModalProjeto = (tipo) => {
     document.getElementById('formProjeto').reset();
     document.getElementById('inProjetoId').value = '';
     document.getElementById('inProjetoTipo').value = tipo;
+    
+
     document.getElementById('modalProjetoTitle').textContent = `Adicionar ${tipo}`;
     document.getElementById('modalProjeto').style.display = 'flex';
 };
