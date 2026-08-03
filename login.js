@@ -9,6 +9,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnMicrosoft = document.getElementById('btnMicrosoftLogin');
     const errorMsg = document.getElementById('errorMsg');
 
+    // Debug Temporário: Mostra a URL inteira (incluindo #) caso haja erro
+    if (window.location.href.includes('error=')) {
+        alert("DEBUG URL:\n" + window.location.href);
+    }
+
     // Checa se já existe uma sessão ativa ou um erro na URL
     verificarStatusAtual();
 
