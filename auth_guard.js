@@ -12,7 +12,13 @@ async function checkAuth() {
     const { data: { session }, error: sessionError } = await authDb.auth.getSession();
     
     if (sessionError || !session) {
-        window.location.replace('login.html');
+        // Se a URL original tiver um erro do Supabase (no hash ou query), passamos para o login.js
+        if (window.location.href.includes('error=')) {
+            const errorPart = window.location.hash || window.location.search;
+            window.location.replace('login.html' + errorPart.replace('#', '?'));
+        } else {
+            window.location.replace('login.html');
+        }
         return;
     }
 
