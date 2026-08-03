@@ -1052,6 +1052,7 @@ window.carregarPainelGestaoIrradiacao = async function() {
                 <button onclick="mudarAbaIrradiacao('pendentes')" id="btnIrrPendentes" class="btn" style="white-space: nowrap; border-radius: 8px;">📥 Pendentes</button>
                 <button onclick="mudarAbaIrradiacao('ativos')" id="btnIrrAtivos" class="btn" style="white-space: nowrap; border-radius: 8px;">📋 Painel de Leitura</button>
                 <button onclick="mudarAbaIrradiacao('historico')" id="btnIrrHistorico" class="btn" style="white-space: nowrap; border-radius: 8px;">🗄️ Histórico</button>
+                <button onclick="mudarAbaIrradiacao('estatisticas')" id="btnIrrEstatisticas" class="btn" style="white-space: nowrap; border-radius: 8px;">📊 Estatísticas</button>
             </div>
             
             <div id="filtrosDiasIrr" style="display: none; gap: 12px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 8px;">
@@ -1064,6 +1065,10 @@ window.carregarPainelGestaoIrradiacao = async function() {
 
             <div id="listaIrradiacoes" style="display: flex; flex-direction: column; gap: 12px;">
                 <div style="color: var(--text-muted); font-size: 13px;">Carregando...</div>
+            </div>
+            
+            <div id="estatisticasContainer" style="display: none; flex-direction: column; gap: 24px;">
+                <div style="color: var(--text-muted); font-size: 13px;">Carregando estatísticas...</div>
             </div>
         </div>
     `;
@@ -1079,6 +1084,8 @@ window.mudarAbaIrradiacao = function(aba) {
     const btnAtivos = document.getElementById('btnIrrAtivos');
     const btnHistorico = document.getElementById('btnIrrHistorico');
     
+    const btnEstatisticas = document.getElementById('btnIrrEstatisticas');
+    
     btnPendentes.style.background = aba === 'pendentes' ? 'rgba(56, 189, 248, 0.2)' : 'transparent';
     btnPendentes.style.color = aba === 'pendentes' ? '#38bdf8' : 'var(--text-muted)';
     btnPendentes.style.border = aba === 'pendentes' ? '1px solid rgba(56, 189, 248, 0.4)' : '1px solid transparent';
@@ -1091,14 +1098,31 @@ window.mudarAbaIrradiacao = function(aba) {
     btnHistorico.style.color = aba === 'historico' ? 'white' : 'var(--text-muted)';
     btnHistorico.style.border = aba === 'historico' ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid transparent';
     
-    // Filtros de dia só aparecem no "ativos"
+    btnEstatisticas.style.background = aba === 'estatisticas' ? 'rgba(245, 158, 11, 0.2)' : 'transparent';
+    btnEstatisticas.style.color = aba === 'estatisticas' ? '#f59e0b' : 'var(--text-muted)';
+    btnEstatisticas.style.border = aba === 'estatisticas' ? '1px solid rgba(245, 158, 11, 0.4)' : '1px solid transparent';
+    
+    // Filtros de dia aparecem no "ativos" e no "historico"
     const filtrosDias = document.getElementById('filtrosDiasIrr');
-    if (aba === 'ativos') {
-        filtrosDias.style.display = 'flex';
-        window.setDiaIrradiacao(currentIrradiacaoDia); // Força render
-    } else {
+    const listaIrradiacoes = document.getElementById('listaIrradiacoes');
+    const estatisticasContainer = document.getElementById('estatisticasContainer');
+    
+    if (aba === 'estatisticas') {
         filtrosDias.style.display = 'none';
-        carregarListaIrradiacao();
+        listaIrradiacoes.style.display = 'none';
+        estatisticasContainer.style.display = 'flex';
+        carregarEstatisticasIrradiacao();
+    } else {
+        estatisticasContainer.style.display = 'none';
+        listaIrradiacoes.style.display = 'flex';
+        
+        if (aba === 'ativos' || aba === 'historico') {
+            filtrosDias.style.display = 'flex';
+            window.setDiaIrradiacao(currentIrradiacaoDia); // Força render
+        } else {
+            filtrosDias.style.display = 'none';
+            carregarListaIrradiacao();
+        }
     }
 }
 
@@ -1128,7 +1152,7 @@ async function carregarListaIrradiacao() {
         } else if (currentIrradiacaoTab === 'ativos') {
             query = query.eq('status', 'ativo').ilike('dias_semana', `%${currentIrradiacaoDia}%`).order('nome_solicitado', { ascending: true });
         } else if (currentIrradiacaoTab === 'historico') {
-            query = query.eq('status', 'historico').order('nome_solicitado', { ascending: true });
+            query = query.eq('status', 'historico').ilike('dias_semana', `%${currentIrradiacaoDia}%`).order('nome_solicitado', { ascending: true });
         }
         
         const { data, error } = await query;
@@ -1337,27 +1361,38 @@ window.marcarLeituraIrr = async function(id, leituras_atuais, semanas_alvo) {
     try {
         const novaLeitura = leituras_atuais + 1;
         
+        // Buscar log_datas_leituras atual
+        const { data: rowData, error: fetchErr } = await db.from('app_irradiacao_solicitacoes').select('log_datas_leituras').eq('id', id).single();
+        if (fetchErr) throw fetchErr;
+        
+        let logs = rowData.log_datas_leituras || [];
+        if (!Array.isArray(logs)) logs = [];
+        logs.push(new Date().toISOString());
+        
         if (novaLeitura >= semanas_alvo) {
             const renovar = confirm(`Última leitura concluída! (${semanas_alvo}/${semanas_alvo})\\n\\nDeseja renovar o tratamento para mais um ciclo (zerar leituras)?\\n\\nClique em OK para RENOVAR ou CANCELAR para Mover para o Histórico.`);
             if (renovar) {
                 // Renova
                 const { error } = await db.from('app_irradiacao_solicitacoes').update({ 
                     leituras: 0, 
-                    status: 'ativo' 
+                    status: 'ativo',
+                    log_datas_leituras: logs
                 }).eq('id', id);
                 if (error) throw error;
             } else {
                 // Manda pro Histórico
                 const { error } = await db.from('app_irradiacao_solicitacoes').update({ 
                     leituras: novaLeitura, 
-                    status: 'historico' 
+                    status: 'historico',
+                    log_datas_leituras: logs
                 }).eq('id', id);
                 if (error) throw error;
             }
         } else {
             // Apenas adiciona a leitura
             const { error } = await db.from('app_irradiacao_solicitacoes').update({ 
-                leituras: novaLeitura
+                leituras: novaLeitura,
+                log_datas_leituras: logs
             }).eq('id', id);
             if (error) throw error;
         }
@@ -1391,3 +1426,145 @@ window.excluirIrradiacaoDefinitivo = async function(id) {
         await carregarListaIrradiacao();
     } catch (err) { console.error(err); alert("Erro ao excluir."); }
 };
+
+window.irradiacaoChartInstance = null;
+
+window.carregarEstatisticasIrradiacao = async function() {
+    const container = document.getElementById('estatisticasContainer');
+    container.innerHTML = '<div style="color: var(--text-muted); font-size: 13px;">Processando dados, aguarde...</div>';
+    
+    try {
+        const { data, error } = await db.from('app_irradiacao_solicitacoes').select('status, dias_semana, criado_em, log_datas_leituras');
+        if (error) throw error;
+        
+        let totalAtivos = 0;
+        let totalHistorico = 0;
+        const ativosPorDia = {};
+        const historicoPorDia = {};
+        const leiturasPorMes = {};
+        
+        data.forEach(item => {
+            if (item.status === 'ativo') {
+                totalAtivos++;
+                ativosPorDia[item.dias_semana] = (ativosPorDia[item.dias_semana] || 0) + 1;
+            } else if (item.status === 'historico') {
+                totalHistorico++;
+                historicoPorDia[item.dias_semana] = (historicoPorDia[item.dias_semana] || 0) + 1;
+            }
+            
+            // Processar as leituras reais
+            let logs = item.log_datas_leituras;
+            if (typeof logs === 'string') {
+                try { logs = JSON.parse(logs); } catch(e) { logs = []; }
+            }
+            if (Array.isArray(logs)) {
+                logs.forEach(dateStr => {
+                    const date = new Date(dateStr);
+                    if (!isNaN(date)) {
+                        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                        leiturasPorMes[monthKey] = (leiturasPorMes[monthKey] || 0) + 1;
+                    }
+                });
+            }
+        });
+        
+        // Sorting months
+        const sortedMonths = Object.keys(leiturasPorMes).sort();
+        const chartLabels = sortedMonths.map(m => {
+            const [year, month] = m.split('-');
+            const date = new Date(year, month - 1);
+            return date.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+        });
+        const chartData = sortedMonths.map(m => leiturasPorMes[m]);
+
+        // Render HTML
+        const formatTable = (dict) => {
+            if (Object.keys(dict).length === 0) return '<div style="color:var(--text-muted); font-size:13px;">Sem dados</div>';
+            return Object.entries(dict).sort((a,b)=>b[1]-a[1]).map(([dia, count]) => `
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 8px 0;">
+                    <span style="color: #cbd5e1; font-size: 13px;">${dia}</span>
+                    <strong style="color: white; font-size: 14px;">${count}</strong>
+                </div>
+            `).join('');
+        };
+
+        container.innerHTML = `
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px; text-align: center;">
+                    <h4 style="color: var(--text-muted); font-size: 13px; text-transform: uppercase; margin: 0 0 8px 0;">Pessoas Ativas (Lendo)</h4>
+                    <div style="font-size: 32px; font-weight: bold; color: #10b981;">${totalAtivos}</div>
+                </div>
+                <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px; text-align: center;">
+                    <h4 style="color: var(--text-muted); font-size: 13px; text-transform: uppercase; margin: 0 0 8px 0;">Pessoas Concluídas (Histórico)</h4>
+                    <div style="font-size: 32px; font-weight: bold; color: #f59e0b;">${totalHistorico}</div>
+                </div>
+                <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px; text-align: center;">
+                    <h4 style="color: var(--text-muted); font-size: 13px; text-transform: uppercase; margin: 0 0 8px 0;">Total de Leituras Realizadas</h4>
+                    <div style="font-size: 32px; font-weight: bold; color: #3b82f6;">${Object.values(leiturasPorMes).reduce((a,b)=>a+b, 0)}</div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-top: 16px;">
+                <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px;">
+                    <h4 style="color: #10b981; font-size: 14px; margin: 0 0 16px 0;">Ativos por Dia / Necessidade</h4>
+                    ${formatTable(ativosPorDia)}
+                </div>
+                <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px;">
+                    <h4 style="color: #f59e0b; font-size: 14px; margin: 0 0 16px 0;">Histórico por Dia / Necessidade</h4>
+                    ${formatTable(historicoPorDia)}
+                </div>
+            </div>
+
+            <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-top: 16px;">
+                <h4 style="color: white; font-size: 14px; margin: 0 0 16px 0;">Evolução de Leituras por Mês (Esforço da Equipe)</h4>
+                <div style="position: relative; height: 300px; width: 100%;">
+                    <canvas id="chartLeiturasMensais"></canvas>
+                </div>
+            </div>
+        `;
+
+        if (window.irradiacaoChartInstance) {
+            window.irradiacaoChartInstance.destroy();
+        }
+
+        if (window.Chart) {
+            const ctx = document.getElementById('chartLeiturasMensais').getContext('2d');
+            window.irradiacaoChartInstance = new window.Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        label: 'Leituras Realizadas',
+                        data: chartData,
+                        backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#94a3b8' },
+                            grid: { color: 'rgba(255,255,255,0.05)' }
+                        },
+                        x: {
+                            ticks: { color: '#94a3b8' },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+    } catch (e) {
+        console.error(e);
+        container.innerHTML = '<div style="color: #ef4444;">Erro ao carregar estatísticas.</div>';
+    }
+}
