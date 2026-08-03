@@ -81,9 +81,31 @@
             box-shadow: 0 1px 3px rgba(60,64,67,0.3);
         }
 
-        .google-icon {
+        .google-icon, .ms-icon {
             width: 20px;
             height: 20px;
+        }
+        
+        .btn-microsoft {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+            background-color: #2F2F2F;
+            color: #ffffff;
+            border: 1px solid #2F2F2F;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 12px;
+        }
+
+        .btn-microsoft:hover {
+            background-color: #1a1a1a;
         }
         
         #errorMsg {
@@ -117,6 +139,16 @@
                 <path fill="none" d="M0 0h48v48H0z"/>
             </svg>
             Entrar com o Google
+        </button>
+
+        <button id="btnMicrosoftLogin" class="btn-microsoft">
+            <svg class="ms-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 21 21">
+                <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
+                <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
+                <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
+                <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
+            </svg>
+            Entrar com a Microsoft
         </button>
     </div>
 
