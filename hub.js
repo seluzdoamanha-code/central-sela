@@ -934,8 +934,12 @@ window.abrirMiniAppIrradiacao = async function() {
                 <div>
                     <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 6px;">Nome(s) Completo(s) do(s) Necessitado(s) *</label>
                     <input type="text" id="inIrrNome" required class="input-field" placeholder="EX: MARIA DA SILVA --- JOSÉ DA SILVA" style="width: 100%; text-transform: uppercase;">
+                    <label style="display: flex; align-items: center; gap: 8px; margin-top: 12px; cursor: pointer;">
+                        <input type="checkbox" id="chkIrrDesencarnado" onchange="toggleDesencarnadoIrr(this.checked)" style="width: 18px; height: 18px; accent-color: var(--primary);">
+                        <span style="font-size: 14px; font-weight: 500; color: #facc15;">Este nome é de uma pessoa desencarnada (falecida)</span>
+                    </label>
                 </div>
-                <div>
+                <div id="groupIrrEndereco">
                     <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 6px;">Endereço Completo</label>
                     <input type="text" id="inIrrEndereco" class="input-field" placeholder="RUA, NÚMERO, BAIRRO, CIDADE" style="width: 100%; text-transform: uppercase;">
                 </div>
@@ -974,11 +978,37 @@ window.abrirMiniAppIrradiacao = async function() {
     document.getElementById('formIrradiacao').addEventListener('submit', salvarIrradiacao);
 };
 
+window.toggleDesencarnadoIrr = function(isDesencarnado) {
+    const inputEndereco = document.getElementById('inIrrEndereco');
+    const groupEndereco = document.getElementById('groupIrrEndereco');
+    const chkQuartaDesencarnado = document.querySelector('#formIrradiacao input[value="Quarta-feira (Desencarnado)"]');
+    
+    if (isDesencarnado) {
+        inputEndereco.disabled = true;
+        inputEndereco.value = '';
+        inputEndereco.placeholder = 'NÃO É NECESSÁRIO PARA DESENCARNADOS';
+        if(groupEndereco) groupEndereco.style.opacity = '0.5';
+        
+        if (chkQuartaDesencarnado && !chkQuartaDesencarnado.checked) {
+            chkQuartaDesencarnado.checked = true;
+        }
+    } else {
+        inputEndereco.disabled = false;
+        inputEndereco.placeholder = 'RUA, NÚMERO, BAIRRO, CIDADE';
+        if(groupEndereco) groupEndereco.style.opacity = '1';
+        
+        if (chkQuartaDesencarnado && chkQuartaDesencarnado.checked) {
+            chkQuartaDesencarnado.checked = false;
+        }
+    }
+};
+
 window.lastInsertedIrrIds = [];
 
 window.novaSolicitacaoIrr = function() {
     document.getElementById('formIrradiacao').reset();
     document.querySelectorAll('#formIrradiacao .tag-checkbox-ui').forEach(el => el.classList.remove('selected'));
+    toggleDesencarnadoIrr(false);
     document.getElementById('formIrradiacao').style.display = 'flex';
     document.getElementById('panelSuccess').style.display = 'none';
     window.lastInsertedIrrIds = [];
@@ -1119,29 +1149,30 @@ async function carregarListaIrradiacao() {
             
             if (currentIrradiacaoTab === 'pendentes') {
                 actionsHtml = `
-                    <button onclick="aprovarIrradiacao('${item.id}')" class="btn btn-primary" style="padding: 6px 12px;">✅ Aprovar p/ Leitura</button>
+                    <button onclick="aprovarIrradiacao('${item.id}', '${item.nome_solicitado.replace(/'/g, "\\'")}', '${(item.endereco||'').replace(/'/g, "\\'")}', '${item.dias_semana}')" class="btn btn-primary" style="padding: 6px 12px;">✅ Aprovar p/ Leitura</button>
                     <button onclick="excluirIrradiacaoDefinitivo('${item.id}')" class="btn" style="color: #ef4444; border: 1px solid #ef4444; padding: 6px 12px; background: transparent;">Apagar</button>
                 `;
             } else if (currentIrradiacaoTab === 'ativos') {
                 const leituras = item.leituras || 0;
+                const semanas_alvo = item.semanas_alvo || 4; // Fallback se não existir no DB
                 let caixinhas = '';
-                for(let i=1; i<=4; i++) {
+                for(let i=1; i<=semanas_alvo; i++) {
                     if (i <= leituras) {
-                        caixinhas += `<span style="display:inline-block; width:16px; height:16px; background:#10b981; border-radius:50%; margin-right:4px;"></span>`;
+                        caixinhas += `<span style="display:inline-block; width:16px; height:16px; background:#10b981; border-radius:50%; margin-right:4px; margin-bottom:4px;"></span>`;
                     } else {
-                        caixinhas += `<span style="display:inline-block; width:16px; height:16px; border:2px solid #334155; border-radius:50%; margin-right:4px;"></span>`;
+                        caixinhas += `<span style="display:inline-block; width:16px; height:16px; border:2px solid #334155; border-radius:50%; margin-right:4px; margin-bottom:4px;"></span>`;
                     }
                 }
                 
-                progressHtml = `<div style="margin-top: 8px; font-size: 12px; color: var(--text-muted);">Leituras: ${leituras}/4<br><div style="margin-top:4px;">${caixinhas}</div></div>`;
+                progressHtml = `<div style="margin-top: 8px; font-size: 12px; color: var(--text-muted);">Leituras: ${leituras}/${semanas_alvo}<br><div style="margin-top:4px; display:flex; flex-wrap:wrap; max-width: 250px;">${caixinhas}</div></div>`;
                 
                 actionsHtml = `
-                    <button onclick="marcarLeituraIrr('${item.id}', ${leituras})" class="btn" style="background: rgba(16,185,129,0.1); color: #10b981; border: 1px solid #10b981; padding: 6px 12px;">✅ Registrar Leitura</button>
+                    <button onclick="marcarLeituraIrr('${item.id}', ${leituras}, ${semanas_alvo})" class="btn" style="background: rgba(16,185,129,0.1); color: #10b981; border: 1px solid #10b981; padding: 6px 12px;">✅ Registrar Leitura</button>
                     <button onclick="arquivarIrradiacao('${item.id}')" class="btn btn-secondary" style="padding: 6px 12px;">Forçar Arquivamento</button>
                 `;
             } else if (currentIrradiacaoTab === 'historico') {
                 actionsHtml = `
-                    <button onclick="reativarIrradiacao('${item.id}')" class="btn btn-secondary" style="padding: 6px 12px;">♻️ Reativar (+4 Semanas)</button>
+                    <button onclick="aprovarIrradiacao('${item.id}', '${item.nome_solicitado.replace(/'/g, "\\'")}', '${(item.endereco||'').replace(/'/g, "\\'")}', '${item.dias_semana}')" class="btn btn-secondary" style="padding: 6px 12px;">♻️ Reativar (Triagem)</button>
                     <button onclick="excluirIrradiacaoDefinitivo('${item.id}')" class="btn" style="color: #ef4444; border: 1px solid #ef4444; padding: 6px 12px; background: transparent;">Apagar</button>
                 `;
             }
@@ -1176,8 +1207,13 @@ async function salvarIrradiacao(e) {
     btn.disabled = true;
     btn.textContent = 'Enviando...';
     
-    const nome = document.getElementById('inIrrNome').value.toUpperCase();
+    let nome = document.getElementById('inIrrNome').value.toUpperCase();
     const endereco = document.getElementById('inIrrEndereco').value.toUpperCase();
+    const isDesencarnado = document.getElementById('chkIrrDesencarnado') && document.getElementById('chkIrrDesencarnado').checked;
+    
+    if (isDesencarnado) {
+        nome = "[DESENCARNADO] " + nome;
+    }
     
     const checkboxes = document.querySelectorAll('.chk-dia:checked');
     const dias = Array.from(checkboxes).map(c => c.value);
@@ -1224,28 +1260,107 @@ async function salvarIrradiacao(e) {
     }
 }
 
-window.aprovarIrradiacao = async function(id) {
-    try {
-        const { error } = await db.from('app_irradiacao_solicitacoes').update({ status: 'ativo', leituras: 0 }).eq('id', id);
-        if (error) throw error;
-        await carregarListaIrradiacao();
-    } catch (err) { console.error(err); alert('Erro ao aprovar'); }
+window.aprovarIrradiacao = function(id, nome, endereco, dias_semana) {
+    const oldModal = document.getElementById('modalTriagemIrr');
+    if (oldModal) oldModal.remove();
+
+    const diasOpcoes = ['Segunda-feira', 'Terça-feira', 'Quarta-feira (Desobsessão)', 'Quarta-feira (Desencarnado)', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'];
+    
+    let opcoesDiaHtml = diasOpcoes.map(dia => `<option value="${dia}" ${dia === dias_semana ? 'selected' : ''}>${dia}</option>`).join('');
+
+    const modalHtml = `
+        <div id="modalTriagemIrr" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 9999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+            <div style="background: var(--bg-dark); border: 1px solid var(--border); border-radius: 12px; padding: 24px; width: 90%; max-width: 400px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+                <h3 style="color: var(--text-main); font-size: 18px; margin-bottom: 16px;">Triagem de Irradiação</h3>
+                
+                <div style="margin-bottom: 16px;">
+                    <p style="margin:0; font-size: 14px; color: var(--text-muted);">Nome Solicitado:</p>
+                    <p style="margin:0; font-weight: bold; color: white;">${nome}</p>
+                </div>
+
+                <div style="margin-bottom: 16px;">
+                    <label style="display:block; font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Dia da Semana:</label>
+                    <select id="triagemDia" style="width: 100%; padding: 8px 12px; border-radius: 8px; background: var(--bg-panel); border: 1px solid var(--border); color: white;">
+                        ${opcoesDiaHtml}
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <label style="display:block; font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Duração do Tratamento:</label>
+                    <select id="triagemSemanas" style="width: 100%; padding: 8px 12px; border-radius: 8px; background: var(--bg-panel); border: 1px solid var(--border); color: white;">
+                        <option value="4">4 Semanas (Padrão)</option>
+                        <option value="16">16 Semanas (Longo)</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                    <button onclick="document.getElementById('modalTriagemIrr').remove()" class="btn btn-secondary">Cancelar</button>
+                    <button onclick="confirmarTriagem('${id}')" class="btn btn-primary" style="background: #10b981; color: white; border: none;">Aprovar Pedido</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
 }
 
-window.marcarLeituraIrr = async function(id, leituras_atuais) {
+window.confirmarTriagem = async function(id) {
+    const btn = event.target;
+    btn.disabled = true;
+    btn.textContent = 'Salvando...';
+
+    const diaSelecionado = document.getElementById('triagemDia').value;
+    const semanasAlvo = parseInt(document.getElementById('triagemSemanas').value);
+
+    try {
+        const { error } = await db.from('app_irradiacao_solicitacoes').update({ 
+            status: 'ativo', 
+            leituras: 0,
+            dias_semana: diaSelecionado,
+            semanas_alvo: semanasAlvo
+        }).eq('id', id);
+
+        if (error) throw error;
+
+        document.getElementById('modalTriagemIrr').remove();
+        await carregarListaIrradiacao();
+
+    } catch (err) {
+        console.error(err);
+        alert('Erro ao confirmar triagem. Verifique se a coluna semanas_alvo já foi criada no banco de dados. ' + (err.message || ''));
+        btn.disabled = false;
+        btn.textContent = 'Aprovar Pedido';
+    }
+}
+
+window.marcarLeituraIrr = async function(id, leituras_atuais, semanas_alvo) {
     try {
         const novaLeitura = leituras_atuais + 1;
-        let novoStatus = 'ativo';
-        if (novaLeitura >= 4) {
-            novoStatus = 'historico';
-            alert("4ª Leitura concluída! O nome será movido para o histórico.");
-        }
         
-        const { error } = await db.from('app_irradiacao_solicitacoes').update({ 
-            leituras: novaLeitura, 
-            status: novoStatus 
-        }).eq('id', id);
-        if (error) throw error;
+        if (novaLeitura >= semanas_alvo) {
+            const renovar = confirm(`Última leitura concluída! (${semanas_alvo}/${semanas_alvo})\\n\\nDeseja renovar o tratamento para mais um ciclo (zerar leituras)?\\n\\nClique em OK para RENOVAR ou CANCELAR para Mover para o Histórico.`);
+            if (renovar) {
+                // Renova
+                const { error } = await db.from('app_irradiacao_solicitacoes').update({ 
+                    leituras: 0, 
+                    status: 'ativo' 
+                }).eq('id', id);
+                if (error) throw error;
+            } else {
+                // Manda pro Histórico
+                const { error } = await db.from('app_irradiacao_solicitacoes').update({ 
+                    leituras: novaLeitura, 
+                    status: 'historico' 
+                }).eq('id', id);
+                if (error) throw error;
+            }
+        } else {
+            // Apenas adiciona a leitura
+            const { error } = await db.from('app_irradiacao_solicitacoes').update({ 
+                leituras: novaLeitura
+            }).eq('id', id);
+            if (error) throw error;
+        }
         
         await carregarListaIrradiacao();
     } catch (err) { console.error(err); alert('Erro ao marcar leitura'); }
