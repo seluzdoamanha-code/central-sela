@@ -83,12 +83,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (errorType === 'nao_autorizado') {
             const rejectedEmail = urlParams.get('email') || 'Desconhecido';
             mostrarErro(`Acesso Negado: O e-mail "${rejectedEmail}" não está cadastrado na lista de trabalhadores autorizados do Portal.`);
+            // Garante que a sessão foi destruída localmente
+            await supabaseClient.auth.signOut();
+            return; // Sai da função para não tentar redirecionar de volta para o index
         }
 
-        // Checa se já está logado
+        // Se não tem erro, checa se já está logado para mandar direto pro portal
         const { data: { session } } = await supabaseClient.auth.getSession();
         if (session) {
-            // Se já tem sessão, manda pro index
             window.location.href = 'index.html';
         }
     }
