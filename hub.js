@@ -1117,7 +1117,7 @@ window.mudarAbaIrradiacao = function(aba) {
     btnEstatisticas.style.color = aba === 'estatisticas' ? '#f59e0b' : 'var(--text-muted)';
     btnEstatisticas.style.border = aba === 'estatisticas' ? '1px solid rgba(245, 158, 11, 0.4)' : '1px solid transparent';
     
-    // Filtros de dia aparecem no "ativos" e no "historico"
+    // Filtros de dia aparecem no "ativos", "historico" e "pendentes"
     const filtrosDias = document.getElementById('filtrosDiasIrr');
     const listaIrradiacoes = document.getElementById('listaIrradiacoes');
     const estatisticasContainer = document.getElementById('estatisticasContainer');
@@ -1131,13 +1131,8 @@ window.mudarAbaIrradiacao = function(aba) {
         estatisticasContainer.style.display = 'none';
         listaIrradiacoes.style.display = 'flex';
         
-        if (aba === 'ativos' || aba === 'historico') {
-            filtrosDias.style.display = 'flex';
-            window.setDiaIrradiacao(currentIrradiacaoDia); // Força render
-        } else {
-            filtrosDias.style.display = 'none';
-            carregarListaIrradiacao();
-        }
+        filtrosDias.style.display = 'flex';
+        window.setDiaIrradiacao(currentIrradiacaoDia); // Força render
     }
 }
 
@@ -1163,7 +1158,7 @@ async function carregarListaIrradiacao() {
                       .eq('estrutura_id', estruturaId);
                       
         if (currentIrradiacaoTab === 'pendentes') {
-            query = query.eq('status', 'pendente').order('nome_solicitado', { ascending: true });
+            query = query.eq('status', 'pendente').ilike('dias_semana', `%${currentIrradiacaoDia}%`).order('nome_solicitado', { ascending: true });
         } else if (currentIrradiacaoTab === 'ativos') {
             query = query.eq('status', 'ativo').ilike('dias_semana', `%${currentIrradiacaoDia}%`).order('nome_solicitado', { ascending: true });
         } else if (currentIrradiacaoTab === 'historico') {
@@ -1493,19 +1488,6 @@ window.carregarEstatisticasIrradiacao = async function() {
                         leiturasPorMes[monthKey] = (leiturasPorMes[monthKey] || 0) + 1;
                     }
                 });
-            } else {
-                // FALLBACK: Para registros antigos que não possuem log_datas_leituras, simulamos baseado no criado_em / created_at
-                const dateRaw = item.created_at || item.criado_em;
-                const date = new Date(dateRaw);
-                if (!isNaN(date)) {
-                    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-                    
-                    if (item.status === 'historico') {
-                        leiturasPorMes[monthKey] = (leiturasPorMes[monthKey] || 0) + (item.semanas_alvo || 4);
-                    } else if (item.leituras > 0) {
-                        leiturasPorMes[monthKey] = (leiturasPorMes[monthKey] || 0) + item.leituras;
-                    }
-                }
             }
         });
         
