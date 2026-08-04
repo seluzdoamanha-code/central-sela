@@ -944,7 +944,8 @@ window.abrirMiniAppIrradiacao = async function() {
                     <div style="display: flex; gap: 16px; flex-wrap: wrap;">
                         <label class="tag-checkbox-ui" style="text-align: center; line-height: 1.4;"><input type="checkbox" class="chk-dia" value="Segunda-feira"> Segunda-feira<br><small style="font-weight: normal; font-size: 11px; opacity: 0.8;">(Influênciação espiritual)</small></label>
                         <label class="tag-checkbox-ui" style="text-align: center; line-height: 1.4;"><input type="checkbox" class="chk-dia" value="Terça-feira"> Terça-feira<br><small style="font-weight: normal; font-size: 11px; opacity: 0.8;">(Saúde física/espiritual)</small></label>
-                        <label class="tag-checkbox-ui" style="text-align: center; line-height: 1.4;"><input type="checkbox" class="chk-dia" value="Quarta-feira"> Quarta-feira<br><small style="font-weight: normal; font-size: 11px; opacity: 0.8;">(Desobsessão)</small></label>
+                        <label class="tag-checkbox-ui" style="text-align: center; line-height: 1.4;"><input type="checkbox" class="chk-dia" value="Quarta-feira (Desobsessão)"> Quarta-feira<br><small style="font-weight: normal; font-size: 11px; opacity: 0.8;">(Desobsessão)</small></label>
+                        <label class="tag-checkbox-ui" style="text-align: center; line-height: 1.4;"><input type="checkbox" class="chk-dia" value="Quarta-feira (Desencarnado)"> Quarta-feira<br><small style="font-weight: normal; font-size: 11px; opacity: 0.8;">(Desencarnado)</small></label>
                         <label class="tag-checkbox-ui" style="text-align: center; line-height: 1.4;"><input type="checkbox" class="chk-dia" value="Quinta-feira"> Quinta-feira<br><small style="font-weight: normal; font-size: 11px; opacity: 0.8;">(Saúde física/espiritual)</small></label>
                     </div>
                 </div>
@@ -1018,15 +1019,16 @@ window.carregarPainelGestaoIrradiacao = async function() {
         
         <div>
             <div style="display: flex; gap: 16px; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px; overflow-x: auto;">
-                <button onclick="mudarAbaIrradiacao('pendentes')" id="btnIrrPendentes" class="btn btn-secondary" style="white-space: nowrap;">📥 Pendentes</button>
-                <button onclick="mudarAbaIrradiacao('ativos')" id="btnIrrAtivos" class="btn" style="background: rgba(16,185,129,0.1); color: #10b981; border: 1px solid rgba(16,185,129,0.3); white-space: nowrap;">📋 Painel de Leitura</button>
-                <button onclick="mudarAbaIrradiacao('historico')" id="btnIrrHistorico" class="btn" style="background: transparent; color: var(--text-muted); white-space: nowrap;">🗄️ Histórico</button>
+                <button onclick="mudarAbaIrradiacao('pendentes')" id="btnIrrPendentes" class="btn" style="white-space: nowrap; border-radius: 8px;">📥 Pendentes</button>
+                <button onclick="mudarAbaIrradiacao('ativos')" id="btnIrrAtivos" class="btn" style="white-space: nowrap; border-radius: 8px;">📋 Painel de Leitura</button>
+                <button onclick="mudarAbaIrradiacao('historico')" id="btnIrrHistorico" class="btn" style="white-space: nowrap; border-radius: 8px;">🗄️ Histórico</button>
             </div>
             
             <div id="filtrosDiasIrr" style="display: none; gap: 12px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 8px;">
                 <button class="btn btn-secondary btn-dia" onclick="setDiaIrradiacao('Segunda-feira')">Segunda-feira</button>
                 <button class="btn btn-secondary btn-dia" onclick="setDiaIrradiacao('Terça-feira')">Terça-feira</button>
-                <button class="btn btn-secondary btn-dia" onclick="setDiaIrradiacao('Quarta-feira')">Quarta-feira</button>
+                <button class="btn btn-secondary btn-dia" onclick="setDiaIrradiacao('Quarta-feira (Desobsessão)')">Quarta-feira (Desob)</button>
+                <button class="btn btn-secondary btn-dia" onclick="setDiaIrradiacao('Quarta-feira (Desencarnado)')">Quarta-feira (Desenc)</button>
                 <button class="btn btn-secondary btn-dia" onclick="setDiaIrradiacao('Quinta-feira')">Quinta-feira</button>
             </div>
 
@@ -1047,9 +1049,17 @@ window.mudarAbaIrradiacao = function(aba) {
     const btnAtivos = document.getElementById('btnIrrAtivos');
     const btnHistorico = document.getElementById('btnIrrHistorico');
     
-    btnPendentes.style.background = aba === 'pendentes' ? 'var(--border)' : 'transparent';
+    btnPendentes.style.background = aba === 'pendentes' ? 'rgba(56, 189, 248, 0.2)' : 'transparent';
+    btnPendentes.style.color = aba === 'pendentes' ? '#38bdf8' : 'var(--text-muted)';
+    btnPendentes.style.border = aba === 'pendentes' ? '1px solid rgba(56, 189, 248, 0.4)' : '1px solid transparent';
+    
     btnAtivos.style.background = aba === 'ativos' ? 'rgba(16,185,129,0.2)' : 'transparent';
-    btnHistorico.style.background = aba === 'historico' ? 'var(--border)' : 'transparent';
+    btnAtivos.style.color = aba === 'ativos' ? '#10b981' : 'var(--text-muted)';
+    btnAtivos.style.border = aba === 'ativos' ? '1px solid rgba(16,185,129,0.4)' : '1px solid transparent';
+    
+    btnHistorico.style.background = aba === 'historico' ? 'rgba(255, 255, 255, 0.1)' : 'transparent';
+    btnHistorico.style.color = aba === 'historico' ? 'white' : 'var(--text-muted)';
+    btnHistorico.style.border = aba === 'historico' ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid transparent';
     
     // Filtros de dia só aparecem no "ativos"
     const filtrosDias = document.getElementById('filtrosDiasIrr');
@@ -1066,8 +1076,9 @@ window.setDiaIrradiacao = function(dia) {
     currentIrradiacaoDia = dia;
     
     document.querySelectorAll('.btn-dia').forEach(b => {
-        b.style.background = b.textContent === dia ? 'var(--primary)' : 'var(--bg-dark)';
-        b.style.color = b.textContent === dia ? '#fff' : 'var(--text-muted)';
+        const isActive = b.getAttribute('onclick').includes(dia);
+        b.style.background = isActive ? 'var(--primary)' : 'var(--bg-dark)';
+        b.style.color = isActive ? '#fff' : 'var(--text-muted)';
     });
     
     carregarListaIrradiacao();

@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupModal();
     
     // Lógica Unificada de Busca, Filtro e Ordenação
-    const filterSearch = document.getElementById('filterSearch');
+    const filterSearch = document.getElementById('searchInput');
     const filterTag = document.getElementById('filterTag');
     const sortOrder = document.getElementById('sortOrder');
     

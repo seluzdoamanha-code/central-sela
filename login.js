@@ -6,6 +6,7 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 document.addEventListener('DOMContentLoaded', () => {
     const btnGoogle = document.getElementById('btnGoogleLogin');
+    const btnMicrosoft = document.getElementById('btnMicrosoftLogin');
     const errorMsg = document.getElementById('errorMsg');
 
     // Checa se já existe uma sessão ativa ou um erro na URL
@@ -41,6 +42,38 @@ document.addEventListener('DOMContentLoaded', () => {
             btnGoogle.innerHTML = `Entrar com o Google`;
         }
     });
+
+    if (btnMicrosoft) {
+        btnMicrosoft.addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                console.log('Iniciando login com Microsoft...');
+                btnMicrosoft.disabled = true;
+                btnMicrosoft.innerHTML = 'Conectando...';
+                
+                let indexUrl = window.location.href.split('?')[0];
+                indexUrl = indexUrl.replace('login.html', 'index.html');
+                
+                const { data, error } = await supabaseClient.auth.signInWithOAuth({
+                    provider: 'azure',
+                    options: {
+                        redirectTo: indexUrl
+                    }
+                });
+
+                if (error) {
+                    console.error("Erro do Supabase:", error);
+                    throw error;
+                }
+            } catch (error) {
+                console.error('Erro no login:', error);
+                alert('Erro ao tentar conectar: ' + error.message);
+                mostrarErro('Falha ao conectar com a Microsoft. Tente novamente.');
+                btnMicrosoft.disabled = false;
+                btnMicrosoft.innerHTML = `Entrar com a Microsoft`;
+            }
+        });
+    }
 
     async function verificarStatusAtual() {
         // Pega possíveis mensagens de erro da URL (ex: ?error=nao_autorizado)

@@ -87,24 +87,25 @@
         renderUserProfile();
     });
 
-    function renderUserProfile() {
+    async function renderUserProfile() {
         const container = document.getElementById('userProfileArea');
-        if (!container) return;
+        if (!container || !sidebarDb) return;
         
-        const userData = localStorage.getItem('sela_user_profile');
-        if (!userData) return;
+        const { data: { session } } = await sidebarDb.auth.getSession();
+        if (!session || !session.user) return;
         
-        const user = JSON.parse(userData);
+        const userName = session.user.user_metadata?.full_name || session.user.email;
+        const userFoto = session.user.user_metadata?.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(userName) + '&background=random';
+        
         container.innerHTML = `
-            <img src="${user.foto}" alt="Foto" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
-            <span style="font-weight: 500; color: var(--text-main); font-size: 13px;">${user.nome}</span>
+            <img src="${userFoto}" alt="Foto" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+            <span style="font-weight: 500; color: var(--text-main); font-size: 13px;">${userName}</span>
             <button id="btnLogout" style="margin-top: 4px; background: transparent; border: 1px solid rgba(239, 68, 68, 0.4); color: #ef4444; padding: 4px 12px; border-radius: 6px; cursor: pointer; transition: 0.2s;">Sair</button>
         `;
 
         document.getElementById('btnLogout').addEventListener('click', async () => {
             if(sidebarDb) {
                 await sidebarDb.auth.signOut();
-                localStorage.removeItem('sela_user_profile');
                 window.location.href = 'login.html';
             }
         });
