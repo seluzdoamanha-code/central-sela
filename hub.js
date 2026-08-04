@@ -1058,6 +1058,7 @@ window.carregarPainelGestaoIrradiacao = async function() {
             </div>
             
             <div id="filtrosDiasIrr" style="display: none; gap: 12px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 8px;">
+                <button class="btn btn-secondary btn-dia" onclick="setDiaIrradiacao('')">Todos os dias</button>
                 <button class="btn btn-secondary btn-dia" onclick="setDiaIrradiacao('Segunda-feira')">Segunda-feira</button>
                 <button class="btn btn-secondary btn-dia" onclick="setDiaIrradiacao('Terça-feira')">Terça-feira</button>
                 <button class="btn btn-secondary btn-dia" onclick="setDiaIrradiacao('Quarta-feira (Desobsessão)')">Quarta-feira (Desob)</button>
@@ -1140,7 +1141,7 @@ window.setDiaIrradiacao = function(dia) {
     currentIrradiacaoDia = dia;
     
     document.querySelectorAll('.btn-dia').forEach(b => {
-        const isActive = b.getAttribute('onclick').includes(dia);
+        const isActive = b.getAttribute('onclick') === `setDiaIrradiacao('${dia}')`;
         b.style.background = isActive ? 'var(--primary)' : 'var(--bg-dark)';
         b.style.color = isActive ? '#fff' : 'var(--text-muted)';
     });
