@@ -1201,23 +1201,66 @@ async function carregarListaIrradiacao() {
                       .eq('estrutura_id', estruturaId);
                       
         if (currentIrradiacaoTab === 'pendentes') {
-            query = query.eq('status', 'pendente').ilike('dias_semana', `%${currentIrradiacaoDia}%`).order('nome_solicitado', { ascending: true });
+            query = query.eq('status', 'pendente').order('nome_solicitado', { ascending: true });
         } else if (currentIrradiacaoTab === 'ativos') {
-            query = query.eq('status', 'ativo').ilike('dias_semana', `%${currentIrradiacaoDia}%`).order('nome_solicitado', { ascending: true });
+            query = query.eq('status', 'ativo').order('nome_solicitado', { ascending: true });
         } else if (currentIrradiacaoTab === 'historico') {
-            query = query.eq('status', 'historico').ilike('dias_semana', `%${currentIrradiacaoDia}%`).order('nome_solicitado', { ascending: true });
+            query = query.eq('status', 'historico').order('nome_solicitado', { ascending: true });
         }
         
         const { data, error } = await query;
         if (error) throw error;
         
-        if (!data || data.length === 0) {
+        // --- Cálculo e atualização dos botões de filtro ---
+        let counts = {
+            'Todos os dias': data ? data.length : 0,
+            'Segunda-feira': 0,
+            'Terça-feira': 0,
+            'Quarta-feira (Desobsessão)': 0,
+            'Quarta-feira (Desencarnado)': 0,
+            'Quinta-feira': 0
+        };
+        
+        if (data) {
+            data.forEach(item => {
+                const d = item.dias_semana || '';
+                if (d.includes('Segunda-feira')) counts['Segunda-feira']++;
+                if (d.includes('Terça-feira')) counts['Terça-feira']++;
+                if (d.includes('Quarta-feira (Desobsessão)')) counts['Quarta-feira (Desobsessão)']++;
+                if (d.includes('Quarta-feira (Desencarnado)')) counts['Quarta-feira (Desencarnado)']++;
+                if (d.includes('Quinta-feira')) counts['Quinta-feira']++;
+            });
+        }
+        
+        document.querySelectorAll('.btn-dia').forEach(b => {
+            const btnDia = b.getAttribute('data-dia') || '';
+            if (btnDia === 'Todos') {
+                b.innerHTML = `Todos os dias <span style="opacity:0.6; font-size:0.9em; margin-left:4px;">(${counts['Todos os dias']})</span>`;
+            } else if (btnDia === 'Segunda-feira') {
+                b.innerHTML = `Segunda-feira <span style="opacity:0.6; font-size:0.9em; margin-left:4px;">(${counts['Segunda-feira']})</span>`;
+            } else if (btnDia === 'Terça-feira') {
+                b.innerHTML = `Terça-feira <span style="opacity:0.6; font-size:0.9em; margin-left:4px;">(${counts['Terça-feira']})</span>`;
+            } else if (btnDia === 'Quarta-feira (Desobsessão)') {
+                b.innerHTML = `Quarta-feira (Desob) <span style="opacity:0.6; font-size:0.9em; margin-left:4px;">(${counts['Quarta-feira (Desobsessão)']})</span>`;
+            } else if (btnDia === 'Quarta-feira (Desencarnado)') {
+                b.innerHTML = `Quarta-feira (Desenc) <span style="opacity:0.6; font-size:0.9em; margin-left:4px;">(${counts['Quarta-feira (Desencarnado)']})</span>`;
+            } else if (btnDia === 'Quinta-feira') {
+                b.innerHTML = `Quinta-feira <span style="opacity:0.6; font-size:0.9em; margin-left:4px;">(${counts['Quinta-feira']})</span>`;
+            }
+        });
+        
+        // Filtra os dados no lado do cliente
+        const filteredData = currentIrradiacaoDia === '' 
+            ? data 
+            : (data || []).filter(item => (item.dias_semana || '').includes(currentIrradiacaoDia));
+        
+        if (!filteredData || filteredData.length === 0) {
             lista.innerHTML = '<div style="color: var(--text-muted); font-size: 14px; text-align: center; padding: 24px; background: rgba(255,255,255,0.02); border-radius: 8px;">Nenhum registro encontrado nesta visão.</div>';
             return;
         }
         
         let html = '';
-        data.forEach(item => {
+        filteredData.forEach(item => {
             const dataPed = new Date(item.criado_em).toLocaleDateString('pt-BR');
             
             // Botões de Ação
