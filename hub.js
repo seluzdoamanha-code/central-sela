@@ -1462,7 +1462,7 @@ window.carregarEstatisticasIrradiacao = async function() {
     container.innerHTML = '<div style="color: var(--text-muted); font-size: 13px;">Processando dados, aguarde...</div>';
     
     try {
-        const { data, error } = await db.from('app_irradiacao_solicitacoes').select('status, dias_semana, criado_em, log_datas_leituras, leituras, semanas_alvo');
+        const { data, error } = await db.from('app_irradiacao_solicitacoes').select('*');
         if (error) throw error;
         
         let totalAtivos = 0;
@@ -1494,13 +1494,14 @@ window.carregarEstatisticasIrradiacao = async function() {
                     }
                 });
             } else {
-                // FALLBACK: Para registros antigos que não possuem log_datas_leituras, simulamos baseado no criado_em
-                const date = new Date(item.criado_em);
+                // FALLBACK: Para registros antigos que não possuem log_datas_leituras, simulamos baseado no criado_em / created_at
+                const dateRaw = item.created_at || item.criado_em;
+                const date = new Date(dateRaw);
                 if (!isNaN(date)) {
                     const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
                     
-                    if (item.status === 'historico' && item.semanas_alvo) {
-                        leiturasPorMes[monthKey] = (leiturasPorMes[monthKey] || 0) + item.semanas_alvo;
+                    if (item.status === 'historico') {
+                        leiturasPorMes[monthKey] = (leiturasPorMes[monthKey] || 0) + (item.semanas_alvo || 4);
                     } else if (item.leituras > 0) {
                         leiturasPorMes[monthKey] = (leiturasPorMes[monthKey] || 0) + item.leituras;
                     }
