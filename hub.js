@@ -1058,6 +1058,7 @@ window.carregarPainelGestaoIrradiacao = async function() {
             </div>
             
             <div id="filtrosDiasIrr" style="display: none; gap: 12px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 8px;">
+                <button class="btn btn-secondary btn-dia" onclick="setDiaIrradiacao('')">Todos os dias</button>
                 <button class="btn btn-secondary btn-dia" onclick="setDiaIrradiacao('Segunda-feira')">Segunda-feira</button>
                 <button class="btn btn-secondary btn-dia" onclick="setDiaIrradiacao('Terça-feira')">Terça-feira</button>
                 <button class="btn btn-secondary btn-dia" onclick="setDiaIrradiacao('Quarta-feira (Desobsessão)')">Quarta-feira (Desob)</button>
@@ -1083,6 +1084,48 @@ window.carregarPainelGestaoIrradiacao = async function() {
                         <button id="btnModalHistorico" class="btn btn-secondary" style="padding: 10px;">🗄️ Mover para o Histórico</button>
                         <button onclick="document.getElementById('modalFimLeitura').style.display='none'" class="btn" style="padding: 10px; background: transparent; border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted);">Cancelar</button>
                     </div>
+                </div>
+            </div>
+
+            <!-- Modal de Edição de Irradiação -->
+            <div id="modalEdicaoIrradiacao" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+                <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; padding: 24px; max-width: 400px; width: 90%;">
+                    <h3 style="color: var(--primary); margin-top: 0; font-size: 18px;">✏️ Editar Solicitação</h3>
+                    
+                    <form id="formEdicaoIrradiacao" onsubmit="salvarEdicaoIrradiacao(event)">
+                        <input type="hidden" id="editIrrId">
+                        
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label style="color: var(--text-muted); font-size: 13px;">Nome Solicitado (Nomes agrupados)</label>
+                            <input type="text" id="editIrrNome" required class="input" style="width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: white; padding: 8px; border-radius: 4px;">
+                        </div>
+                        
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label style="color: var(--text-muted); font-size: 13px;">Endereço</label>
+                            <textarea id="editIrrEndereco" class="input" rows="2" style="width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: white; padding: 8px; border-radius: 4px;"></textarea>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label style="color: var(--text-muted); font-size: 13px;">Dia / Necessidade</label>
+                            <select id="editIrrDia" required class="input" style="width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: white; padding: 8px; border-radius: 4px;">
+                                <option value="Segunda-feira">Segunda-feira</option>
+                                <option value="Terça-feira">Terça-feira</option>
+                                <option value="Quarta-feira (Desobsessão)">Quarta-feira (Desob)</option>
+                                <option value="Quarta-feira (Desencarnado)">Quarta-feira (Desenc)</option>
+                                <option value="Quinta-feira">Quinta-feira</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 24px;">
+                            <label style="color: var(--text-muted); font-size: 13px;">Semanas Alvo (Meta)</label>
+                            <input type="number" id="editIrrSemanas" required min="1" max="52" class="input" style="width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: white; padding: 8px; border-radius: 4px;">
+                        </div>
+
+                        <div style="display: flex; gap: 12px;">
+                            <button type="submit" class="btn btn-primary" style="flex: 1; padding: 10px;">💾 Salvar</button>
+                            <button type="button" onclick="document.getElementById('modalEdicaoIrradiacao').style.display='none'" class="btn" style="flex: 1; padding: 10px; background: transparent; border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted);">Cancelar</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -1140,7 +1183,7 @@ window.setDiaIrradiacao = function(dia) {
     currentIrradiacaoDia = dia;
     
     document.querySelectorAll('.btn-dia').forEach(b => {
-        const isActive = b.getAttribute('onclick').includes(dia);
+        const isActive = b.getAttribute('onclick') === `setDiaIrradiacao('${dia}')`;
         b.style.background = isActive ? 'var(--primary)' : 'var(--bg-dark)';
         b.style.color = isActive ? '#fff' : 'var(--text-muted)';
     });
@@ -1180,10 +1223,15 @@ async function carregarListaIrradiacao() {
             // Botões de Ação
             let actionsHtml = '';
             let progressHtml = '';
-            
+            const safeNome = item.nome_solicitado.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            const safeEndereco = (item.endereco||'').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            const safeDias = (item.dias_semana||'').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            const semanasAlvoStr = item.semanas_alvo || 4;
+
             if (currentIrradiacaoTab === 'pendentes') {
                 actionsHtml = `
-                    <button onclick="aprovarIrradiacao('${item.id}', '${item.nome_solicitado.replace(/'/g, "\\'")}', '${(item.endereco||'').replace(/'/g, "\\'")}', '${item.dias_semana}')" class="btn btn-primary" style="padding: 6px 12px;">✅ Aprovar p/ Leitura</button>
+                    <button onclick="aprovarIrradiacao('${item.id}', '${safeNome}', '${safeEndereco}', '${safeDias}')" class="btn btn-primary" style="padding: 6px 12px;">✅ Aprovar p/ Leitura</button>
+                    <button onclick="abrirModalEdicaoIrradiacao('${item.id}', '${safeNome}', '${safeEndereco}', '${safeDias}', ${semanasAlvoStr})" class="btn btn-secondary" style="padding: 6px 12px;">✏️ Editar</button>
                     <button onclick="excluirIrradiacaoDefinitivo('${item.id}')" class="btn" style="color: #ef4444; border: 1px solid #ef4444; padding: 6px 12px; background: transparent;">Apagar</button>
                 `;
             } else if (currentIrradiacaoTab === 'ativos') {
@@ -1202,11 +1250,13 @@ async function carregarListaIrradiacao() {
                 
                 actionsHtml = `
                     <button onclick="marcarLeituraIrr('${item.id}', ${leituras}, ${semanas_alvo})" class="btn" style="background: rgba(16,185,129,0.1); color: #10b981; border: 1px solid #10b981; padding: 6px 12px;">✅ Registrar Leitura</button>
+                    <button onclick="abrirModalEdicaoIrradiacao('${item.id}', '${safeNome}', '${safeEndereco}', '${safeDias}', ${semanasAlvoStr})" class="btn btn-secondary" style="padding: 6px 12px;">✏️ Editar</button>
                     <button onclick="arquivarIrradiacao('${item.id}')" class="btn btn-secondary" style="padding: 6px 12px;">Forçar Arquivamento</button>
                 `;
             } else if (currentIrradiacaoTab === 'historico') {
                 actionsHtml = `
-                    <button onclick="aprovarIrradiacao('${item.id}', '${item.nome_solicitado.replace(/'/g, "\\'")}', '${(item.endereco||'').replace(/'/g, "\\'")}', '${item.dias_semana}')" class="btn btn-secondary" style="padding: 6px 12px;">♻️ Reativar (Triagem)</button>
+                    <button onclick="aprovarIrradiacao('${item.id}', '${safeNome}', '${safeEndereco}', '${safeDias}')" class="btn btn-secondary" style="padding: 6px 12px;">♻️ Reativar (Triagem)</button>
+                    <button onclick="abrirModalEdicaoIrradiacao('${item.id}', '${safeNome}', '${safeEndereco}', '${safeDias}', ${semanasAlvoStr})" class="btn btn-secondary" style="padding: 6px 12px;">✏️ Editar</button>
                     <button onclick="excluirIrradiacaoDefinitivo('${item.id}')" class="btn" style="color: #ef4444; border: 1px solid #ef4444; padding: 6px 12px; background: transparent;">Apagar</button>
                 `;
             }
@@ -1598,3 +1648,42 @@ window.carregarEstatisticasIrradiacao = async function() {
         container.innerHTML = '<div style="color: #ef4444;">Erro ao carregar estatísticas.</div>';
     }
 }
+
+window.abrirModalEdicaoIrradiacao = function(id, nome, endereco, dia, semanas) {
+    document.getElementById('editIrrId').value = id;
+    document.getElementById('editIrrNome').value = nome;
+    document.getElementById('editIrrEndereco').value = endereco;
+    document.getElementById('editIrrDia').value = dia;
+    document.getElementById('editIrrSemanas').value = semanas;
+    
+    document.getElementById('modalEdicaoIrradiacao').style.display = 'flex';
+};
+
+window.salvarEdicaoIrradiacao = async function(event) {
+    event.preventDefault();
+    
+    const id = document.getElementById('editIrrId').value;
+    const nome = document.getElementById('editIrrNome').value.toUpperCase();
+    const endereco = document.getElementById('editIrrEndereco').value.toUpperCase();
+    const dia = document.getElementById('editIrrDia').value;
+    const semanas = parseInt(document.getElementById('editIrrSemanas').value, 10);
+    
+    try {
+        const { error } = await db.from('app_irradiacao_solicitacoes').update({
+            nome_solicitado: nome,
+            endereco: endereco,
+            dias_semana: dia,
+            semanas_alvo: semanas
+        }).eq('id', id);
+        
+        if (error) throw error;
+        
+        document.getElementById('modalEdicaoIrradiacao').style.display = 'none';
+        await carregarListaIrradiacao();
+        
+    } catch (err) {
+        console.error(err);
+        alert('Erro ao salvar as edições. Verifique a conexão.');
+    }
+};
+
