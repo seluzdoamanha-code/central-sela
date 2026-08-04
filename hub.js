@@ -1072,6 +1072,19 @@ window.carregarPainelGestaoIrradiacao = async function() {
             <div id="estatisticasContainer" style="display: none; flex-direction: column; gap: 24px;">
                 <div style="color: var(--text-muted); font-size: 13px;">Carregando estatísticas...</div>
             </div>
+
+            <!-- Modal Fim de Leitura -->
+            <div id="modalFimLeitura" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+                <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; padding: 24px; max-width: 400px; width: 90%;">
+                    <h3 style="color: var(--primary); margin-top: 0; font-size: 18px;">✅ Ciclo Concluído!</h3>
+                    <p style="color: var(--text-main); font-size: 14px; margin-bottom: 24px; line-height: 1.5;" id="msgFimLeitura"></p>
+                    <div style="display: flex; gap: 12px; flex-direction: column;">
+                        <button id="btnModalRenovar" class="btn btn-primary" style="padding: 10px;">♻️ Renovar Tratamento (Zerar)</button>
+                        <button id="btnModalHistorico" class="btn btn-secondary" style="padding: 10px;">🗄️ Mover para o Histórico</button>
+                        <button onclick="document.getElementById('modalFimLeitura').style.display='none'" class="btn" style="padding: 10px; background: transparent; border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted);">Cancelar</button>
+                    </div>
+                </div>
+            </div>
         </div>
     `;
     
@@ -1372,24 +1385,36 @@ window.marcarLeituraIrr = async function(id, leituras_atuais, semanas_alvo) {
         logs.push(new Date().toISOString());
         
         if (novaLeitura >= semanas_alvo) {
-            const renovar = confirm(`Última leitura concluída! (${semanas_alvo}/${semanas_alvo})\\n\\nDeseja renovar o tratamento para mais um ciclo (zerar leituras)?\\n\\nClique em OK para RENOVAR ou CANCELAR para Mover para o Histórico.`);
-            if (renovar) {
-                // Renova
-                const { error } = await db.from('app_irradiacao_solicitacoes').update({ 
-                    leituras: 0, 
-                    status: 'ativo',
-                    log_datas_leituras: logs
-                }).eq('id', id);
-                if (error) throw error;
-            } else {
-                // Manda pro Histórico
-                const { error } = await db.from('app_irradiacao_solicitacoes').update({ 
-                    leituras: novaLeitura, 
-                    status: 'historico',
-                    log_datas_leituras: logs
-                }).eq('id', id);
-                if (error) throw error;
-            }
+            const modal = document.getElementById('modalFimLeitura');
+            const msg = document.getElementById('msgFimLeitura');
+            msg.innerHTML = `O ciclo de <strong>${semanas_alvo} semanas</strong> desta irradiação chegou ao fim.<br><br>O que você deseja fazer com este nome agora?`;
+            modal.style.display = 'flex';
+            
+            document.getElementById('btnModalRenovar').onclick = async function() {
+                modal.style.display = 'none';
+                try {
+                    const { error } = await db.from('app_irradiacao_solicitacoes').update({ 
+                        leituras: 0, 
+                        status: 'ativo',
+                        log_datas_leituras: logs
+                    }).eq('id', id);
+                    if (error) throw error;
+                    await carregarListaIrradiacao();
+                } catch(e) { console.error(e); alert('Erro ao renovar'); }
+            };
+            
+            document.getElementById('btnModalHistorico').onclick = async function() {
+                modal.style.display = 'none';
+                try {
+                    const { error } = await db.from('app_irradiacao_solicitacoes').update({ 
+                        leituras: novaLeitura, 
+                        status: 'historico',
+                        log_datas_leituras: logs
+                    }).eq('id', id);
+                    if (error) throw error;
+                    await carregarListaIrradiacao();
+                } catch(e) { console.error(e); alert('Erro ao arquivar'); }
+            };
         } else {
             // Apenas adiciona a leitura
             const { error } = await db.from('app_irradiacao_solicitacoes').update({ 
@@ -1397,9 +1422,10 @@ window.marcarLeituraIrr = async function(id, leituras_atuais, semanas_alvo) {
                 log_datas_leituras: logs
             }).eq('id', id);
             if (error) throw error;
+            
+            await carregarListaIrradiacao();
         }
         
-        await carregarListaIrradiacao();
     } catch (err) { console.error(err); alert('Erro ao marcar leitura'); }
 }
 
@@ -1436,7 +1462,7 @@ window.carregarEstatisticasIrradiacao = async function() {
     container.innerHTML = '<div style="color: var(--text-muted); font-size: 13px;">Processando dados, aguarde...</div>';
     
     try {
-        const { data, error } = await db.from('app_irradiacao_solicitacoes').select('status, dias_semana, criado_em, log_datas_leituras');
+        const { data, error } = await db.from('app_irradiacao_solicitacoes').select('status, dias_semana, criado_em, log_datas_leituras, leituras, semanas_alvo');
         if (error) throw error;
         
         let totalAtivos = 0;
@@ -1459,7 +1485,7 @@ window.carregarEstatisticasIrradiacao = async function() {
             if (typeof logs === 'string') {
                 try { logs = JSON.parse(logs); } catch(e) { logs = []; }
             }
-            if (Array.isArray(logs)) {
+            if (Array.isArray(logs) && logs.length > 0) {
                 logs.forEach(dateStr => {
                     const date = new Date(dateStr);
                     if (!isNaN(date)) {
@@ -1467,6 +1493,18 @@ window.carregarEstatisticasIrradiacao = async function() {
                         leiturasPorMes[monthKey] = (leiturasPorMes[monthKey] || 0) + 1;
                     }
                 });
+            } else {
+                // FALLBACK: Para registros antigos que não possuem log_datas_leituras, simulamos baseado no criado_em
+                const date = new Date(item.criado_em);
+                if (!isNaN(date)) {
+                    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                    
+                    if (item.status === 'historico' && item.semanas_alvo) {
+                        leiturasPorMes[monthKey] = (leiturasPorMes[monthKey] || 0) + item.semanas_alvo;
+                    } else if (item.leituras > 0) {
+                        leiturasPorMes[monthKey] = (leiturasPorMes[monthKey] || 0) + item.leituras;
+                    }
+                }
             }
         });
         
