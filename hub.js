@@ -1568,8 +1568,12 @@ window.carregarEstatisticasIrradiacao = async function() {
             window.irradiacaoChartInstance.destroy();
         }
 
-        if (window.Chart) {
-            const ctx = document.getElementById('chartLeiturasMensais').getContext('2d');
+        const chartContainer = document.getElementById('chartLeiturasMensais');
+        
+        if (chartLabels.length === 0) {
+            chartContainer.outerHTML = "<p style='color:var(--text-muted); text-align:center; padding: 24px;'>Nenhum dado encontrado para gerar gráfico.</p>";
+        } else if (window.Chart) {
+            const ctx = chartContainer.getContext('2d');
             window.irradiacaoChartInstance = new window.Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -1602,6 +1606,9 @@ window.carregarEstatisticasIrradiacao = async function() {
                     }
                 }
             });
+        } else {
+            console.error("Chart.js is undefined.");
+            chartContainer.outerHTML = "<p style='color:#ef4444; text-align:center; padding: 24px;'>Erro: Biblioteca Chart.js não foi carregada no navegador.</p>";
         }
 
     } catch (e) {
