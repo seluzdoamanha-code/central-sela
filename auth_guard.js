@@ -12,15 +12,21 @@ async function checkAuth() {
     const { data: { session }, error: sessionError } = await authDb.auth.getSession();
     
     if (sessionError || !session) {
-        window.location.replace('login.html');
+        // Se a URL original tiver um erro do Supabase (no hash ou query), passamos para o login.js
+        if (window.location.href.includes('error=')) {
+            const errorPart = window.location.hash || window.location.search;
+            window.location.replace('login.html' + errorPart.replace('#', '?'));
+        } else {
+            window.location.replace('login.html');
+        }
         return;
     }
 
-    // 2. Se tem sessão, pega o e-mail
+    // 2. Se tem sessão, mas a Microsoft/Google não enviou o e-mail
     const email = session.user.email;
     if (!email) {
         await authDb.auth.signOut();
-        window.location.replace('login.html');
+        window.location.replace('login.html?error=sem_email');
         return;
     }
 
@@ -32,9 +38,9 @@ async function checkAuth() {
         .single();
 
     if (dbError || !whitelist) {
-        // Usuário tem conta Google, mas não tem permissão na SELA
+        // Usuário tem conta Google/MS, mas não tem permissão na SELA
         await authDb.auth.signOut();
-        window.location.replace('login.html?error=nao_autorizado');
+        window.location.replace('login.html?error=nao_autorizado&email=' + encodeURIComponent(email || 'desconhecido'));
         return;
     }
 

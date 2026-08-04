@@ -680,6 +680,8 @@ window.abrirModalProjeto = (tipo) => {
     document.getElementById('formProjeto').reset();
     document.getElementById('inProjetoId').value = '';
     document.getElementById('inProjetoTipo').value = tipo;
+    
+
     document.getElementById('modalProjetoTitle').textContent = `Adicionar ${tipo}`;
     document.getElementById('modalProjeto').style.display = 'flex';
 };
@@ -934,8 +936,12 @@ window.abrirMiniAppIrradiacao = async function() {
                 <div>
                     <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 6px;">Nome(s) Completo(s) do(s) Necessitado(s) *</label>
                     <input type="text" id="inIrrNome" required class="input-field" placeholder="EX: MARIA DA SILVA --- JOSÉ DA SILVA" style="width: 100%; text-transform: uppercase;">
+                    <label style="display: flex; align-items: center; gap: 8px; margin-top: 12px; cursor: pointer;">
+                        <input type="checkbox" id="chkIrrDesencarnado" onchange="toggleDesencarnadoIrr(this.checked)" style="width: 18px; height: 18px; accent-color: var(--primary);">
+                        <span style="font-size: 14px; font-weight: 500; color: #facc15;">Este nome é de uma pessoa desencarnada (falecida)</span>
+                    </label>
                 </div>
-                <div>
+                <div id="groupIrrEndereco">
                     <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 6px;">Endereço Completo</label>
                     <input type="text" id="inIrrEndereco" class="input-field" placeholder="RUA, NÚMERO, BAIRRO, CIDADE" style="width: 100%; text-transform: uppercase;">
                 </div>
@@ -974,11 +980,37 @@ window.abrirMiniAppIrradiacao = async function() {
     document.getElementById('formIrradiacao').addEventListener('submit', salvarIrradiacao);
 };
 
+window.toggleDesencarnadoIrr = function(isDesencarnado) {
+    const inputEndereco = document.getElementById('inIrrEndereco');
+    const groupEndereco = document.getElementById('groupIrrEndereco');
+    const chkQuartaDesencarnado = document.querySelector('#formIrradiacao input[value="Quarta-feira (Desencarnado)"]');
+    
+    if (isDesencarnado) {
+        inputEndereco.disabled = true;
+        inputEndereco.value = '';
+        inputEndereco.placeholder = 'NÃO É NECESSÁRIO PARA DESENCARNADOS';
+        if(groupEndereco) groupEndereco.style.opacity = '0.5';
+        
+        if (chkQuartaDesencarnado && !chkQuartaDesencarnado.checked) {
+            chkQuartaDesencarnado.checked = true;
+        }
+    } else {
+        inputEndereco.disabled = false;
+        inputEndereco.placeholder = 'RUA, NÚMERO, BAIRRO, CIDADE';
+        if(groupEndereco) groupEndereco.style.opacity = '1';
+        
+        if (chkQuartaDesencarnado && chkQuartaDesencarnado.checked) {
+            chkQuartaDesencarnado.checked = false;
+        }
+    }
+};
+
 window.lastInsertedIrrIds = [];
 
 window.novaSolicitacaoIrr = function() {
     document.getElementById('formIrradiacao').reset();
     document.querySelectorAll('#formIrradiacao .tag-checkbox-ui').forEach(el => el.classList.remove('selected'));
+    toggleDesencarnadoIrr(false);
     document.getElementById('formIrradiacao').style.display = 'flex';
     document.getElementById('panelSuccess').style.display = 'none';
     window.lastInsertedIrrIds = [];
@@ -1022,6 +1054,7 @@ window.carregarPainelGestaoIrradiacao = async function() {
                 <button onclick="mudarAbaIrradiacao('pendentes')" id="btnIrrPendentes" class="btn" style="white-space: nowrap; border-radius: 8px;">📥 Pendentes</button>
                 <button onclick="mudarAbaIrradiacao('ativos')" id="btnIrrAtivos" class="btn" style="white-space: nowrap; border-radius: 8px;">📋 Painel de Leitura</button>
                 <button onclick="mudarAbaIrradiacao('historico')" id="btnIrrHistorico" class="btn" style="white-space: nowrap; border-radius: 8px;">🗄️ Histórico</button>
+                <button onclick="mudarAbaIrradiacao('estatisticas')" id="btnIrrEstatisticas" class="btn" style="white-space: nowrap; border-radius: 8px;">📊 Estatísticas</button>
             </div>
             
             <div id="filtrosDiasIrr" style="display: none; gap: 12px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 8px;">
@@ -1034,6 +1067,23 @@ window.carregarPainelGestaoIrradiacao = async function() {
 
             <div id="listaIrradiacoes" style="display: flex; flex-direction: column; gap: 12px;">
                 <div style="color: var(--text-muted); font-size: 13px;">Carregando...</div>
+            </div>
+            
+            <div id="estatisticasContainer" style="display: none; flex-direction: column; gap: 24px;">
+                <div style="color: var(--text-muted); font-size: 13px;">Carregando estatísticas...</div>
+            </div>
+
+            <!-- Modal Fim de Leitura -->
+            <div id="modalFimLeitura" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+                <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; padding: 24px; max-width: 400px; width: 90%;">
+                    <h3 style="color: var(--primary); margin-top: 0; font-size: 18px;">✅ Ciclo Concluído!</h3>
+                    <p style="color: var(--text-main); font-size: 14px; margin-bottom: 24px; line-height: 1.5;" id="msgFimLeitura"></p>
+                    <div style="display: flex; gap: 12px; flex-direction: column;">
+                        <button id="btnModalRenovar" class="btn btn-primary" style="padding: 10px;">♻️ Renovar Tratamento (Zerar)</button>
+                        <button id="btnModalHistorico" class="btn btn-secondary" style="padding: 10px;">🗄️ Mover para o Histórico</button>
+                        <button onclick="document.getElementById('modalFimLeitura').style.display='none'" class="btn" style="padding: 10px; background: transparent; border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted);">Cancelar</button>
+                    </div>
+                </div>
             </div>
         </div>
     `;
@@ -1049,6 +1099,8 @@ window.mudarAbaIrradiacao = function(aba) {
     const btnAtivos = document.getElementById('btnIrrAtivos');
     const btnHistorico = document.getElementById('btnIrrHistorico');
     
+    const btnEstatisticas = document.getElementById('btnIrrEstatisticas');
+    
     btnPendentes.style.background = aba === 'pendentes' ? 'rgba(56, 189, 248, 0.2)' : 'transparent';
     btnPendentes.style.color = aba === 'pendentes' ? '#38bdf8' : 'var(--text-muted)';
     btnPendentes.style.border = aba === 'pendentes' ? '1px solid rgba(56, 189, 248, 0.4)' : '1px solid transparent';
@@ -1061,14 +1113,31 @@ window.mudarAbaIrradiacao = function(aba) {
     btnHistorico.style.color = aba === 'historico' ? 'white' : 'var(--text-muted)';
     btnHistorico.style.border = aba === 'historico' ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid transparent';
     
-    // Filtros de dia só aparecem no "ativos"
+    btnEstatisticas.style.background = aba === 'estatisticas' ? 'rgba(245, 158, 11, 0.2)' : 'transparent';
+    btnEstatisticas.style.color = aba === 'estatisticas' ? '#f59e0b' : 'var(--text-muted)';
+    btnEstatisticas.style.border = aba === 'estatisticas' ? '1px solid rgba(245, 158, 11, 0.4)' : '1px solid transparent';
+    
+    // Filtros de dia aparecem no "ativos" e no "historico"
     const filtrosDias = document.getElementById('filtrosDiasIrr');
-    if (aba === 'ativos') {
-        filtrosDias.style.display = 'flex';
-        window.setDiaIrradiacao(currentIrradiacaoDia); // Força render
-    } else {
+    const listaIrradiacoes = document.getElementById('listaIrradiacoes');
+    const estatisticasContainer = document.getElementById('estatisticasContainer');
+    
+    if (aba === 'estatisticas') {
         filtrosDias.style.display = 'none';
-        carregarListaIrradiacao();
+        listaIrradiacoes.style.display = 'none';
+        estatisticasContainer.style.display = 'flex';
+        carregarEstatisticasIrradiacao();
+    } else {
+        estatisticasContainer.style.display = 'none';
+        listaIrradiacoes.style.display = 'flex';
+        
+        if (aba === 'ativos' || aba === 'historico') {
+            filtrosDias.style.display = 'flex';
+            window.setDiaIrradiacao(currentIrradiacaoDia); // Força render
+        } else {
+            filtrosDias.style.display = 'none';
+            carregarListaIrradiacao();
+        }
     }
 }
 
@@ -1098,7 +1167,7 @@ async function carregarListaIrradiacao() {
         } else if (currentIrradiacaoTab === 'ativos') {
             query = query.eq('status', 'ativo').ilike('dias_semana', `%${currentIrradiacaoDia}%`).order('nome_solicitado', { ascending: true });
         } else if (currentIrradiacaoTab === 'historico') {
-            query = query.eq('status', 'historico').order('nome_solicitado', { ascending: true });
+            query = query.eq('status', 'historico').ilike('dias_semana', `%${currentIrradiacaoDia}%`).order('nome_solicitado', { ascending: true });
         }
         
         const { data, error } = await query;
@@ -1119,29 +1188,30 @@ async function carregarListaIrradiacao() {
             
             if (currentIrradiacaoTab === 'pendentes') {
                 actionsHtml = `
-                    <button onclick="aprovarIrradiacao('${item.id}')" class="btn btn-primary" style="padding: 6px 12px;">✅ Aprovar p/ Leitura</button>
+                    <button onclick="aprovarIrradiacao('${item.id}', '${item.nome_solicitado.replace(/'/g, "\\'")}', '${(item.endereco||'').replace(/'/g, "\\'")}', '${item.dias_semana}')" class="btn btn-primary" style="padding: 6px 12px;">✅ Aprovar p/ Leitura</button>
                     <button onclick="excluirIrradiacaoDefinitivo('${item.id}')" class="btn" style="color: #ef4444; border: 1px solid #ef4444; padding: 6px 12px; background: transparent;">Apagar</button>
                 `;
             } else if (currentIrradiacaoTab === 'ativos') {
                 const leituras = item.leituras || 0;
+                const semanas_alvo = item.semanas_alvo || 4; // Fallback se não existir no DB
                 let caixinhas = '';
-                for(let i=1; i<=4; i++) {
+                for(let i=1; i<=semanas_alvo; i++) {
                     if (i <= leituras) {
-                        caixinhas += `<span style="display:inline-block; width:16px; height:16px; background:#10b981; border-radius:50%; margin-right:4px;"></span>`;
+                        caixinhas += `<span style="display:inline-block; width:16px; height:16px; background:#10b981; border-radius:50%; margin-right:4px; margin-bottom:4px;"></span>`;
                     } else {
-                        caixinhas += `<span style="display:inline-block; width:16px; height:16px; border:2px solid #334155; border-radius:50%; margin-right:4px;"></span>`;
+                        caixinhas += `<span style="display:inline-block; width:16px; height:16px; border:2px solid #334155; border-radius:50%; margin-right:4px; margin-bottom:4px;"></span>`;
                     }
                 }
                 
-                progressHtml = `<div style="margin-top: 8px; font-size: 12px; color: var(--text-muted);">Leituras: ${leituras}/4<br><div style="margin-top:4px;">${caixinhas}</div></div>`;
+                progressHtml = `<div style="margin-top: 8px; font-size: 12px; color: var(--text-muted);">Leituras: ${leituras}/${semanas_alvo}<br><div style="margin-top:4px; display:flex; flex-wrap:wrap; max-width: 250px;">${caixinhas}</div></div>`;
                 
                 actionsHtml = `
-                    <button onclick="marcarLeituraIrr('${item.id}', ${leituras})" class="btn" style="background: rgba(16,185,129,0.1); color: #10b981; border: 1px solid #10b981; padding: 6px 12px;">✅ Registrar Leitura</button>
+                    <button onclick="marcarLeituraIrr('${item.id}', ${leituras}, ${semanas_alvo})" class="btn" style="background: rgba(16,185,129,0.1); color: #10b981; border: 1px solid #10b981; padding: 6px 12px;">✅ Registrar Leitura</button>
                     <button onclick="arquivarIrradiacao('${item.id}')" class="btn btn-secondary" style="padding: 6px 12px;">Forçar Arquivamento</button>
                 `;
             } else if (currentIrradiacaoTab === 'historico') {
                 actionsHtml = `
-                    <button onclick="reativarIrradiacao('${item.id}')" class="btn btn-secondary" style="padding: 6px 12px;">♻️ Reativar (+4 Semanas)</button>
+                    <button onclick="aprovarIrradiacao('${item.id}', '${item.nome_solicitado.replace(/'/g, "\\'")}', '${(item.endereco||'').replace(/'/g, "\\'")}', '${item.dias_semana}')" class="btn btn-secondary" style="padding: 6px 12px;">♻️ Reativar (Triagem)</button>
                     <button onclick="excluirIrradiacaoDefinitivo('${item.id}')" class="btn" style="color: #ef4444; border: 1px solid #ef4444; padding: 6px 12px; background: transparent;">Apagar</button>
                 `;
             }
@@ -1176,8 +1246,13 @@ async function salvarIrradiacao(e) {
     btn.disabled = true;
     btn.textContent = 'Enviando...';
     
-    const nome = document.getElementById('inIrrNome').value.toUpperCase();
+    let nome = document.getElementById('inIrrNome').value.toUpperCase();
     const endereco = document.getElementById('inIrrEndereco').value.toUpperCase();
+    const isDesencarnado = document.getElementById('chkIrrDesencarnado') && document.getElementById('chkIrrDesencarnado').checked;
+    
+    if (isDesencarnado) {
+        nome = "[DESENCARNADO] " + nome;
+    }
     
     const checkboxes = document.querySelectorAll('.chk-dia:checked');
     const dias = Array.from(checkboxes).map(c => c.value);
@@ -1224,30 +1299,133 @@ async function salvarIrradiacao(e) {
     }
 }
 
-window.aprovarIrradiacao = async function(id) {
-    try {
-        const { error } = await db.from('app_irradiacao_solicitacoes').update({ status: 'ativo', leituras: 0 }).eq('id', id);
-        if (error) throw error;
-        await carregarListaIrradiacao();
-    } catch (err) { console.error(err); alert('Erro ao aprovar'); }
+window.aprovarIrradiacao = function(id, nome, endereco, dias_semana) {
+    const oldModal = document.getElementById('modalTriagemIrr');
+    if (oldModal) oldModal.remove();
+
+    const diasOpcoes = ['Segunda-feira', 'Terça-feira', 'Quarta-feira (Desobsessão)', 'Quarta-feira (Desencarnado)', 'Quinta-feira', 'Sexta-feira', 'Sábado', 'Domingo'];
+    
+    let opcoesDiaHtml = diasOpcoes.map(dia => `<option value="${dia}" ${dia === dias_semana ? 'selected' : ''}>${dia}</option>`).join('');
+
+    const modalHtml = `
+        <div id="modalTriagemIrr" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 9999; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+            <div style="background: var(--bg-dark); border: 1px solid var(--border); border-radius: 12px; padding: 24px; width: 90%; max-width: 400px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+                <h3 style="color: var(--text-main); font-size: 18px; margin-bottom: 16px;">Triagem de Irradiação</h3>
+                
+                <div style="margin-bottom: 16px;">
+                    <p style="margin:0; font-size: 14px; color: var(--text-muted);">Nome Solicitado:</p>
+                    <p style="margin:0; font-weight: bold; color: white;">${nome}</p>
+                </div>
+
+                <div style="margin-bottom: 16px;">
+                    <label style="display:block; font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Dia da Semana:</label>
+                    <select id="triagemDia" style="width: 100%; padding: 8px 12px; border-radius: 8px; background: var(--bg-panel); border: 1px solid var(--border); color: white;">
+                        ${opcoesDiaHtml}
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 24px;">
+                    <label style="display:block; font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Duração do Tratamento:</label>
+                    <select id="triagemSemanas" style="width: 100%; padding: 8px 12px; border-radius: 8px; background: var(--bg-panel); border: 1px solid var(--border); color: white;">
+                        <option value="4">4 Semanas (Padrão)</option>
+                        <option value="16">16 Semanas (Longo)</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                    <button onclick="document.getElementById('modalTriagemIrr').remove()" class="btn btn-secondary">Cancelar</button>
+                    <button onclick="confirmarTriagem('${id}')" class="btn btn-primary" style="background: #10b981; color: white; border: none;">Aprovar Pedido</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
 }
 
-window.marcarLeituraIrr = async function(id, leituras_atuais) {
+window.confirmarTriagem = async function(id) {
+    const btn = event.target;
+    btn.disabled = true;
+    btn.textContent = 'Salvando...';
+
+    const diaSelecionado = document.getElementById('triagemDia').value;
+    const semanasAlvo = parseInt(document.getElementById('triagemSemanas').value);
+
+    try {
+        const { error } = await db.from('app_irradiacao_solicitacoes').update({ 
+            status: 'ativo', 
+            leituras: 0,
+            dias_semana: diaSelecionado,
+            semanas_alvo: semanasAlvo
+        }).eq('id', id);
+
+        if (error) throw error;
+
+        document.getElementById('modalTriagemIrr').remove();
+        await carregarListaIrradiacao();
+
+    } catch (err) {
+        console.error(err);
+        alert('Erro ao confirmar triagem. Verifique se a coluna semanas_alvo já foi criada no banco de dados. ' + (err.message || ''));
+        btn.disabled = false;
+        btn.textContent = 'Aprovar Pedido';
+    }
+}
+
+window.marcarLeituraIrr = async function(id, leituras_atuais, semanas_alvo) {
     try {
         const novaLeitura = leituras_atuais + 1;
-        let novoStatus = 'ativo';
-        if (novaLeitura >= 4) {
-            novoStatus = 'historico';
-            alert("4ª Leitura concluída! O nome será movido para o histórico.");
+        
+        // Buscar log_datas_leituras atual
+        const { data: rowData, error: fetchErr } = await db.from('app_irradiacao_solicitacoes').select('log_datas_leituras').eq('id', id).single();
+        if (fetchErr) throw fetchErr;
+        
+        let logs = rowData.log_datas_leituras || [];
+        if (!Array.isArray(logs)) logs = [];
+        logs.push(new Date().toISOString());
+        
+        if (novaLeitura >= semanas_alvo) {
+            const modal = document.getElementById('modalFimLeitura');
+            const msg = document.getElementById('msgFimLeitura');
+            msg.innerHTML = `O ciclo de <strong>${semanas_alvo} semanas</strong> desta irradiação chegou ao fim.<br><br>O que você deseja fazer com este nome agora?`;
+            modal.style.display = 'flex';
+            
+            document.getElementById('btnModalRenovar').onclick = async function() {
+                modal.style.display = 'none';
+                try {
+                    const { error } = await db.from('app_irradiacao_solicitacoes').update({ 
+                        leituras: 0, 
+                        status: 'ativo',
+                        log_datas_leituras: logs
+                    }).eq('id', id);
+                    if (error) throw error;
+                    await carregarListaIrradiacao();
+                } catch(e) { console.error(e); alert('Erro ao renovar'); }
+            };
+            
+            document.getElementById('btnModalHistorico').onclick = async function() {
+                modal.style.display = 'none';
+                try {
+                    const { error } = await db.from('app_irradiacao_solicitacoes').update({ 
+                        leituras: novaLeitura, 
+                        status: 'historico',
+                        log_datas_leituras: logs
+                    }).eq('id', id);
+                    if (error) throw error;
+                    await carregarListaIrradiacao();
+                } catch(e) { console.error(e); alert('Erro ao arquivar'); }
+            };
+        } else {
+            // Apenas adiciona a leitura
+            const { error } = await db.from('app_irradiacao_solicitacoes').update({ 
+                leituras: novaLeitura,
+                log_datas_leituras: logs
+            }).eq('id', id);
+            if (error) throw error;
+            
+            await carregarListaIrradiacao();
         }
         
-        const { error } = await db.from('app_irradiacao_solicitacoes').update({ 
-            leituras: novaLeitura, 
-            status: novoStatus 
-        }).eq('id', id);
-        if (error) throw error;
-        
-        await carregarListaIrradiacao();
     } catch (err) { console.error(err); alert('Erro ao marcar leitura'); }
 }
 
@@ -1276,3 +1454,157 @@ window.excluirIrradiacaoDefinitivo = async function(id) {
         await carregarListaIrradiacao();
     } catch (err) { console.error(err); alert("Erro ao excluir."); }
 };
+
+window.irradiacaoChartInstance = null;
+
+window.carregarEstatisticasIrradiacao = async function() {
+    const container = document.getElementById('estatisticasContainer');
+    container.innerHTML = '<div style="color: var(--text-muted); font-size: 13px;">Processando dados, aguarde...</div>';
+    
+    try {
+        const { data, error } = await db.from('app_irradiacao_solicitacoes').select('status, dias_semana, criado_em, log_datas_leituras, leituras, semanas_alvo');
+        if (error) throw error;
+        
+        let totalAtivos = 0;
+        let totalHistorico = 0;
+        const ativosPorDia = {};
+        const historicoPorDia = {};
+        const leiturasPorMes = {};
+        
+        data.forEach(item => {
+            if (item.status === 'ativo') {
+                totalAtivos++;
+                ativosPorDia[item.dias_semana] = (ativosPorDia[item.dias_semana] || 0) + 1;
+            } else if (item.status === 'historico') {
+                totalHistorico++;
+                historicoPorDia[item.dias_semana] = (historicoPorDia[item.dias_semana] || 0) + 1;
+            }
+            
+            // Processar as leituras reais
+            let logs = item.log_datas_leituras;
+            if (typeof logs === 'string') {
+                try { logs = JSON.parse(logs); } catch(e) { logs = []; }
+            }
+            if (Array.isArray(logs) && logs.length > 0) {
+                logs.forEach(dateStr => {
+                    const date = new Date(dateStr);
+                    if (!isNaN(date)) {
+                        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                        leiturasPorMes[monthKey] = (leiturasPorMes[monthKey] || 0) + 1;
+                    }
+                });
+            } else {
+                // FALLBACK: Para registros antigos que não possuem log_datas_leituras, simulamos baseado no criado_em
+                const date = new Date(item.criado_em);
+                if (!isNaN(date)) {
+                    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                    
+                    if (item.status === 'historico' && item.semanas_alvo) {
+                        leiturasPorMes[monthKey] = (leiturasPorMes[monthKey] || 0) + item.semanas_alvo;
+                    } else if (item.leituras > 0) {
+                        leiturasPorMes[monthKey] = (leiturasPorMes[monthKey] || 0) + item.leituras;
+                    }
+                }
+            }
+        });
+        
+        // Sorting months
+        const sortedMonths = Object.keys(leiturasPorMes).sort();
+        const chartLabels = sortedMonths.map(m => {
+            const [year, month] = m.split('-');
+            const date = new Date(year, month - 1);
+            return date.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+        });
+        const chartData = sortedMonths.map(m => leiturasPorMes[m]);
+
+        // Render HTML
+        const formatTable = (dict) => {
+            if (Object.keys(dict).length === 0) return '<div style="color:var(--text-muted); font-size:13px;">Sem dados</div>';
+            return Object.entries(dict).sort((a,b)=>b[1]-a[1]).map(([dia, count]) => `
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 8px 0;">
+                    <span style="color: #cbd5e1; font-size: 13px;">${dia}</span>
+                    <strong style="color: white; font-size: 14px;">${count}</strong>
+                </div>
+            `).join('');
+        };
+
+        container.innerHTML = `
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px; text-align: center;">
+                    <h4 style="color: var(--text-muted); font-size: 13px; text-transform: uppercase; margin: 0 0 8px 0;">Pessoas Ativas (Lendo)</h4>
+                    <div style="font-size: 32px; font-weight: bold; color: #10b981;">${totalAtivos}</div>
+                </div>
+                <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px; text-align: center;">
+                    <h4 style="color: var(--text-muted); font-size: 13px; text-transform: uppercase; margin: 0 0 8px 0;">Pessoas Concluídas (Histórico)</h4>
+                    <div style="font-size: 32px; font-weight: bold; color: #f59e0b;">${totalHistorico}</div>
+                </div>
+                <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px; text-align: center;">
+                    <h4 style="color: var(--text-muted); font-size: 13px; text-transform: uppercase; margin: 0 0 8px 0;">Total de Leituras Realizadas</h4>
+                    <div style="font-size: 32px; font-weight: bold; color: #3b82f6;">${Object.values(leiturasPorMes).reduce((a,b)=>a+b, 0)}</div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-top: 16px;">
+                <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px;">
+                    <h4 style="color: #10b981; font-size: 14px; margin: 0 0 16px 0;">Ativos por Dia / Necessidade</h4>
+                    ${formatTable(ativosPorDia)}
+                </div>
+                <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px;">
+                    <h4 style="color: #f59e0b; font-size: 14px; margin: 0 0 16px 0;">Histórico por Dia / Necessidade</h4>
+                    ${formatTable(historicoPorDia)}
+                </div>
+            </div>
+
+            <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-top: 16px;">
+                <h4 style="color: white; font-size: 14px; margin: 0 0 16px 0;">Evolução de Leituras por Mês (Esforço da Equipe)</h4>
+                <div style="position: relative; height: 300px; width: 100%;">
+                    <canvas id="chartLeiturasMensais"></canvas>
+                </div>
+            </div>
+        `;
+
+        if (window.irradiacaoChartInstance) {
+            window.irradiacaoChartInstance.destroy();
+        }
+
+        if (window.Chart) {
+            const ctx = document.getElementById('chartLeiturasMensais').getContext('2d');
+            window.irradiacaoChartInstance = new window.Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: chartLabels,
+                    datasets: [{
+                        label: 'Leituras Realizadas',
+                        data: chartData,
+                        backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#94a3b8' },
+                            grid: { color: 'rgba(255,255,255,0.05)' }
+                        },
+                        x: {
+                            ticks: { color: '#94a3b8' },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+    } catch (e) {
+        console.error(e);
+        container.innerHTML = '<div style="color: #ef4444;">Erro ao carregar estatísticas.</div>';
+    }
+}

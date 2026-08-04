@@ -130,6 +130,7 @@
                     <button class="tab-btn" data-target="abaAgenda">📅 Agenda & Atividades</button>
                     <button class="tab-btn" data-target="abaProjetosProcessos" id="btnAbaProjetos">🚀 Projetos & Processos</button>
                     <button class="tab-btn" data-target="abaDocumentos" id="btnAbaDocumentos">📁 Documentos Gerais</button>
+                    <button class="tab-btn" data-target="abaTesouraria" id="btnAbaTesouraria">💰 Tesouraria</button>
                     <button class="tab-btn" data-target="abaApps" id="btnAbaApps" style="display: none;">📱 Mini-Apps</button>
                 </div>
                 
@@ -230,6 +231,30 @@
                     <div id="containerApps" style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; padding: 24px;">
                         <!-- Conteúdo injetado via JS (Ex: Formulário de Irradiação) -->
                         <div style="color: var(--text-muted); font-size: 13px;">Carregando serviços...</div>
+                    </div>
+                </div>
+                
+                <!-- Aba Tesouraria -->
+                <div class="tab-content" id="abaTesouraria">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                        <div>
+                            <h2>Envio para Tesouraria</h2>
+                            <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">Envie recibos, comprovantes ou solicitações diretamente para a equipe financeira.</p>
+                        </div>
+                    </div>
+                    
+                    <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; padding: 24px; max-width: 600px;">
+                        <form id="formTesourariaEnvio">
+                            <div class="form-group" style="margin-bottom: 16px;">
+                                <label style="display:block; margin-bottom: 8px; color: var(--text-muted); font-size: 14px;">Descrição / Motivo do Envio</label>
+                                <textarea id="tesourariaDescricao" rows="4" placeholder="Ex: Referente à compra de materiais de limpeza do mês de Agosto..." required style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text-main); font-family: inherit; resize: vertical;"></textarea>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 24px;">
+                                <label style="display:block; margin-bottom: 8px; color: var(--text-muted); font-size: 14px;">Anexo (Opcional - PDF ou Imagem)</label>
+                                <input type="file" id="tesourariaArquivo" accept=".pdf,image/*" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: var(--text-main);">
+                            </div>
+                            <button type="submit" class="btn btn-primary" id="btnTesourariaSubmit" style="width: 100%; justify-content: center;">Enviar para Tesouraria</button>
+                        </form>
                     </div>
                 </div>
                 

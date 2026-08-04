@@ -9,6 +9,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnMicrosoft = document.getElementById('btnMicrosoftLogin');
     const errorMsg = document.getElementById('errorMsg');
 
+    // Debug Temporário: Mostra a URL inteira (incluindo #) caso haja erro
+    if (window.location.href.includes('error=')) {
+        alert("DEBUG URL:\n" + window.location.href);
+    }
+
     // Checa se já existe uma sessão ativa ou um erro na URL
     verificarStatusAtual();
 
@@ -57,7 +62,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const { data, error } = await supabaseClient.auth.signInWithOAuth({
                     provider: 'azure',
                     options: {
-                        redirectTo: indexUrl
+                        redirectTo: indexUrl,
+                        scopes: 'email'
                     }
                 });
 
@@ -76,18 +82,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function verificarStatusAtual() {
-        // Pega possíveis mensagens de erro da URL (ex: ?error=nao_autorizado)
+        // Pega possíveis mensagens de erro da URL (ex: ?error=nao_autorizado&email=xyz)
         const urlParams = new URLSearchParams(window.location.search);
         const errorType = urlParams.get('error');
         
         if (errorType === 'nao_autorizado') {
-            mostrarErro('Acesso Negado: Seu e-mail não está cadastrado na lista de trabalhadores autorizados do Portal.');
+            const rejectedEmail = urlParams.get('email') || 'Desconhecido';
+            mostrarErro(`Acesso Negado: O e-mail "${rejectedEmail}" não está cadastrado na lista de trabalhadores autorizados do Portal.`);
+            await supabaseClient.auth.signOut();
+            return;
+        } else if (errorType === 'sem_email') {
+            mostrarErro('Falha no Login: A Microsoft não compartilhou o seu endereço de e-mail com o Portal. Entre nas configurações da sua conta Microsoft e permita o compartilhamento do e-mail.');
+            await supabaseClient.auth.signOut();
+            return;
         }
 
-        // Checa se já está logado
+        // Se não tem erro, checa se já está logado para mandar direto pro portal
         const { data: { session } } = await supabaseClient.auth.getSession();
         if (session) {
-            // Se já tem sessão, manda pro index
             window.location.href = 'index.html';
         }
     }
