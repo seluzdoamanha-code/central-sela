@@ -1058,12 +1058,12 @@ window.carregarPainelGestaoIrradiacao = async function() {
             </div>
             
             <div id="filtrosDiasIrr" style="display: none; gap: 12px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 8px;">
-                <button class="btn btn-secondary btn-dia" onclick="setDiaIrradiacao('')">Todos os dias</button>
-                <button class="btn btn-secondary btn-dia" onclick="setDiaIrradiacao('Segunda-feira')">Segunda-feira</button>
-                <button class="btn btn-secondary btn-dia" onclick="setDiaIrradiacao('Terça-feira')">Terça-feira</button>
-                <button class="btn btn-secondary btn-dia" onclick="setDiaIrradiacao('Quarta-feira (Desobsessão)')">Quarta-feira (Desob)</button>
-                <button class="btn btn-secondary btn-dia" onclick="setDiaIrradiacao('Quarta-feira (Desencarnado)')">Quarta-feira (Desenc)</button>
-                <button class="btn btn-secondary btn-dia" onclick="setDiaIrradiacao('Quinta-feira')">Quinta-feira</button>
+                <button class="btn btn-secondary btn-dia" data-dia="Todos" onclick="setDiaIrradiacao('')">Todos os dias</button>
+                <button class="btn btn-secondary btn-dia" data-dia="Segunda-feira" onclick="setDiaIrradiacao('Segunda-feira')">Segunda-feira</button>
+                <button class="btn btn-secondary btn-dia" data-dia="Terça-feira" onclick="setDiaIrradiacao('Terça-feira')">Terça-feira</button>
+                <button class="btn btn-secondary btn-dia" data-dia="Quarta-feira (Desobsessão)" onclick="setDiaIrradiacao('Quarta-feira (Desobsessão)')">Quarta-feira (Desob)</button>
+                <button class="btn btn-secondary btn-dia" data-dia="Quarta-feira (Desencarnado)" onclick="setDiaIrradiacao('Quarta-feira (Desencarnado)')">Quarta-feira (Desenc)</button>
+                <button class="btn btn-secondary btn-dia" data-dia="Quinta-feira" onclick="setDiaIrradiacao('Quinta-feira')">Quinta-feira</button>
             </div>
 
             <div id="listaIrradiacoes" style="display: flex; flex-direction: column; gap: 12px;">
@@ -1183,7 +1183,8 @@ window.setDiaIrradiacao = function(dia) {
     currentIrradiacaoDia = dia;
     
     document.querySelectorAll('.btn-dia').forEach(b => {
-        const isActive = b.getAttribute('onclick') === `setDiaIrradiacao('${dia}')`;
+        const btnDia = b.getAttribute('data-dia') || '';
+        const isActive = (dia === '' && btnDia === 'Todos') || (dia !== '' && btnDia === dia);
         b.style.background = isActive ? 'var(--primary)' : 'var(--bg-dark)';
         b.style.color = isActive ? '#fff' : 'var(--text-muted)';
     });
