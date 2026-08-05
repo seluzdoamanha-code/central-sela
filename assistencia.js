@@ -191,7 +191,8 @@ async function carregarListaCestas() {
                                                     ${i.status}
                                                 </span>
                                             </td>
-                                            <td style="padding: 8px 4px; text-align: right;">
+                                            <td style="padding: 8px 4px; text-align: right; white-space: nowrap;">
+                                                <button onclick="editarItemAss('${i.id}')" style="background:none; border:none; color: #60a5fa; cursor:pointer; margin-right: 8px;" title="Editar">✏️</button>
                                                 <button onclick="excluirItemAss('${i.id}')" style="background:none; border:none; color: #ef4444; cursor:pointer;" title="Excluir">🗑️</button>
                                             </td>
                                         </tr>
@@ -216,7 +217,10 @@ async function carregarListaCestas() {
                                         </div>
                                         <p style="color: var(--text-muted); font-size: 13px; margin: 4px 0 0 0;">${c.descricao}</p>
                                     </div>
-                                    <button onclick="excluirCestaAss('${c.id}')" style="background:none; border:none; color: #ef4444; cursor:pointer;" title="Excluir Cesta">🗑️</button>
+                                    <div>
+                                        <button onclick="editarCestaAss('${c.id}')" style="background:none; border:none; color: #60a5fa; cursor:pointer; margin-right: 8px;" title="Editar Cesta">✏️</button>
+                                        <button onclick="excluirCestaAss('${c.id}')" style="background:none; border:none; color: #ef4444; cursor:pointer;" title="Excluir Cesta">🗑️</button>
+                                    </div>
                                 </div>
                                 
                                 <div style="background: rgba(0,0,0,0.1); border-radius: 6px; padding: 12px;">
@@ -265,8 +269,9 @@ window.abrirModalNovoItem = function() {
         document.body.insertAdjacentHTML('beforeend', `
             <div class="modal-overlay" id="modalNovoItemAss" style="display: none; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999;">
                 <div class="modal-content" style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; padding: 24px; width: 100%; max-width: 400px;">
-                    <h3 style="margin-top: 0; color: var(--text-main);">Novo Item (Estoque)</h3>
+                    <h3 id="modalNovoItemAssTitle" style="margin-top: 0; color: var(--text-main);">Novo Item (Estoque)</h3>
                     <form id="formNovoItemAss" onsubmit="salvarNovoItemAss(event)">
+                        <input type="hidden" id="assItemId">
                         <div style="margin-bottom: 12px;">
                             <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Código Único (Ex: IC1)</label>
                             <input type="text" id="assItemCodigo" class="form-control" required style="width: 100%; background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main); padding: 8px; border-radius: 6px;">
@@ -295,7 +300,22 @@ window.abrirModalNovoItem = function() {
         `);
     }
     document.getElementById('formNovoItemAss').reset();
+    document.getElementById('assItemId').value = '';
+    document.getElementById('modalNovoItemAssTitle').textContent = 'Novo Item (Estoque)';
     document.getElementById('modalNovoItemAss').style.display = 'flex';
+};
+
+window.editarItemAss = async function(id) {
+    abrirModalNovoItem();
+    document.getElementById('modalNovoItemAssTitle').textContent = 'Editar Item';
+    const item = window.assItensGlobais.find(i => i.id === id);
+    if(item) {
+        document.getElementById('assItemId').value = item.id;
+        document.getElementById('assItemCodigo').value = item.codigo;
+        document.getElementById('assItemDescricao').value = item.descricao;
+        document.getElementById('assItemUnidade').value = item.unidade;
+        document.getElementById('assItemPeso').value = item.peso_kg || '';
+    }
 };
 
 window.salvarNovoItemAss = async function(e) {
@@ -311,7 +331,15 @@ window.salvarNovoItemAss = async function(e) {
             unidade: document.getElementById('assItemUnidade').value.trim(),
             peso_kg: document.getElementById('assItemPeso').value ? parseFloat(document.getElementById('assItemPeso').value) : null
         };
-        const { error } = await db.from('ass_itens_cesta').insert(payload);
+        const idEdit = document.getElementById('assItemId').value;
+        let query;
+        if(idEdit) {
+            query = db.from('ass_itens_cesta').update(payload).eq('id', idEdit);
+        } else {
+            query = db.from('ass_itens_cesta').insert(payload);
+        }
+        
+        const { error } = await query;
         if (error) throw error;
         
         document.getElementById('modalNovoItemAss').style.display = 'none';
@@ -321,7 +349,7 @@ window.salvarNovoItemAss = async function(e) {
         alert('Erro ao salvar item. O código já existe?');
     } finally {
         btn.disabled = false;
-        btn.textContent = 'Salvar Item';
+        btn.textContent = 'Salvar';
     }
 };
 
@@ -347,8 +375,9 @@ window.abrirModalNovaCesta = function() {
         document.body.insertAdjacentHTML('beforeend', `
             <div class="modal-overlay" id="modalNovaCestaAss" style="display: none; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999;">
                 <div class="modal-content" style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; padding: 24px; width: 100%; max-width: 500px;">
-                    <h3 style="margin-top: 0; color: var(--text-main);">Novo Modelo de Cesta</h3>
+                    <h3 id="modalNovaCestaAssTitle" style="margin-top: 0; color: var(--text-main);">Novo Modelo de Cesta</h3>
                     <form id="formNovaCestaAss" onsubmit="salvarNovaCestaAss(event)">
+                        <input type="hidden" id="assCestaId">
                         <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px; margin-bottom: 12px;">
                             <div>
                                 <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Código (Ex: CB1)</label>
@@ -394,7 +423,39 @@ window.abrirModalNovaCesta = function() {
     `).join('');
 
     document.getElementById('formNovaCestaAss').reset();
+    document.getElementById('assCestaId').value = '';
+    document.getElementById('modalNovaCestaAssTitle').textContent = 'Novo Modelo de Cesta';
     document.getElementById('modalNovaCestaAss').style.display = 'flex';
+};
+
+window.editarCestaAss = async function(id) {
+    abrirModalNovaCesta();
+    document.getElementById('modalNovaCestaAssTitle').textContent = 'Editar Modelo de Cesta';
+    
+    try {
+        const { data: cesta, error } = await db.from('ass_cestas_modelos').select('*, ass_cesta_composicao(*)').eq('id', id).single();
+        if(error) throw error;
+        
+        document.getElementById('assCestaId').value = cesta.id;
+        document.getElementById('assCestaCodigo').value = cesta.codigo;
+        document.getElementById('assCestaTipo').value = cesta.tipo;
+        document.getElementById('assCestaDescricao').value = cesta.descricao;
+        
+        // Marcar e preencher qtd dos itens
+        if(cesta.ass_cesta_composicao) {
+            cesta.ass_cesta_composicao.forEach(comp => {
+                const cb = document.querySelector(`.ass-cesta-item-cb[value="${comp.item_id}"]`);
+                if(cb) {
+                    cb.checked = true;
+                    toggleCestaQtd(cb, comp.item_id);
+                    document.getElementById('qtd_' + comp.item_id).value = comp.quantidade;
+                }
+            });
+        }
+    } catch(err) {
+        console.error(err);
+        alert('Erro ao carregar os dados da cesta.');
+    }
 };
 
 window.toggleCestaQtd = function(cb, id) {
@@ -415,11 +476,22 @@ window.salvarNovaCestaAss = async function(e) {
             descricao: document.getElementById('assCestaDescricao').value.trim()
         };
         
-        // Insert Cesta
-        const { data: cestaData, error: cestaError } = await db.from('ass_cestas_modelos').insert(payloadCesta).select('id').single();
-        if (cestaError) throw cestaError;
-        
-        const cestaId = cestaData.id;
+        const idEdit = document.getElementById('assCestaId').value;
+        let cestaId = idEdit;
+
+        if (idEdit) {
+            // Update Cesta
+            const { error: cestaError } = await db.from('ass_cestas_modelos').update(payloadCesta).eq('id', idEdit);
+            if (cestaError) throw cestaError;
+            
+            // Delete composições antigas para recriar
+            await db.from('ass_cesta_composicao').delete().eq('cesta_id', idEdit);
+        } else {
+            // Insert Cesta
+            const { data: cestaData, error: cestaError } = await db.from('ass_cestas_modelos').insert(payloadCesta).select('id').single();
+            if (cestaError) throw cestaError;
+            cestaId = cestaData.id;
+        }
 
         // Montar composicao
         const composicoes = [];
@@ -446,7 +518,7 @@ window.salvarNovaCestaAss = async function(e) {
         alert('Erro ao salvar cesta. Verifique se o código já existe.');
     } finally {
         btn.disabled = false;
-        btn.textContent = 'Salvar Cesta';
+        btn.textContent = 'Salvar';
     }
 };
 
