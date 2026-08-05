@@ -1290,10 +1290,17 @@ async function carregarListaIrradiacao() {
                     }
                 }
                 
-                progressHtml = `<div style="margin-top: 8px; font-size: 12px; color: var(--text-muted);">Leituras: ${leituras}/${semanas_alvo}<br><div style="margin-top:4px; display:flex; flex-wrap:wrap; max-width: 250px;">${caixinhas}</div></div>`;
+                let checkboxRepetir = `
+                    <label style="font-size: 11px; display: flex; align-items: center; gap: 4px; color: var(--text-muted); cursor: pointer; margin-bottom: 6px;">
+                        <input type="checkbox" onchange="toggleRenovacaoAutomatica('${item.id}', this.checked)" ${item.renovacao_automatica ? 'checked' : ''}>
+                        [x] Repetir (Reiniciar ciclo automaticamente)
+                    </label>
+                `;
+                
+                progressHtml = `<div style="margin-top: 8px; font-size: 12px; color: var(--text-muted);">${checkboxRepetir}Leituras: ${leituras}/${semanas_alvo}<br><div style="margin-top:4px; display:flex; flex-wrap:wrap; max-width: 250px;">${caixinhas}</div></div>`;
                 
                 actionsHtml = `
-                    <button onclick="marcarLeituraIrr('${item.id}', ${leituras}, ${semanas_alvo})" class="btn" style="background: rgba(16,185,129,0.1); color: #10b981; border: 1px solid #10b981; padding: 6px 12px;">✅ Registrar Leitura</button>
+                    <button onclick="marcarLeituraIrr('${item.id}', ${leituras}, ${semanas_alvo}, ${item.renovacao_automatica ? 'true' : 'false'})" class="btn" style="background: rgba(16,185,129,0.1); color: #10b981; border: 1px solid #10b981; padding: 6px 12px;">✅ Registrar Leitura</button>
                     <button onclick="abrirModalEdicaoIrradiacao('${item.id}', '${safeNome}', '${safeEndereco}', '${safeDias}', ${semanasAlvoStr})" class="btn btn-secondary" style="padding: 6px 12px;">✏️ Editar</button>
                     <button onclick="arquivarIrradiacao('${item.id}')" class="btn btn-secondary" style="padding: 6px 12px;">Forçar Arquivamento</button>
                 `;
@@ -1388,6 +1395,17 @@ async function salvarIrradiacao(e) {
     }
 }
 
+window.toggleRenovacaoAutomatica = async function(id, isChecked) {
+    try {
+        const { error } = await db.from('app_irradiacao_solicitacoes').update({ renovacao_automatica: isChecked }).eq('id', id);
+        if (error) throw error;
+        // Não recarregamos a lista para evitar piscar a tela, a alteração no banco já está feita.
+    } catch (e) {
+        console.error(e);
+        alert('Erro ao atualizar opção de repetir ciclo: ' + e.message);
+    }
+}
+
 window.aprovarIrradiacao = function(id, nome, endereco, dias_semana) {
     const oldModal = document.getElementById('modalTriagemIrr');
     if (oldModal) oldModal.remove();
@@ -1461,7 +1479,7 @@ window.confirmarTriagem = async function(id) {
     }
 }
 
-window.marcarLeituraIrr = async function(id, leituras_atuais, semanas_alvo) {
+window.marcarLeituraIrr = async function(id, leituras_atuais, semanas_alvo, autoRenovar = false) {
     try {
         const novaLeitura = leituras_atuais + 1;
         
@@ -1474,10 +1492,21 @@ window.marcarLeituraIrr = async function(id, leituras_atuais, semanas_alvo) {
         logs.push(new Date().toISOString());
         
         if (novaLeitura >= semanas_alvo) {
-            const modal = document.getElementById('modalFimLeitura');
-            const msg = document.getElementById('msgFimLeitura');
-            msg.innerHTML = `O ciclo de <strong>${semanas_alvo} semanas</strong> desta irradiação chegou ao fim.<br><br>O que você deseja fazer com este nome agora?`;
-            modal.style.display = 'flex';
+            if (autoRenovar) {
+                // Reinicia ciclo automaticamente
+                const { error } = await db.from('app_irradiacao_solicitacoes').update({ 
+                    leituras: 0, 
+                    status: 'ativo',
+                    log_datas_leituras: logs
+                }).eq('id', id);
+                if (error) throw error;
+                await carregarListaIrradiacao();
+                alert('Leitura registrada! O ciclo desta irradiação foi concluído e reiniciado automaticamente.');
+            } else {
+                const modal = document.getElementById('modalFimLeitura');
+                const msg = document.getElementById('msgFimLeitura');
+                msg.innerHTML = `O ciclo de <strong>${semanas_alvo} semanas</strong> desta irradiação chegou ao fim.<br><br>O que você deseja fazer com este nome agora?`;
+                modal.style.display = 'flex';
             
             document.getElementById('btnModalRenovar').onclick = async function() {
                 modal.style.display = 'none';
@@ -1504,6 +1533,7 @@ window.marcarLeituraIrr = async function(id, leituras_atuais, semanas_alvo) {
                     await carregarListaIrradiacao();
                 } catch(e) { console.error(e); alert('Erro ao arquivar'); }
             };
+            }
         } else {
             // Apenas adiciona a leitura
             const { error } = await db.from('app_irradiacao_solicitacoes').update({ 
