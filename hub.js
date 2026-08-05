@@ -1801,7 +1801,7 @@ window.irradiacaoChartInstance = null;
 window.imprimirEstatisticasIrr = function() {
     const style = document.createElement('style');
     style.id = 'printEstatisticasStyle';
-    style.innerHTML = \`
+    style.innerHTML = `
         @media print {
             body * { visibility: hidden !important; }
             #estatisticasContainer, #estatisticasContainer * { visibility: visible !important; }
@@ -1814,7 +1814,7 @@ window.imprimirEstatisticasIrr = function() {
             /* Garante que o canvas caiba na folha */
             #chartLeiturasMensais { max-width: 100% !important; height: auto !important; max-height: 400px !important; }
         }
-    \`;
+    `;
     document.head.appendChild(style);
     
     // Pequeno delay para o navegador renderizar a tag <style>
