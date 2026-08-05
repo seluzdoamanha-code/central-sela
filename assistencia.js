@@ -694,8 +694,7 @@ window.abrirModalNovaFamilia = async function() {
 
         // Populate Responsável
         const selectResp = document.getElementById('assFamResponsavel');
-        selectResp.innerHTML = '<option value="">-- Selecione uma pessoa --</option>' + 
-            pessoas.map(p => `<option value="${p.id}">${p.nome_completo} ${p.papeis?.includes('Membro da Família') ? '' : '(Sem perfil familiar)'}</option>`).join('');
+        selectResp.innerHTML = window.gerarOpcoesPessoasAss('');
             
     } catch(err) {
         console.error("Erro ao carregar pessoas:", err);
@@ -706,6 +705,28 @@ window.abrirModalNovaFamilia = async function() {
     document.getElementById('modalNovaFamiliaAss').style.display = 'flex';
 };
 
+window.gerarOpcoesPessoasAss = function(selecionadoId = '') {
+    const pessoas = window.assPessoasGlobais || [];
+    const comPerfil = pessoas.filter(p => p.papeis && p.papeis.includes('Membro da Família'));
+    const semPerfil = pessoas.filter(p => !p.papeis || !p.papeis.includes('Membro da Família'));
+    
+    let html = '<option value="">-- Selecione --</option>';
+    
+    if (comPerfil.length > 0) {
+        html += '<optgroup label="Com perfil: Membro da Família">';
+        html += comPerfil.map(p => `<option value="${p.id}" ${p.id === selecionadoId ? 'selected' : ''}>${p.nome_completo}</option>`).join('');
+        html += '</optgroup>';
+    }
+    
+    if (semPerfil.length > 0) {
+        html += '<optgroup label="Demais Cadastros (Sem perfil)">';
+        html += semPerfil.map(p => `<option value="${p.id}" ${p.id === selecionadoId ? 'selected' : ''}>${p.nome_completo}</option>`).join('');
+        html += '</optgroup>';
+    }
+    
+    return html;
+};
+
 window.adicionarLinhaMembroAss = function(pessoaId = '', parentesco = '') {
     const container = document.getElementById('assFamMembrosContainer');
     
@@ -713,13 +734,10 @@ window.adicionarLinhaMembroAss = function(pessoaId = '', parentesco = '') {
     div.className = 'ass-membro-linha';
     div.style = 'display: flex; gap: 8px; margin-bottom: 8px;';
     
-    const pessoasOptions = (window.assPessoasGlobais || []).map(p => 
-        `<option value="${p.id}" ${p.id === pessoaId ? 'selected' : ''}>${p.nome_completo}</option>`
-    ).join('');
+    const pessoasOptions = window.gerarOpcoesPessoasAss(pessoaId);
 
     div.innerHTML = `
         <select class="form-control mem-pessoa" required style="flex: 2; background: var(--bg-panel); border: 1px solid var(--border); color: var(--text-main); padding: 6px; border-radius: 4px;">
-            <option value="">-- Selecione --</option>
             ${pessoasOptions}
         </select>
         <input type="text" class="form-control mem-parentesco" required placeholder="Parentesco (Ex: Filho)" value="${parentesco}" style="flex: 1; background: var(--bg-panel); border: 1px solid var(--border); color: var(--text-main); padding: 6px; border-radius: 4px;">
