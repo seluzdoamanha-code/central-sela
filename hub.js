@@ -1868,9 +1868,9 @@ window.carregarEstatisticasIrradiacao = async function() {
         const formatTable = (dict) => {
             if (Object.keys(dict).length === 0) return '<div style="color:var(--text-muted); font-size:13px;">Sem dados</div>';
             return Object.entries(dict).sort((a,b)=>b[1]-a[1]).map(([dia, count]) => `
-                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 8px 0;">
-                    <span style="color: #cbd5e1; font-size: 13px;">${dia}</span>
-                    <strong style="color: white; font-size: 14px;">${count}</strong>
+                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding: 8px 0;">
+                    <span style="color: var(--text-muted); font-size: 13px;">${dia}</span>
+                    <strong style="color: var(--text-main); font-size: 14px;">${count}</strong>
                 </div>
             `).join('');
         };
