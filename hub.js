@@ -1798,6 +1798,36 @@ window.excluirIrradiacaoDefinitivo = async function(id) {
 
 window.irradiacaoChartInstance = null;
 
+window.imprimirEstatisticasIrr = function() {
+    const style = document.createElement('style');
+    style.id = 'printEstatisticasStyle';
+    style.innerHTML = \`
+        @media print {
+            body * { visibility: hidden !important; }
+            #estatisticasContainer, #estatisticasContainer * { visibility: visible !important; }
+            #estatisticasContainer { position: absolute; left: 0; top: 0; width: 100%; padding: 0; margin: 0; }
+            #btnImprimirEstat { display: none !important; }
+            
+            /* Ajustes para forçar cores de fundo na impressão caso o navegador permita, e evitar quebra de cards */
+            div { page-break-inside: avoid; }
+            
+            /* Garante que o canvas caiba na folha */
+            #chartLeiturasMensais { max-width: 100% !important; height: auto !important; max-height: 400px !important; }
+        }
+    \`;
+    document.head.appendChild(style);
+    
+    // Pequeno delay para o navegador renderizar a tag <style>
+    setTimeout(() => {
+        window.print();
+        // Remove a tag depois que a janela de impressão fecha
+        setTimeout(() => {
+            const s = document.getElementById('printEstatisticasStyle');
+            if (s) s.remove();
+        }, 1000);
+    }, 200);
+};
+
 window.carregarEstatisticasIrradiacao = async function() {
     const container = document.getElementById('estatisticasContainer');
     container.innerHTML = '<div style="color: var(--text-muted); font-size: 13px;">Processando dados, aguarde...</div>';
@@ -1876,6 +1906,10 @@ window.carregarEstatisticasIrradiacao = async function() {
         };
 
         container.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 style="color: var(--primary); font-size: 18px; margin: 0;">Relatório de Estatísticas</h3>
+                <button onclick="imprimirEstatisticasIrr()" id="btnImprimirEstat" class="btn btn-primary" style="padding: 8px 16px; border-radius: 8px; font-weight: 500;">🖨️ Imprimir / Salvar PDF</button>
+            </div>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
                 <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px; text-align: center;">
                     <h4 style="color: var(--text-muted); font-size: 13px; text-transform: uppercase; margin: 0 0 8px 0;">Pessoas Ativas (Lendo)</h4>
