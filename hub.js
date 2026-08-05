@@ -931,11 +931,12 @@ window.abrirMiniAppIrradiacao = async function() {
         </div>
 
         <div style="background: rgba(79, 70, 229, 0.05); border: 1px solid var(--border); border-radius: 12px; padding: 24px; max-width: 600px;">
-            <h3 style="color: var(--primary); margin-bottom: 16px;">📝 Inserir Nova Solicitação</h3>
+            <h3 style="color: var(--primary); margin-bottom: 16px;">📝 Nova Solicitação - via Portal Luz do Amanhã</h3>
             <form id="formIrradiacao" style="display: flex; flex-direction: column; gap: 16px;">
                 <div>
                     <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 6px;">Nome(s) Completo(s) do(s) Necessitado(s) *</label>
-                    <input type="text" id="inIrrNome" required class="input-field" placeholder="EX: MARIA DA SILVA --- JOSÉ DA SILVA" style="width: 100%; text-transform: uppercase;">
+                    <input type="text" id="inIrrNome" required class="input-field" placeholder="EX: MARIA DA SILVA --- JOSÉ DA SILVA" style="width: 100%; text-transform: uppercase;" list="listaNomesIrr">
+                    <datalist id="listaNomesIrr"></datalist>
                     <label style="display: flex; align-items: center; gap: 8px; margin-top: 12px; cursor: pointer;">
                         <input type="checkbox" id="chkIrrDesencarnado" onchange="toggleDesencarnadoIrr(this.checked)" style="width: 18px; height: 18px; accent-color: var(--primary);">
                         <span style="font-size: 14px; font-weight: 500; color: #facc15;">Este nome é de uma pessoa desencarnada (falecida)</span>
@@ -978,6 +979,43 @@ window.abrirMiniAppIrradiacao = async function() {
     `;
 
     document.getElementById('formIrradiacao').addEventListener('submit', salvarIrradiacao);
+    
+    // Auto-complete (Sugestões de Nomes e Endereços)
+    setTimeout(async () => {
+        try {
+            const estruturaId = localStorage.getItem('estrutura_atual');
+            const { data, error } = await db.from('app_irradiacao_solicitacoes')
+                .select('nome_solicitado, endereco')
+                .eq('estrutura_id', estruturaId)
+                .order('criado_em', { ascending: false });
+                
+            if (!error && data) {
+                window.sugestoesIrradiacao = {};
+                const datalist = document.getElementById('listaNomesIrr');
+                data.forEach(item => {
+                    const n = item.nome_solicitado.toUpperCase();
+                    if (!window.sugestoesIrradiacao[n]) {
+                        window.sugestoesIrradiacao[n] = item.endereco ? item.endereco.toUpperCase() : '';
+                        const opt = document.createElement('option');
+                        opt.value = n;
+                        datalist.appendChild(opt);
+                    }
+                });
+            }
+        } catch(e) { console.error('Erro ao carregar sugestões', e); }
+    }, 100);
+
+    const inputNome = document.getElementById('inIrrNome');
+    inputNome.addEventListener('input', function() {
+        const val = this.value.toUpperCase();
+        if (window.sugestoesIrradiacao && window.sugestoesIrradiacao[val] !== undefined) {
+            const end = document.getElementById('inIrrEndereco');
+            // Preenche apenas se estiver vazio para não sobrescrever caso o usuário já tenha digitado algo
+            if (!end.value) {
+                end.value = window.sugestoesIrradiacao[val];
+            }
+        }
+    });
 };
 
 window.toggleDesencarnadoIrr = function(isDesencarnado) {
@@ -1293,7 +1331,7 @@ async function carregarListaIrradiacao() {
                 let checkboxRepetir = `
                     <label style="font-size: 11px; display: flex; align-items: center; gap: 4px; color: var(--text-muted); cursor: pointer; margin-bottom: 6px;">
                         <input type="checkbox" onchange="toggleRenovacaoAutomatica('${item.id}', this.checked)" ${item.renovacao_automatica ? 'checked' : ''}>
-                        [x] Repetir (Reiniciar ciclo automaticamente)
+                        Repetir (Reiniciar ciclo automaticamente)
                     </label>
                 `;
                 
