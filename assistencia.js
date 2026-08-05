@@ -151,7 +151,7 @@ async function carregarListaCestas() {
             *,
             ass_cesta_composicao (
                 quantidade,
-                ass_itens_cesta ( id, descricao, unidade )
+                ass_itens_cesta ( id, codigo, descricao, unidade )
             )
         `).order('tipo');
         if (resCestas.error) throw resCestas.error;
@@ -224,7 +224,7 @@ async function carregarListaCestas() {
                                     ${c.ass_cesta_composicao.length === 0 ? '<span style="font-size:12px; color:var(--text-muted);">Sem itens</span>' : 
                                         c.ass_cesta_composicao.map(comp => `
                                             <div style="display: flex; justify-content: space-between; font-size: 13px; border-bottom: 1px dashed rgba(255,255,255,0.05); padding: 4px 0;">
-                                                <span style="color: var(--text-main);">${comp.ass_itens_cesta?.descricao || 'Item deletado'}</span>
+                                                <span style="color: var(--text-main);">(${comp.ass_itens_cesta?.codigo || '-'}) ${comp.ass_itens_cesta?.descricao || 'Item deletado'}</span>
                                                 <span style="color: var(--text-muted);">${comp.quantidade} ${comp.ass_itens_cesta?.unidade || ''}</span>
                                             </div>
                                         `).join('')
@@ -387,7 +387,7 @@ window.abrirModalNovaCesta = function() {
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px;">
             <label style="display: flex; align-items: center; gap: 8px; color: var(--text-main); font-size: 13px; cursor: pointer;">
                 <input type="checkbox" class="ass-cesta-item-cb" value="${i.id}" onchange="toggleCestaQtd(this, '${i.id}')">
-                ${i.descricao} <span style="color:var(--text-muted); font-size: 11px;">(${i.unidade})</span>
+                (${i.codigo}) ${i.descricao} <span style="color:var(--text-muted); font-size: 11px;">(${i.unidade})</span>
             </label>
             <input type="number" id="qtd_${i.id}" value="1" min="1" step="1" style="width: 60px; background: var(--bg-panel); border: 1px solid var(--border); color: var(--text-main); padding: 4px; border-radius: 4px; display: none;">
         </div>
