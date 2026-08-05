@@ -241,6 +241,7 @@ async function carregarListaCestas() {
                                     <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); font-size: 12px;">
                                         <th style="padding: 8px 4px;">Cód</th>
                                         <th style="padding: 8px 4px;">Descrição</th>
+                                        <th style="padding: 8px 4px;">Estoque</th>
                                         <th style="padding: 8px 4px;">Unidade</th>
                                         <th style="padding: 8px 4px;">Peso (kg)</th>
                                         <th style="padding: 8px 4px;">Status</th>
@@ -252,6 +253,7 @@ async function carregarListaCestas() {
                                         <tr style="border-bottom: 1px solid var(--border); font-size: 13px;">
                                             <td style="padding: 8px 4px; color: #60a5fa;">${i.codigo}</td>
                                             <td style="padding: 8px 4px; color: var(--text-main); font-weight: 500;">${i.descricao}</td>
+                                            <td style="padding: 8px 4px; color: #10b981; font-weight: bold;">${i.estoque_atual || 0}</td>
                                             <td style="padding: 8px 4px; color: var(--text-muted);">${i.unidade}</td>
                                             <td style="padding: 8px 4px; color: var(--text-muted);">${i.peso_kg || '-'}</td>
                                             <td style="padding: 8px 4px;">
@@ -348,13 +350,17 @@ window.abrirModalNovoItem = function() {
                             <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Descrição (Ex: Arroz 5kg)</label>
                             <input type="text" id="assItemDescricao" class="form-control" required style="width: 100%; background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main); padding: 8px; border-radius: 6px;">
                         </div>
-                        <div style="margin-bottom: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div style="margin-bottom: 12px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
                             <div>
-                                <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Unidade</label>
-                                <input type="text" id="assItemUnidade" class="form-control" required placeholder="Ex: pacote, lata" style="width: 100%; background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main); padding: 8px; border-radius: 6px;">
+                                <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Estoque Atual</label>
+                                <input type="number" id="assItemEstoque" class="form-control" placeholder="0" style="width: 100%; background: var(--bg-body); border: 1px solid var(--border); color: #10b981; font-weight: bold; padding: 8px; border-radius: 6px;">
                             </div>
                             <div>
-                                <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Peso Bruto (kg)</label>
+                                <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Unidade</label>
+                                <input type="text" id="assItemUnidade" class="form-control" required placeholder="Ex: pacote" style="width: 100%; background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main); padding: 8px; border-radius: 6px;">
+                            </div>
+                            <div>
+                                <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Peso (kg)</label>
                                 <input type="number" step="0.01" id="assItemPeso" class="form-control" placeholder="Ex: 5" style="width: 100%; background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main); padding: 8px; border-radius: 6px;">
                             </div>
                         </div>
@@ -381,6 +387,7 @@ window.editarItemAss = async function(id) {
         document.getElementById('assItemId').value = item.id;
         document.getElementById('assItemCodigo').value = item.codigo;
         document.getElementById('assItemDescricao').value = item.descricao;
+        document.getElementById('assItemEstoque').value = item.estoque_atual || 0;
         document.getElementById('assItemUnidade').value = item.unidade;
         document.getElementById('assItemPeso').value = item.peso_kg || '';
     }
@@ -396,6 +403,7 @@ window.salvarNovoItemAss = async function(e) {
         const payload = {
             codigo: document.getElementById('assItemCodigo').value.trim(),
             descricao: document.getElementById('assItemDescricao').value.trim(),
+            estoque_atual: document.getElementById('assItemEstoque').value ? parseInt(document.getElementById('assItemEstoque').value) : 0,
             unidade: document.getElementById('assItemUnidade').value.trim(),
             peso_kg: document.getElementById('assItemPeso').value ? parseFloat(document.getElementById('assItemPeso').value) : null
         };
