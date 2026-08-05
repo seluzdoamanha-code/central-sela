@@ -44,23 +44,19 @@ async function carregarDadosEstrutura() {
             document.getElementById('hubName').textContent = data.nome;
             document.getElementById('hubType').textContent = data.tipo;
             
-            // Configuração Dinâmica de Abas
-            let config = data.abas_config;
+            const nomeEstrutura = (data.nome || '').toLowerCase();
+            const isIrradiacao = nomeEstrutura.includes('irradia') || nomeEstrutura.includes('sela');
+            const isAssistencia = nomeEstrutura.includes('assist') && nomeEstrutura.includes('social');
             
-            const nomeStr = (data.nome || '').toLowerCase();
-            const isIrradiacao = nomeStr.includes('irradi') || nomeStr.includes('irradia');
+            // Lógica de exibir Abas com base na configuração do DB
+            let config = data.abas_config || {
+                equipe: true, agenda: true, projetos: true, documentos: true,
+                tesouraria: false,
+                apps: isIrradiacao || isAssistencia
+            };
             
-            if (!config || Object.keys(config).length === 0) {
-                // Regras default se não houver config salva
-                config = {
-                    equipe: true,
-                    agenda: true,
-                    projetos: !['Família', 'Atividade', 'Turma'].includes(data.tipo),
-                    documentos: true,
-                    apps: isIrradiacao
-                };
-            } else if (isIrradiacao) {
-                // Forçar habilitar apps se for Irradiação, mesmo que a config default do banco diga false
+            if (isIrradiacao || isAssistencia) {
+                // Forçar habilitar apps se for módulo nativo
                 config.apps = true;
             }
             
@@ -75,6 +71,8 @@ async function carregarDadosEstrutura() {
                 if(btnApps) btnApps.style.display = 'block';
                 if (isIrradiacao) {
                     carregarAppMiniApps();
+                } else if (isAssistencia) {
+                    carregarAppAssistencia();
                 }
             }
         }
