@@ -984,10 +984,11 @@ window.abrirMiniAppIrradiacao = async function() {
     setTimeout(async () => {
         try {
             const estruturaId = localStorage.getItem('estrutura_atual');
-            const { data, error } = await db.from('app_irradiacao_solicitacoes')
-                .select('nome_solicitado, endereco')
-                .eq('estrutura_id', estruturaId)
-                .order('criado_em', { ascending: false });
+            let query = db.from('app_irradiacao_solicitacoes').select('nome_solicitado, endereco').order('criado_em', { ascending: false });
+            if (estruturaId) {
+                query = query.eq('estrutura_id', estruturaId);
+            }
+            const { data, error } = await query;
                 
             if (!error && data) {
                 window.sugestoesIrradiacao = {};
