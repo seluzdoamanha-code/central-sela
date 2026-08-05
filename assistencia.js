@@ -133,7 +133,75 @@ async function carregarDashboardAssistencia() {
 
 async function carregarListaFamilias() {
     const container = document.getElementById('assFamiliasLista');
-    container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-muted);">Nenhuma família cadastrada.</div>';
+    container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-muted);">Carregando famílias...</div>';
+
+    try {
+        const { data: familias, error } = await db.from('ass_familias').select(`
+            *,
+            responsavel:pessoas!ass_familias_responsavel_id_fkey(nome_completo),
+            ass_membros_familia(
+                id,
+                parentesco,
+                pessoas(nome_completo)
+            )
+        `).order('nome_familia');
+        
+        if (error) throw error;
+
+        if (!familias || familias.length === 0) {
+            container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-muted);">Nenhuma família cadastrada.</div>';
+            return;
+        }
+
+        container.innerHTML = `
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
+                ${familias.map(f => `
+                    <div style="background: var(--bg-body); border: 1px solid var(--border); border-radius: 8px; padding: 16px; position: relative;">
+                        
+                        <div style="position: absolute; top: 16px; right: 16px; display: flex; gap: 8px;">
+                            <button onclick="editarFamiliaAss('${f.id}')" style="background:none; border:none; color: #60a5fa; cursor:pointer;" title="Editar">✏️</button>
+                            <button onclick="excluirFamiliaAss('${f.id}')" style="background:none; border:none; color: #ef4444; cursor:pointer;" title="Excluir">🗑️</button>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                            <h4 style="color: var(--primary); margin: 0; font-size: 16px;">${f.nome_familia}</h4>
+                            <span style="background: #334155; color: #cbd5e1; padding: 2px 6px; border-radius: 4px; font-size: 11px;">${f.codigo}</span>
+                        </div>
+                        
+                        <div style="margin-bottom: 12px; font-size: 13px;">
+                            <span style="color: var(--text-muted);">Responsável:</span> 
+                            <span style="color: var(--text-main); font-weight: 500;">${f.responsavel?.nome_completo || 'Sem cadastro'}</span>
+                        </div>
+                        
+                        <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                            <span style="background: ${f.tipo === 'Extra' ? 'rgba(234,179,8,0.1)' : 'rgba(16,185,129,0.1)'}; color: ${f.tipo === 'Extra' ? '#eab308' : '#10b981'}; padding: 2px 6px; border-radius: 4px; font-size: 11px;">
+                                ${f.tipo}
+                            </span>
+                            <span style="background: ${f.status === 'Ativo' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)'}; color: ${f.status === 'Ativo' ? '#10b981' : '#ef4444'}; padding: 2px 6px; border-radius: 4px; font-size: 11px;">
+                                ${f.status}
+                            </span>
+                        </div>
+
+                        <div style="background: rgba(0,0,0,0.1); border-radius: 6px; padding: 12px;">
+                            <h6 style="color: var(--text-muted); margin: 0 0 8px 0; font-size: 11px; text-transform: uppercase;">Membros da Família (${f.ass_membros_familia?.length || 0}):</h6>
+                            ${!f.ass_membros_familia || f.ass_membros_familia.length === 0 ? '<span style="font-size:12px; color:var(--text-muted);">Nenhum membro vinculado</span>' : 
+                                f.ass_membros_familia.map(m => `
+                                    <div style="display: flex; justify-content: space-between; font-size: 12px; border-bottom: 1px dashed rgba(255,255,255,0.05); padding: 4px 0;">
+                                        <span style="color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${m.pessoas?.nome_completo || 'Sem nome'}</span>
+                                        <span style="color: var(--text-muted); padding-left: 8px;">${m.parentesco}</span>
+                                    </div>
+                                `).join('')
+                            }
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+    } catch(err) {
+        console.error(err);
+        container.innerHTML = '<div style="color: #ef4444; padding: 20px;">Erro ao carregar famílias.</div>';
+    }
 }
 
 async function carregarListaCestas() {
@@ -534,6 +602,235 @@ window.excluirCestaAss = async function(id) {
     }
 };
 
-window.abrirModalNovaFamilia = function() { alert('Modal Nova Família em breve!'); };
+// ==========================================
+// MODAL DE FAMÍLIAS
+// ==========================================
+
+window.abrirModalNovaFamilia = async function() {
+    if(!document.getElementById('modalNovaFamiliaAss')) {
+        document.body.insertAdjacentHTML('beforeend', `
+            <div class="modal-overlay" id="modalNovaFamiliaAss" style="display: none; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999;">
+                <div class="modal-content" style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; padding: 24px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto;">
+                    <h3 id="modalNovaFamiliaAssTitle" style="margin-top: 0; color: var(--text-main);">Nova Família Assistida</h3>
+                    
+                    <div style="background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6; padding: 12px; margin-bottom: 20px; border-radius: 4px;">
+                        <span style="color: #60a5fa; font-weight: bold; font-size: 13px;">⚠️ Importante:</span><br>
+                        <span style="color: #94a3b8; font-size: 13px;">O Responsável e os Membros devem estar previamentes cadastrados no sistema (Tabela Pessoas) com o perfil "Membro da Família". Sem isso, eles não aparecerão na lista de buscas abaixo.</span>
+                    </div>
+
+                    <form id="formNovaFamiliaAss" onsubmit="salvarNovaFamiliaAss(event)">
+                        <input type="hidden" id="assFamiliaId">
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px; margin-bottom: 12px;">
+                            <div>
+                                <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Código (Ex: A01)</label>
+                                <input type="text" id="assFamCodigo" class="form-control" required style="width: 100%; background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main); padding: 8px; border-radius: 6px;">
+                            </div>
+                            <div>
+                                <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Nome de Identificação (Ex: Família Souza)</label>
+                                <input type="text" id="assFamNome" class="form-control" required style="width: 100%; background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main); padding: 8px; border-radius: 6px;">
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                            <div>
+                                <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Tipo de Assistência</label>
+                                <select id="assFamTipo" class="form-control" required style="width: 100%; background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main); padding: 8px; border-radius: 6px;">
+                                    <option value="Fixa/Assistida">Fixa / Assistida</option>
+                                    <option value="Extra">Extra</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Status</label>
+                                <select id="assFamStatus" class="form-control" required style="width: 100%; background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main); padding: 8px; border-radius: 6px;">
+                                    <option value="Ativo">Ativo</option>
+                                    <option value="Inativo">Inativo</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 24px; border-top: 1px solid var(--border); padding-top: 16px;">
+                            <label style="display: block; color: var(--primary); font-weight: 500; margin-bottom: 8px;">Responsável Legal</label>
+                            <select id="assFamResponsavel" class="form-control" required style="width: 100%; background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main); padding: 8px; border-radius: 6px;">
+                                <option value="">Carregando pessoas...</option>
+                            </select>
+                        </div>
+
+                        <div style="margin-bottom: 8px; border-top: 1px solid var(--border); padding-top: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <label style="display: block; color: var(--text-main); font-weight: 500;">Membros da Família</label>
+                                <button type="button" class="btn" onclick="adicionarLinhaMembroAss()" style="padding: 4px 8px; font-size: 12px;">+ Adicionar Membro</button>
+                            </div>
+                            <div id="assFamMembrosContainer" style="background: var(--bg-body); border: 1px solid var(--border); border-radius: 6px; padding: 12px;">
+                                <!-- Linhas de membros dinamicas -->
+                            </div>
+                        </div>
+
+                        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+                            <button type="button" class="btn" onclick="document.getElementById('modalNovaFamiliaAss').style.display='none'">Cancelar</button>
+                            <button type="submit" class="btn btn-primary">Salvar Família</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `);
+    }
+
+    document.getElementById('formNovaFamiliaAss').reset();
+    document.getElementById('assFamiliaId').value = '';
+    document.getElementById('modalNovaFamiliaAssTitle').textContent = 'Nova Família Assistida';
+    document.getElementById('assFamMembrosContainer').innerHTML = ''; // limpa membros
+    
+    // Carregar pessoas do banco
+    const btn = document.querySelector('#formNovaFamiliaAss button[type="submit"]');
+    btn.disabled = true;
+    
+    try {
+        const { data: pessoas, error } = await db.from('pessoas').select('id, nome_completo, papeis').order('nome_completo');
+        if(error) throw error;
+        
+        // Pode ser útil guardar pra usar nos selects de membros
+        window.assPessoasGlobais = pessoas;
+
+        // Populate Responsável
+        const selectResp = document.getElementById('assFamResponsavel');
+        selectResp.innerHTML = '<option value="">-- Selecione uma pessoa --</option>' + 
+            pessoas.map(p => `<option value="${p.id}">${p.nome_completo} ${p.papeis?.includes('Membro da Família') ? '' : '(Sem perfil familiar)'}</option>`).join('');
+            
+    } catch(err) {
+        console.error("Erro ao carregar pessoas:", err);
+    } finally {
+        btn.disabled = false;
+    }
+
+    document.getElementById('modalNovaFamiliaAss').style.display = 'flex';
+};
+
+window.adicionarLinhaMembroAss = function(pessoaId = '', parentesco = '') {
+    const container = document.getElementById('assFamMembrosContainer');
+    
+    const div = document.createElement('div');
+    div.className = 'ass-membro-linha';
+    div.style = 'display: flex; gap: 8px; margin-bottom: 8px;';
+    
+    const pessoasOptions = (window.assPessoasGlobais || []).map(p => 
+        `<option value="${p.id}" ${p.id === pessoaId ? 'selected' : ''}>${p.nome_completo}</option>`
+    ).join('');
+
+    div.innerHTML = `
+        <select class="form-control mem-pessoa" required style="flex: 2; background: var(--bg-panel); border: 1px solid var(--border); color: var(--text-main); padding: 6px; border-radius: 4px;">
+            <option value="">-- Selecione --</option>
+            ${pessoasOptions}
+        </select>
+        <input type="text" class="form-control mem-parentesco" required placeholder="Parentesco (Ex: Filho)" value="${parentesco}" style="flex: 1; background: var(--bg-panel); border: 1px solid var(--border); color: var(--text-main); padding: 6px; border-radius: 4px;">
+        <button type="button" onclick="this.parentElement.remove()" style="background:none; border:none; color: #ef4444; cursor:pointer;" title="Remover">✖</button>
+    `;
+    container.appendChild(div);
+};
+
+window.salvarNovaFamiliaAss = async function(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.textContent = 'Salvando...';
+
+    try {
+        const idEdit = document.getElementById('assFamiliaId').value;
+        const payloadFam = {
+            codigo: document.getElementById('assFamCodigo').value.trim(),
+            tipo: document.getElementById('assFamTipo').value,
+            nome_familia: document.getElementById('assFamNome').value.trim(),
+            responsavel_id: document.getElementById('assFamResponsavel').value,
+            status: document.getElementById('assFamStatus').value
+        };
+
+        let famId = idEdit;
+
+        if (idEdit) {
+            // Update
+            const { error: famError } = await db.from('ass_familias').update(payloadFam).eq('id', idEdit);
+            if(famError) throw famError;
+            
+            // Delete membros antigos
+            await db.from('ass_membros_familia').delete().eq('familia_id', idEdit);
+        } else {
+            // Insert
+            const { data: famData, error: famError } = await db.from('ass_familias').insert(payloadFam).select('id').single();
+            if(famError) throw famError;
+            famId = famData.id;
+        }
+
+        // Insert Membros
+        const linhas = document.querySelectorAll('.ass-membro-linha');
+        const membros = [];
+        linhas.forEach(l => {
+            const pid = l.querySelector('.mem-pessoa').value;
+            const par = l.querySelector('.mem-parentesco').value.trim();
+            if(pid && par) {
+                membros.push({
+                    familia_id: famId,
+                    pessoa_id: pid,
+                    parentesco: par
+                });
+            }
+        });
+
+        if(membros.length > 0) {
+            const { error: memError } = await db.from('ass_membros_familia').insert(membros);
+            if (memError) throw memError;
+        }
+
+        document.getElementById('modalNovaFamiliaAss').style.display = 'none';
+        carregarListaFamilias();
+    } catch(err) {
+        console.error(err);
+        alert('Erro ao salvar Família. Verifique se o código não está duplicado.');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Salvar Família';
+    }
+};
+
+window.editarFamiliaAss = async function(id) {
+    await abrirModalNovaFamilia(); // vai carregar pessoas globais
+    document.getElementById('modalNovaFamiliaAssTitle').textContent = 'Editar Família Assistida';
+    
+    try {
+        const { data: familia, error } = await db.from('ass_familias').select('*, ass_membros_familia(*)').eq('id', id).single();
+        if(error) throw error;
+        
+        document.getElementById('assFamiliaId').value = familia.id;
+        document.getElementById('assFamCodigo').value = familia.codigo;
+        document.getElementById('assFamNome').value = familia.nome_familia;
+        document.getElementById('assFamTipo').value = familia.tipo;
+        document.getElementById('assFamStatus').value = familia.status;
+        document.getElementById('assFamResponsavel').value = familia.responsavel_id;
+        
+        if (familia.ass_membros_familia) {
+            familia.ass_membros_familia.forEach(m => {
+                adicionarLinhaMembroAss(m.pessoa_id, m.parentesco);
+            });
+        }
+    } catch(err) {
+        console.error(err);
+        alert('Erro ao carregar Família.');
+    }
+};
+
+window.excluirFamiliaAss = async function(id) {
+    if(!confirm("Tem certeza que deseja excluir esta Família? Se houver entregas registradas, não será possível.")) return;
+    try {
+        const { error } = await db.from('ass_familias').delete().eq('id', id);
+        if (error) throw error;
+        carregarListaFamilias();
+    } catch(err) {
+        console.error(err);
+        alert('Erro ao excluir família. Verifique se já não existem entregas registradas para ela.');
+    }
+};
+
+// ==========================================
+// OUTROS STUBS
+// ==========================================
 window.abrirModalNovaEntrega = function() { alert('Modal Nova Entrega em breve!'); };
 window.abrirModalNovaOcorrencia = function() { alert('Modal Nova Ocorrência em breve!'); };
