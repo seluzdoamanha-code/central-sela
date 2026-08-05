@@ -1812,12 +1812,19 @@ window.carregarEstatisticasIrradiacao = async function() {
         const historicoPorDia = {};
         const leiturasPorMes = {};
         
+        const pessoasUnicasAtivas = new Set();
+        const pessoasUnicasHistorico = new Set();
+        
         data.forEach(item => {
+            const nomeStr = (item.nome_solicitado || '').trim().toUpperCase();
+            
             if (item.status === 'ativo') {
                 totalAtivos++;
+                if (nomeStr) pessoasUnicasAtivas.add(nomeStr);
                 ativosPorDia[item.dias_semana] = (ativosPorDia[item.dias_semana] || 0) + 1;
             } else if (item.status === 'historico') {
                 totalHistorico++;
+                if (nomeStr) pessoasUnicasHistorico.add(nomeStr);
                 historicoPorDia[item.dias_semana] = (historicoPorDia[item.dias_semana] || 0) + 1;
             }
             
@@ -1870,6 +1877,19 @@ window.carregarEstatisticasIrradiacao = async function() {
                 <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px; text-align: center;">
                     <h4 style="color: var(--text-muted); font-size: 13px; text-transform: uppercase; margin: 0 0 8px 0;">Total de Leituras Realizadas</h4>
                     <div style="font-size: 32px; font-weight: bold; color: #3b82f6;">${Object.values(leiturasPorMes).reduce((a,b)=>a+b, 0)}</div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 16px;">
+                <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px; text-align: center;">
+                    <h4 style="color: var(--text-muted); font-size: 13px; text-transform: uppercase; margin: 0 0 8px 0;">Pessoas Únicas Ativas (Lendo)</h4>
+                    <div style="font-size: 32px; font-weight: bold; color: #10b981;">${pessoasUnicasAtivas.size}</div>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Indivíduos sendo tratados independentemente do dia</div>
+                </div>
+                <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px; text-align: center;">
+                    <h4 style="color: var(--text-muted); font-size: 13px; text-transform: uppercase; margin: 0 0 8px 0;">Pessoas Únicas Concluídas (Histórico)</h4>
+                    <div style="font-size: 32px; font-weight: bold; color: #f59e0b;">${pessoasUnicasHistorico.size}</div>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Indivíduos que já concluíram ciclo independentemente do dia</div>
                 </div>
             </div>
 
