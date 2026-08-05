@@ -1811,6 +1811,7 @@ window.carregarEstatisticasIrradiacao = async function() {
         const ativosPorDia = {};
         const historicoPorDia = {};
         const leiturasPorMes = {};
+        const leiturasPorMesPorDia = {};
         
         const pessoasUnicasAtivas = new Set();
         const pessoasUnicasHistorico = new Set();
@@ -1834,13 +1835,23 @@ window.carregarEstatisticasIrradiacao = async function() {
                 try { logs = JSON.parse(logs); } catch(e) { logs = []; }
             }
             if (Array.isArray(logs) && logs.length > 0) {
+                const diaDaIrradiacao = item.dias_semana || 'Outros';
                 logs.forEach(dateStr => {
                     const date = new Date(dateStr);
                     if (!isNaN(date)) {
                         const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
                         leiturasPorMes[monthKey] = (leiturasPorMes[monthKey] || 0) + 1;
+                        if (!leiturasPorMesPorDia[monthKey]) leiturasPorMesPorDia[monthKey] = {};
+                        leiturasPorMesPorDia[monthKey][diaDaIrradiacao] = (leiturasPorMesPorDia[monthKey][diaDaIrradiacao] || 0) + 1;
                     }
                 });
+            }
+        });
+        
+        // Pessoas que concluíram mas continuam ativas em outro dia não devem ser contadas como totalmente concluídas
+        pessoasUnicasAtivas.forEach(nome => {
+            if (pessoasUnicasHistorico.has(nome)) {
+                pessoasUnicasHistorico.delete(nome);
             }
         });
         
@@ -1922,32 +1933,59 @@ window.carregarEstatisticasIrradiacao = async function() {
             chartContainer.outerHTML = "<p style='color:var(--text-muted); text-align:center; padding: 24px;'>Nenhum dado encontrado para gerar gráfico.</p>";
         } else if (window.Chart) {
             const ctx = chartContainer.getContext('2d');
+            
+            const diasDisponiveis = [
+                'Segunda-feira', 
+                'Terça-feira', 
+                'Quarta-feira (Desobsessão)', 
+                'Quarta-feira (Desencarnado)', 
+                'Quinta-feira', 
+                'Outros'
+            ];
+            
+            const colors = [
+                'rgba(59, 130, 246, 0.7)', // azul
+                'rgba(16, 185, 129, 0.7)', // verde
+                'rgba(245, 158, 11, 0.7)', // amarelo
+                'rgba(236, 72, 153, 0.7)', // rosa
+                'rgba(139, 92, 246, 0.7)', // roxo
+                'rgba(148, 163, 184, 0.7)' // cinza
+            ];
+            
+            const datasets = diasDisponiveis.map((dia, index) => {
+                return {
+                    label: dia,
+                    data: sortedMonths.map(m => (leiturasPorMesPorDia[m] && leiturasPorMesPorDia[m][dia]) ? leiturasPorMesPorDia[m][dia] : 0),
+                    backgroundColor: colors[index],
+                    borderWidth: 0,
+                    borderRadius: 4
+                };
+            }).filter(dataset => dataset.data.some(val => val > 0)); // Remove os dias que não tem nenhuma leitura
+            
             window.irradiacaoChartInstance = new window.Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: chartLabels,
-                    datasets: [{
-                        label: 'Leituras Realizadas',
-                        data: chartData,
-                        backgroundColor: 'rgba(59, 130, 246, 0.5)',
-                        borderColor: 'rgba(59, 130, 246, 1)',
-                        borderWidth: 1,
-                        borderRadius: 4
-                    }]
+                    datasets: datasets
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: false }
+                        legend: { 
+                            display: true, 
+                            labels: { color: '#94a3b8', font: { size: 11 } }
+                        }
                     },
                     scales: {
                         y: {
+                            stacked: true,
                             beginAtZero: true,
                             ticks: { color: '#94a3b8' },
                             grid: { color: 'rgba(255,255,255,0.05)' }
                         },
                         x: {
+                            stacked: true,
                             ticks: { color: '#94a3b8' },
                             grid: { display: false }
                         }
