@@ -1957,10 +1957,22 @@ window.carregarEstatisticasIrradiacao = async function() {
                     label: dia,
                     data: sortedMonths.map(m => (leiturasPorMesPorDia[m] && leiturasPorMesPorDia[m][dia]) ? leiturasPorMesPorDia[m][dia] : 0),
                     backgroundColor: colors[index],
+                    stack: 'Stack 0',
                     borderWidth: 0,
                     borderRadius: 4
                 };
             }).filter(dataset => dataset.data.some(val => val > 0)); // Remove os dias que não tem nenhuma leitura
+            
+            // Adiciona a barra de Total do Mês (em uma pilha separada para ficar lado a lado)
+            datasets.push({
+                label: 'Total do Mês',
+                data: sortedMonths.map(m => leiturasPorMes[m] || 0),
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                borderColor: 'rgba(255, 255, 255, 0.4)',
+                borderWidth: 1,
+                stack: 'Stack 1',
+                borderRadius: 4
+            });
             
             window.irradiacaoChartInstance = new window.Chart(ctx, {
                 type: 'bar',
