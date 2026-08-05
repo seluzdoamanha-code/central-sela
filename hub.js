@@ -1916,7 +1916,7 @@ window.carregarEstatisticasIrradiacao = async function() {
             </div>
 
             <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-top: 16px;">
-                <h4 style="color: white; font-size: 14px; margin: 0 0 16px 0;">Evolução de Leituras por Mês (Esforço da Equipe)</h4>
+                <h4 style="color: var(--text-main); font-size: 14px; margin: 0 0 16px 0;">Evolução de Leituras por Mês (Esforço da Equipe)</h4>
                 <div style="position: relative; height: 300px; width: 100%;">
                     <canvas id="chartLeiturasMensais"></canvas>
                 </div>
@@ -1967,8 +1967,8 @@ window.carregarEstatisticasIrradiacao = async function() {
             datasets.push({
                 label: 'Total do Mês',
                 data: sortedMonths.map(m => leiturasPorMes[m] || 0),
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                borderColor: 'rgba(255, 255, 255, 0.4)',
+                backgroundColor: 'rgba(99, 102, 241, 0.35)', // Indigo
+                borderColor: 'rgba(99, 102, 241, 0.8)',
                 borderWidth: 1,
                 stack: 'Stack 1',
                 borderRadius: 4
