@@ -1094,6 +1094,7 @@ window.carregarPainelGestaoIrradiacao = async function() {
                 <button onclick="mudarAbaIrradiacao('ativos')" id="btnIrrAtivos" class="btn" style="white-space: nowrap; border-radius: 8px;">📋 Painel de Leitura</button>
                 <button onclick="mudarAbaIrradiacao('historico')" id="btnIrrHistorico" class="btn" style="white-space: nowrap; border-radius: 8px;">🗄️ Histórico</button>
                 <button onclick="mudarAbaIrradiacao('estatisticas')" id="btnIrrEstatisticas" class="btn" style="white-space: nowrap; border-radius: 8px;">📊 Estatísticas</button>
+                <button onclick="mudarAbaIrradiacao('limpeza')" id="btnIrrLimpeza" class="btn" style="white-space: nowrap; border-radius: 8px;">🧹 Limpeza</button>
             </div>
             
             <div id="filtrosDiasIrr" style="display: none; gap: 12px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 8px;">
@@ -1111,6 +1112,10 @@ window.carregarPainelGestaoIrradiacao = async function() {
             
             <div id="estatisticasContainer" style="display: none; flex-direction: column; gap: 24px;">
                 <div style="color: var(--text-muted); font-size: 13px;">Carregando estatísticas...</div>
+            </div>
+
+            <div id="limpezaContainer" style="display: none; flex-direction: column; gap: 24px;">
+                <div style="color: var(--text-muted); font-size: 13px;">Buscando possíveis duplicatas...</div>
             </div>
 
             <!-- Modal Fim de Leitura -->
@@ -1182,6 +1187,7 @@ window.mudarAbaIrradiacao = function(aba) {
     const btnHistorico = document.getElementById('btnIrrHistorico');
     
     const btnEstatisticas = document.getElementById('btnIrrEstatisticas');
+    const btnLimpeza = document.getElementById('btnIrrLimpeza');
     
     btnPendentes.style.background = aba === 'pendentes' ? 'rgba(56, 189, 248, 0.2)' : 'transparent';
     btnPendentes.style.color = aba === 'pendentes' ? '#38bdf8' : 'var(--text-muted)';
@@ -1199,18 +1205,33 @@ window.mudarAbaIrradiacao = function(aba) {
     btnEstatisticas.style.color = aba === 'estatisticas' ? '#f59e0b' : 'var(--text-muted)';
     btnEstatisticas.style.border = aba === 'estatisticas' ? '1px solid rgba(245, 158, 11, 0.4)' : '1px solid transparent';
     
+    if (btnLimpeza) {
+        btnLimpeza.style.background = aba === 'limpeza' ? 'rgba(236, 72, 153, 0.2)' : 'transparent';
+        btnLimpeza.style.color = aba === 'limpeza' ? '#ec4899' : 'var(--text-muted)';
+        btnLimpeza.style.border = aba === 'limpeza' ? '1px solid rgba(236, 72, 153, 0.4)' : '1px solid transparent';
+    }
+    
     // Filtros de dia aparecem no "ativos", "historico" e "pendentes"
     const filtrosDias = document.getElementById('filtrosDiasIrr');
     const listaIrradiacoes = document.getElementById('listaIrradiacoes');
     const estatisticasContainer = document.getElementById('estatisticasContainer');
+    const limpezaContainer = document.getElementById('limpezaContainer');
     
     if (aba === 'estatisticas') {
         filtrosDias.style.display = 'none';
         listaIrradiacoes.style.display = 'none';
+        if (limpezaContainer) limpezaContainer.style.display = 'none';
         estatisticasContainer.style.display = 'flex';
         carregarEstatisticasIrradiacao();
+    } else if (aba === 'limpeza') {
+        filtrosDias.style.display = 'none';
+        listaIrradiacoes.style.display = 'none';
+        estatisticasContainer.style.display = 'none';
+        if (limpezaContainer) limpezaContainer.style.display = 'flex';
+        carregarLimpezaIrradiacao();
     } else {
         estatisticasContainer.style.display = 'none';
+        if (limpezaContainer) limpezaContainer.style.display = 'none';
         listaIrradiacoes.style.display = 'flex';
         
         filtrosDias.style.display = 'flex';
@@ -1444,6 +1465,168 @@ window.toggleRenovacaoAutomatica = async function(id, isChecked) {
         alert('Erro ao atualizar opção de repetir ciclo: ' + e.message);
     }
 }
+
+window.levenshteinIrr = function(a, b) {
+    if(a.length === 0) return b.length;
+    if(b.length === 0) return a.length;
+    const matrix = [];
+    for(let i=0; i<=b.length; i++) matrix[i] = [i];
+    for(let j=0; j<=a.length; j++) matrix[0][j] = j;
+    for(let i=1; i<=b.length; i++){
+        for(let j=1; j<=a.length; j++){
+            if(b.charAt(i-1) === a.charAt(j-1)){
+                matrix[i][j] = matrix[i-1][j-1];
+            } else {
+                matrix[i][j] = Math.min(matrix[i-1][j-1]+1, Math.min(matrix[i][j-1]+1, matrix[i-1][j]+1));
+            }
+        }
+    }
+    return matrix[b.length][a.length];
+};
+
+window.similaridadeIrr = function(a, b) {
+    const maxLen = Math.max(a.length, b.length);
+    if(maxLen === 0) return 1.0;
+    const dist = window.levenshteinIrr(a, b);
+    return (maxLen - dist) / maxLen;
+};
+
+window.carregarLimpezaIrradiacao = async function() {
+    const container = document.getElementById('limpezaContainer');
+    container.innerHTML = '<div style="color: var(--text-muted); font-size: 13px;">Baixando e analisando registros... isso pode levar alguns segundos.</div>';
+    
+    try {
+        const estruturaId = localStorage.getItem('estrutura_atual');
+        let query = db.from('app_irradiacao_solicitacoes').select('id, nome_solicitado');
+        if (estruturaId) query = query.eq('estrutura_id', estruturaId);
+        const { data, error } = await query;
+        if (error) throw error;
+        
+        // Count frequencies of each exact name
+        const nomeCounts = {};
+        data.forEach(r => {
+            const n = (r.nome_solicitado || '').toUpperCase().trim();
+            if (n) {
+                nomeCounts[n] = (nomeCounts[n] || 0) + 1;
+            }
+        });
+        
+        const nomesUnicos = Object.keys(nomeCounts);
+        const grupos = [];
+        const processados = new Set();
+        
+        // Compara todos com todos
+        for (let i = 0; i < nomesUnicos.length; i++) {
+            const nomeA = nomesUnicos[i];
+            if (processados.has(nomeA)) continue;
+            
+            let grupoAtual = [nomeA];
+            for (let j = i + 1; j < nomesUnicos.length; j++) {
+                const nomeB = nomesUnicos[j];
+                if (processados.has(nomeB)) continue;
+                
+                // Ignorar nomes muito curtos para não dar falso positivo
+                if (nomeA.length < 5 || nomeB.length < 5) continue;
+                
+                const sim = window.similaridadeIrr(nomeA, nomeB);
+                if (sim >= 0.82) { // 82% de similaridade
+                    grupoAtual.push(nomeB);
+                }
+            }
+            
+            if (grupoAtual.length > 1) {
+                grupoAtual.forEach(n => processados.add(n));
+                grupos.push(grupoAtual);
+            }
+        }
+        
+        if (grupos.length === 0) {
+            container.innerHTML = `
+                <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 24px; border-radius: 12px; text-align: center;">
+                    <div style="font-size: 40px; margin-bottom: 16px;">✨</div>
+                    <h3 style="color: #10b981; margin-bottom: 8px;">Banco de Dados Limpo!</h3>
+                    <p style="color: var(--text-muted); font-size: 14px;">Não encontramos nenhum nome com suspeita de duplicidade ou erro de digitação.</p>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = `
+            <div style="background: rgba(236, 72, 153, 0.1); border: 1px solid rgba(236, 72, 153, 0.2); padding: 16px; border-radius: 12px; margin-bottom: 16px;">
+                <h3 style="color: #ec4899; margin-bottom: 8px; font-size: 16px;">⚠️ Possíveis Duplicatas Encontradas (${grupos.length})</h3>
+                <p style="color: var(--text-muted); font-size: 13px; line-height: 1.5;">O algoritmo identificou nomes muito parecidos. Escolha a grafia correta em cada grupo para unificá-los. Os registros antigos serão atualizados para o nome oficial escolhido (endereços e históricos serão preservados).</p>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+        `;
+        
+        grupos.forEach((grupo, idx) => {
+            html += `<div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
+                <h4 style="color: var(--text-main); font-size: 14px; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px;">Grupo ${idx + 1}</h4>
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+            `;
+            
+            grupo.forEach(nome => {
+                html += `
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 8px; background: rgba(255,255,255,0.03); border-radius: 6px; border: 1px solid transparent;" onmouseover="this.style.border='1px solid var(--border)'" onmouseout="this.style.border='1px solid transparent'">
+                        <input type="radio" name="grupo_${idx}" value="${nome}" style="accent-color: #ec4899;">
+                        <span style="color: var(--text-main); font-size: 14px;">${nome}</span>
+                        <span style="background: rgba(255,255,255,0.1); color: var(--text-muted); padding: 2px 6px; border-radius: 10px; font-size: 11px; margin-left: auto;">${nomeCounts[nome]} registro(s)</span>
+                    </label>
+                `;
+            });
+            
+            const arrayNomesEncoded = encodeURIComponent(JSON.stringify(grupo));
+            html += `</div>
+                <button onclick="unificarNomesIrr(${idx}, '${arrayNomesEncoded}')" class="btn" style="background: rgba(236, 72, 153, 0.15); color: #ec4899; border: 1px solid rgba(236, 72, 153, 0.3); width: 100%;">🔗 Unificar selecionado</button>
+            </div>`;
+        });
+        
+        html += '</div>';
+        container.innerHTML = html;
+        
+    } catch (e) {
+        console.error(e);
+        container.innerHTML = '<div style="color: #ef4444; font-size: 13px;">Erro ao analisar duplicatas.</div>';
+    }
+};
+
+window.unificarNomesIrr = async function(idx, arrayEncoded) {
+    const radios = document.getElementsByName(`grupo_${idx}`);
+    let selecionado = null;
+    for (let r of radios) {
+        if (r.checked) { selecionado = r.value; break; }
+    }
+    
+    if (!selecionado) {
+        alert('Por favor, selecione qual é a grafia correta (oficial) antes de unificar.');
+        return;
+    }
+    
+    if (!confirm(`Tem certeza que deseja atualizar todos os registros deste grupo para o nome:\n\n"${selecionado}"\n\nEssa ação não afeta os endereços ou o andamento das leituras.`)) {
+        return;
+    }
+    
+    const nomesDoGrupo = JSON.parse(decodeURIComponent(arrayEncoded));
+    const nomesErrados = nomesDoGrupo.filter(n => n !== selecionado);
+    
+    try {
+        for (let nomeErrado of nomesErrados) {
+            // Supabase ilike fetch to get the ids
+            const { data: recordsToUpdate } = await db.from('app_irradiacao_solicitacoes').select('id').ilike('nome_solicitado', nomeErrado);
+            if (recordsToUpdate && recordsToUpdate.length > 0) {
+                const ids = recordsToUpdate.map(r => r.id);
+                const { error } = await db.from('app_irradiacao_solicitacoes').update({ nome_solicitado: selecionado }).in('id', ids);
+                if (error) throw error;
+            }
+        }
+        
+        alert('Nomes unificados com sucesso!');
+        carregarLimpezaIrradiacao(); // recarrega a tela
+    } catch (e) {
+        console.error(e);
+        alert('Erro ao unificar nomes: ' + e.message);
+    }
+};
 
 window.aprovarIrradiacao = function(id, nome, endereco, dias_semana) {
     const oldModal = document.getElementById('modalTriagemIrr');
