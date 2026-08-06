@@ -876,10 +876,16 @@ window.carregarAppMiniApps = async function() {
     
     if (isIrradiacao) {
         cards += `
-            <div onclick="abrirMiniAppIrradiacao()" style="background: rgba(79, 70, 229, 0.05); border: 1px solid var(--primary); border-radius: 12px; padding: 24px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.05);" onmouseover="this.style.background='rgba(79, 70, 229, 0.1)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(79, 70, 229, 0.05)'; this.style.transform='none'">
+            <div onclick="abrirMiniAppIrradiacao()" style="background: rgba(79, 70, 229, 0.05); border: 1px solid #4f46e5; border-radius: 12px; padding: 24px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.05);" onmouseover="this.style.background='rgba(79, 70, 229, 0.1)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(79, 70, 229, 0.05)'; this.style.transform='none'">
                 <div style="font-size: 32px; margin-bottom: 12px;">✨</div>
-                <h3 style="color: var(--primary); margin-bottom: 8px;">Irradiação Espiritual</h3>
-                <p style="color: var(--text-muted); font-size: 13px; line-height: 1.4;">Módulo de gestão de solicitações e leitura diária para tratamento espiritual à distância.</p>
+                <h3 style="color: #4f46e5; margin-bottom: 8px;">Irradiação Espiritual</h3>
+                <p style="color: var(--text-muted); font-size: 13px; line-height: 1.4;">Solicitação de preces e tratamentos à distância.</p>
+            </div>
+            
+            <div onclick="carregarPainelGestaoIrradiacao()" style="background: rgba(16, 185, 129, 0.05); border: 1px solid #10b981; border-radius: 12px; padding: 24px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.05);" onmouseover="this.style.background='rgba(16, 185, 129, 0.1)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(16, 185, 129, 0.05)'; this.style.transform='none'">
+                <div style="font-size: 32px; margin-bottom: 12px;">⚙️</div>
+                <h3 style="color: #10b981; margin-bottom: 8px;">Gestão de Irradiações</h3>
+                <p style="color: var(--text-muted); font-size: 13px; line-height: 1.4;">Painel da equipe para leitura de nomes, histórico e estatísticas.</p>
             </div>
         `;
     }
@@ -954,8 +960,6 @@ window.abrirMiniAppIrradiacao = async function() {
                 <h2 style="font-size: 20px; color: var(--text-main); margin-bottom: 8px;">✨ App de Irradiação</h2>
                 <p style="color: var(--text-muted); font-size: 14px;">Nova solicitação de tratamento espiritual.</p>
             </div>
-            
-            <button onclick="carregarPainelGestaoIrradiacao()" class="btn btn-primary" style="background: rgba(16,185,129,0.1); color: #10b981; border: 1px solid rgba(16,185,129,0.3); font-weight: 600;">⚙️ Gerenciar Irradiações (Acesso Equipe)</button>
         </div>
 
         <div style="background: rgba(79, 70, 229, 0.05); border: 1px solid var(--border); border-radius: 12px; padding: 24px; max-width: 600px;">
@@ -1111,7 +1115,7 @@ window.carregarPainelGestaoIrradiacao = async function() {
     
     container.innerHTML = `
         <div style="margin-bottom: 24px;">
-            <button onclick="abrirMiniAppIrradiacao()" class="btn btn-secondary" style="margin-bottom: 16px; font-size: 13px;">← Voltar para Solicitações</button>
+            <button onclick="carregarAppMiniApps()" class="btn btn-secondary" style="margin-bottom: 16px; font-size: 13px;">← Voltar aos Mini-Apps</button>
             <h2 style="font-size: 20px; color: #10b981; margin-bottom: 8px;">⚙️ Gestão de Irradiações</h2>
             <p style="color: var(--text-muted); font-size: 14px;">Painel exclusivo para a equipe de trabalhadores da Irradiação.</p>
         </div>
