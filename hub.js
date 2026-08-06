@@ -1870,6 +1870,7 @@ window.carregarEstatisticasIrradiacao = async function() {
         
         let totalAtivos = 0;
         let totalHistorico = 0;
+        let totalPendentes = 0;
         const ativosPorDia = {};
         const historicoPorDia = {};
         const leiturasPorMes = {};
@@ -1889,6 +1890,8 @@ window.carregarEstatisticasIrradiacao = async function() {
                 totalHistorico++;
                 if (nomeStr) pessoasUnicasHistorico.add(nomeStr);
                 historicoPorDia[item.dias_semana] = (historicoPorDia[item.dias_semana] || 0) + 1;
+            } else if (item.status === 'pendente') {
+                totalPendentes++;
             }
             
             // Processar as leituras reais
@@ -1943,6 +1946,10 @@ window.carregarEstatisticasIrradiacao = async function() {
                 <button onclick="imprimirEstatisticasIrr()" id="btnImprimirEstat" class="btn btn-primary" style="padding: 8px 16px; border-radius: 8px; font-weight: 500;">🖨️ Imprimir / Salvar PDF</button>
             </div>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px; text-align: center;">
+                    <h4 style="color: var(--text-muted); font-size: 13px; text-transform: uppercase; margin: 0 0 8px 0;">Pedidos Pendentes</h4>
+                    <div style="font-size: 32px; font-weight: bold; color: #38bdf8;">${totalPendentes}</div>
+                </div>
                 <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px; text-align: center;">
                     <h4 style="color: var(--text-muted); font-size: 13px; text-transform: uppercase; margin: 0 0 8px 0;">Pessoas Ativas (Lendo)</h4>
                     <div style="font-size: 32px; font-weight: bold; color: #10b981;">${totalAtivos}</div>
