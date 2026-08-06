@@ -321,7 +321,152 @@ async function carregarListaCestas() {
 
 async function carregarListaEntregas() {
     const container = document.getElementById('assEntregasLista');
-    container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-muted);">Nenhuma entrega registrada este mês.</div>';
+    container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-muted);">Carregando painel de entregas...</div>';
+
+    // Estado local para filtros
+    window.assFiltroMes = window.assFiltroMes || new Date().getMonth() + 1;
+    window.assFiltroAno = window.assFiltroAno || new Date().getFullYear();
+
+    try {
+        // Fetch Metas
+        const { data: metasData, error: metaErr } = await db.from('ass_planejamento_mes')
+            .select('*')
+            .eq('mes_ref', window.assFiltroMes)
+            .eq('ano_ref', window.assFiltroAno);
+        if (metaErr) throw metaErr;
+        
+        let metaFixa = 0;
+        let metaExtra = 0;
+        metasData.forEach(m => {
+            if(m.tipo_familia === 'Fixa') metaFixa = m.qtde_valor;
+            if(m.tipo_familia === 'Extra') metaExtra = m.qtde_valor;
+        });
+
+        // Fetch Entregas Realizadas
+        const { data: entregasData, error: entErr } = await db.from('ass_entregas')
+            .select(`
+                *,
+                ass_familias (nome_familia, tipo),
+                ass_cestas_modelos (tipo)
+            `)
+            .eq('mes_ref', window.assFiltroMes)
+            .eq('ano_ref', window.assFiltroAno)
+            .order('data_entrega', { ascending: false });
+        if (entErr) throw entErr;
+
+        let realFixa = 0;
+        let realExtra = 0;
+        
+        entregasData.forEach(e => {
+            const famTipo = e.ass_familias?.tipo;
+            const qtd = e.quantidade_entregue || 1;
+            if (famTipo === 'Fixa' || famTipo === 'Fixa/Assistida') realFixa += qtd;
+            if (famTipo === 'Extra') realExtra += qtd;
+        });
+
+        const calcPercent = (real, meta) => meta > 0 ? Math.min(Math.round((real / meta) * 100), 100) : 0;
+        const percFixa = calcPercent(realFixa, metaFixa);
+        const percExtra = calcPercent(realExtra, metaExtra);
+
+        // Nomes dos meses
+        const mesesNomes = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+        const optionsMeses = mesesNomes.map((nome, i) => `<option value="${i+1}" ${window.assFiltroMes === i+1 ? 'selected' : ''}>${nome}</option>`).join('');
+
+        let html = `
+            <!-- Barra de Filtros e Ações -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; background: var(--bg-body); padding: 16px; border: 1px solid var(--border); border-radius: 8px;">
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <span style="color: var(--text-muted); font-size: 13px;">Período:</span>
+                    <select id="assFiltroMesSelect" class="form-control" style="background: var(--bg-panel); border: 1px solid var(--border); color: var(--text-main); padding: 6px; border-radius: 4px;" onchange="window.assFiltroMes = parseInt(this.value); carregarListaEntregas();">
+                        ${optionsMeses}
+                    </select>
+                    <input type="number" id="assFiltroAnoSelect" class="form-control" style="width: 80px; background: var(--bg-panel); border: 1px solid var(--border); color: var(--text-main); padding: 6px; border-radius: 4px;" value="${window.assFiltroAno}" onchange="window.assFiltroAno = parseInt(this.value); carregarListaEntregas();">
+                </div>
+                <div style="display: flex; gap: 12px;">
+                    <button class="btn" onclick="abrirModalNovaMetaAss()">🎯 Definir Metas do Mês</button>
+                    <button class="btn btn-primary" onclick="abrirModalNovaEntrega()">🚚 Registrar Entrega</button>
+                </div>
+            </div>
+
+            <!-- Dashboard de Metas -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+                <!-- Fixas -->
+                <div style="background: var(--bg-body); border: 1px solid var(--border); border-radius: 8px; padding: 20px;">
+                    <h4 style="margin: 0 0 16px 0; color: var(--text-main); font-size: 15px;">Famílias Fixas</h4>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 12px;">
+                        <div>
+                            <span style="font-size: 28px; font-weight: bold; color: #10b981;">${realFixa}</span>
+                            <span style="color: var(--text-muted); font-size: 14px;"> / ${metaFixa} planejadas</span>
+                        </div>
+                        <span style="color: ${percFixa >= 100 ? '#10b981' : '#60a5fa'}; font-weight: bold;">${percFixa}%</span>
+                    </div>
+                    <div style="width: 100%; background: var(--bg-panel); border-radius: 4px; height: 8px; overflow: hidden;">
+                        <div style="width: ${percFixa}%; background: ${percFixa >= 100 ? '#10b981' : '#3b82f6'}; height: 100%; border-radius: 4px;"></div>
+                    </div>
+                </div>
+
+                <!-- Extras -->
+                <div style="background: var(--bg-body); border: 1px solid var(--border); border-radius: 8px; padding: 20px;">
+                    <h4 style="margin: 0 0 16px 0; color: var(--text-main); font-size: 15px;">Famílias Extras</h4>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 12px;">
+                        <div>
+                            <span style="font-size: 28px; font-weight: bold; color: #eab308;">${realExtra}</span>
+                            <span style="color: var(--text-muted); font-size: 14px;"> / ${metaExtra} planejadas</span>
+                        </div>
+                        <span style="color: ${percExtra >= 100 ? '#10b981' : '#eab308'}; font-weight: bold;">${percExtra}%</span>
+                    </div>
+                    <div style="width: 100%; background: var(--bg-panel); border-radius: 4px; height: 8px; overflow: hidden;">
+                        <div style="width: ${percExtra}%; background: ${percExtra >= 100 ? '#10b981' : '#eab308'}; height: 100%; border-radius: 4px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabela de Histórico -->
+            <div style="background: var(--bg-body); border: 1px solid var(--border); border-radius: 8px; padding: 16px;">
+                <h4 style="color: var(--text-main); margin-top: 0; margin-bottom: 16px;">Histórico de Entregas (${mesesNomes[window.assFiltroMes-1]} / ${window.assFiltroAno})</h4>
+                ${entregasData.length === 0 ? '<p style="color:var(--text-muted); font-size:13px; text-align: center; padding: 20px;">Nenhuma entrega registrada neste mês.</p>' : `
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); font-size: 12px;">
+                                    <th style="padding: 8px 4px;">Data</th>
+                                    <th style="padding: 8px 4px;">Família</th>
+                                    <th style="padding: 8px 4px;">Perfil</th>
+                                    <th style="padding: 8px 4px;">Cesta Entregue</th>
+                                    <th style="padding: 8px 4px;">Qtd</th>
+                                    <th style="padding: 8px 4px; text-align: right;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${entregasData.map(e => `
+                                    <tr style="border-bottom: 1px solid var(--border); font-size: 13px;">
+                                        <td style="padding: 8px 4px; color: var(--text-muted);">${e.data_entrega.split('-').reverse().join('/')}</td>
+                                        <td style="padding: 8px 4px; color: var(--text-main); font-weight: 500;">${e.ass_familias?.nome_familia || 'Família Deletada'}</td>
+                                        <td style="padding: 8px 4px;">
+                                            <span style="background: ${e.ass_familias?.tipo === 'Extra' ? 'rgba(234,179,8,0.1)' : 'rgba(16,185,129,0.1)'}; color: ${e.ass_familias?.tipo === 'Extra' ? '#eab308' : '#10b981'}; padding: 2px 6px; border-radius: 4px; font-size: 11px;">
+                                                ${e.ass_familias?.tipo || '?'}
+                                            </span>
+                                        </td>
+                                        <td style="padding: 8px 4px; color: var(--text-muted);">${e.ass_cestas_modelos?.tipo || 'Cesta Deletada'}</td>
+                                        <td style="padding: 8px 4px; color: var(--text-muted);">${e.quantidade_entregue}</td>
+                                        <td style="padding: 8px 4px; text-align: right;">
+                                            <button onclick="excluirEntregaAss('${e.id}')" style="background:none; border:none; color: #ef4444; cursor:pointer;" title="Excluir (O estoque NÃO voltará automaticamente)">🗑️</button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `}
+            </div>
+        `;
+
+        container.innerHTML = html;
+
+    } catch(err) {
+        console.error(err);
+        container.innerHTML = '<div style="color: #ef4444; padding: 20px;">Erro ao carregar os dados de entregas.</div>';
+    }
 }
 
 async function carregarListaOcorrencias() {
@@ -858,5 +1003,223 @@ window.excluirFamiliaAss = async function(id) {
 // ==========================================
 // OUTROS STUBS
 // ==========================================
-window.abrirModalNovaEntrega = function() { alert('Modal Nova Entrega em breve!'); };
 window.abrirModalNovaOcorrencia = function() { alert('Modal Nova Ocorrência em breve!'); };
+
+// ==========================================
+// MODAIS DE ENTREGAS E METAS
+// ==========================================
+
+window.abrirModalNovaMetaAss = async function() {
+    if(!document.getElementById('modalNovaMetaAss')) {
+        document.body.insertAdjacentHTML('beforeend', `
+            <div class="modal-overlay" id="modalNovaMetaAss" style="display: none; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999;">
+                <div class="modal-content" style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; padding: 24px; width: 100%; max-width: 400px;">
+                    <h3 style="margin-top: 0; color: var(--text-main);">Definir Metas do Mês</h3>
+                    <form id="formNovaMetaAss" onsubmit="salvarNovaMetaAss(event)">
+                        <div style="margin-bottom: 12px;">
+                            <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Meta de Cestas (Famílias Fixas)</label>
+                            <input type="number" id="assMetaFixa" class="form-control" required style="width: 100%; background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main); padding: 8px; border-radius: 6px;">
+                        </div>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Meta de Cestas (Famílias Extras)</label>
+                            <input type="number" id="assMetaExtra" class="form-control" required style="width: 100%; background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main); padding: 8px; border-radius: 6px;">
+                        </div>
+                        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+                            <button type="button" class="btn" onclick="document.getElementById('modalNovaMetaAss').style.display='none'">Cancelar</button>
+                            <button type="submit" class="btn btn-primary">Salvar Metas</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `);
+    }
+    
+    // Tenta buscar se já tem meta pra preencher o form
+    document.getElementById('assMetaFixa').value = '';
+    document.getElementById('assMetaExtra').value = '';
+    try {
+        const { data } = await db.from('ass_planejamento_mes')
+            .select('*')
+            .eq('mes_ref', window.assFiltroMes)
+            .eq('ano_ref', window.assFiltroAno);
+        
+        if(data) {
+            data.forEach(m => {
+                if(m.tipo_familia === 'Fixa') document.getElementById('assMetaFixa').value = m.qtde_valor;
+                if(m.tipo_familia === 'Extra') document.getElementById('assMetaExtra').value = m.qtde_valor;
+            });
+        }
+    } catch(e) {}
+
+    document.getElementById('modalNovaMetaAss').style.display = 'flex';
+};
+
+window.salvarNovaMetaAss = async function(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.textContent = 'Salvando...';
+
+    try {
+        const valFixa = parseInt(document.getElementById('assMetaFixa').value) || 0;
+        const valExtra = parseInt(document.getElementById('assMetaExtra').value) || 0;
+        
+        // Deletamos as metas deste mês para recriar (simples)
+        await db.from('ass_planejamento_mes')
+            .delete()
+            .eq('mes_ref', window.assFiltroMes)
+            .eq('ano_ref', window.assFiltroAno);
+            
+        const payload = [
+            { ano_ref: window.assFiltroAno, mes_ref: window.assFiltroMes, tipo_familia: 'Fixa', qtde_valor: valFixa },
+            { ano_ref: window.assFiltroAno, mes_ref: window.assFiltroMes, tipo_familia: 'Extra', qtde_valor: valExtra }
+        ];
+        
+        const { error } = await db.from('ass_planejamento_mes').insert(payload);
+        if (error) throw error;
+        
+        document.getElementById('modalNovaMetaAss').style.display = 'none';
+        carregarListaEntregas();
+    } catch(err) {
+        console.error(err);
+        alert('Erro ao salvar metas.');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Salvar Metas';
+    }
+};
+
+window.abrirModalNovaEntrega = async function() {
+    if(!document.getElementById('modalNovaEntregaAss')) {
+        document.body.insertAdjacentHTML('beforeend', `
+            <div class="modal-overlay" id="modalNovaEntregaAss" style="display: none; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999;">
+                <div class="modal-content" style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; padding: 24px; width: 100%; max-width: 500px;">
+                    <h3 style="margin-top: 0; color: var(--text-main);">Registrar Nova Entrega</h3>
+                    
+                    <div style="background: rgba(59, 130, 246, 0.1); border-left: 4px solid #3b82f6; padding: 12px; margin-bottom: 20px; border-radius: 4px;">
+                        <span style="color: #60a5fa; font-weight: bold; font-size: 13px;">Baixa de Estoque:</span><br>
+                        <span style="color: #94a3b8; font-size: 13px;">Ao confirmar a entrega, o sistema subtrairá automaticamente do estoque as quantidades dos itens que compõem a cesta selecionada. O estoque pode ficar negativo caso não tenha sido atualizado previamente.</span>
+                    </div>
+
+                    <form id="formNovaEntregaAss" onsubmit="salvarNovaEntregaAss(event)">
+                        <div style="margin-bottom: 12px;">
+                            <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Data da Entrega</label>
+                            <input type="date" id="assEntData" class="form-control" required style="width: 100%; background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main); padding: 8px; border-radius: 6px;">
+                        </div>
+                        
+                        <div style="margin-bottom: 12px;">
+                            <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Família Assistida</label>
+                            <select id="assEntFamilia" class="form-control" required style="width: 100%; background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main); padding: 8px; border-radius: 6px;">
+                                <option value="">Carregando famílias...</option>
+                            </select>
+                        </div>
+
+                        <div style="margin-bottom: 12px;">
+                            <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Modelo de Cesta Entregue</label>
+                            <select id="assEntCesta" class="form-control" required style="width: 100%; background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main); padding: 8px; border-radius: 6px;">
+                                <option value="">Carregando cestas...</option>
+                            </select>
+                        </div>
+                        
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Quantidade de Cestas</label>
+                            <input type="number" id="assEntQtd" class="form-control" required value="1" min="1" style="width: 100%; background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main); padding: 8px; border-radius: 6px;">
+                        </div>
+
+                        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+                            <button type="button" class="btn" onclick="document.getElementById('modalNovaEntregaAss').style.display='none'">Cancelar</button>
+                            <button type="submit" class="btn btn-primary">Confirmar Entrega</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `);
+    }
+
+    document.getElementById('formNovaEntregaAss').reset();
+    document.getElementById('assEntData').value = new Date().toISOString().split('T')[0];
+    
+    try {
+        // Fetch famílias
+        const { data: familias } = await db.from('ass_familias').select('id, nome_familia, codigo').eq('status', 'Ativo').order('nome_familia');
+        document.getElementById('assEntFamilia').innerHTML = '<option value="">-- Selecione a família --</option>' + 
+            (familias || []).map(f => `<option value="${f.id}">${f.codigo} - ${f.nome_familia}</option>`).join('');
+
+        // Fetch cestas
+        const { data: cestas } = await db.from('ass_cestas_modelos').select('id, codigo, tipo').order('tipo');
+        document.getElementById('assEntCesta').innerHTML = '<option value="">-- Selecione o modelo --</option>' + 
+            (cestas || []).map(c => `<option value="${c.id}">${c.codigo} - ${c.tipo}</option>`).join('');
+            
+    } catch(e) {
+        console.error(e);
+    }
+
+    document.getElementById('modalNovaEntregaAss').style.display = 'flex';
+};
+
+window.salvarNovaEntregaAss = async function(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.textContent = 'Lançando...';
+
+    try {
+        const dataStr = document.getElementById('assEntData').value;
+        const [ano, mes] = dataStr.split('-');
+        
+        const payload = {
+            data_entrega: dataStr,
+            ano_ref: parseInt(ano),
+            mes_ref: parseInt(mes),
+            familia_id: document.getElementById('assEntFamilia').value,
+            cesta_id: document.getElementById('assEntCesta').value,
+            quantidade_entregue: parseInt(document.getElementById('assEntQtd').value) || 1
+        };
+
+        // 1. Inserir a entrega
+        const { error: entErr } = await db.from('ass_entregas').insert(payload);
+        if (entErr) throw entErr;
+
+        // 2. Dar baixa no estoque
+        // Pega a composição da cesta escolhida
+        const { data: composicao } = await db.from('ass_cesta_composicao').select('item_id, quantidade').eq('cesta_id', payload.cesta_id);
+        
+        if (composicao && composicao.length > 0) {
+            // Para cada item da cesta, temos que buscar o estoque atual e subtrair
+            for (const comp of composicao) {
+                const qtdSubtrair = comp.quantidade * payload.quantidade_entregue;
+                
+                // Busca estoque atual
+                const { data: itemData } = await db.from('ass_itens_cesta').select('estoque_atual').eq('id', comp.item_id).single();
+                
+                if (itemData) {
+                    const novoEstoque = (itemData.estoque_atual || 0) - qtdSubtrair;
+                    // Atualiza
+                    await db.from('ass_itens_cesta').update({ estoque_atual: novoEstoque }).eq('id', comp.item_id);
+                }
+            }
+        }
+
+        document.getElementById('modalNovaEntregaAss').style.display = 'none';
+        carregarListaEntregas();
+        
+    } catch(err) {
+        console.error(err);
+        alert('Erro ao registrar entrega.');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Confirmar Entrega';
+    }
+};
+
+window.excluirEntregaAss = async function(id) {
+    if(!confirm("Deseja realmente excluir esta entrega? (O sistema NÃO devolverá automaticamente o estoque dos itens, você precisará ajustar manualmente).")) return;
+    try {
+        const { error } = await db.from('ass_entregas').delete().eq('id', id);
+        if (error) throw error;
+        carregarListaEntregas();
+    } catch(err) {
+        console.error(err);
+        alert('Erro ao excluir entrega.');
+    }
+};
