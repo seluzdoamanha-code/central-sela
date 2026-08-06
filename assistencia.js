@@ -471,7 +471,74 @@ async function carregarListaEntregas() {
 
 async function carregarListaOcorrencias() {
     const container = document.getElementById('assOcorrenciasLista');
-    container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-muted);">Nenhuma ocorrência registrada.</div>';
+    container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-muted);">Carregando ocorrências...</div>';
+
+    try {
+        const { data, error } = await db.from('ass_ocorrencias')
+            .select('*, ass_familias(nome_familia, codigo)')
+            .order('data_ocorrencia', { ascending: false });
+            
+        if (error) throw error;
+
+        let html = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h3 style="margin: 0; color: var(--text-main);">Livro de Ocorrências e Visitas</h3>
+                <button class="btn btn-primary" onclick="abrirModalNovaOcorrencia()">📝 Registrar Ocorrência</button>
+            </div>
+            
+            <div style="background: var(--bg-body); border: 1px solid var(--border); border-radius: 8px; padding: 16px;">
+                ${(!data || data.length === 0) ? '<p style="color:var(--text-muted); font-size:13px; text-align: center; padding: 20px;">Nenhuma ocorrência registrada no sistema.</p>' : `
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); font-size: 12px;">
+                                    <th style="padding: 8px 4px; width: 100px;">Data</th>
+                                    <th style="padding: 8px 4px; width: 100px;">Cód.</th>
+                                    <th style="padding: 8px 4px;">Família</th>
+                                    <th style="padding: 8px 4px; width: 120px;">Tipo</th>
+                                    <th style="padding: 8px 4px;">Observação</th>
+                                    <th style="padding: 8px 4px; text-align: right; width: 80px;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.map(o => {
+                                    let corTipo = '#94a3b8'; // Default Normal
+                                    if(o.tipo === 'Grave') corTipo = '#ef4444';
+                                    if(o.tipo === 'Familiar') corTipo = '#8b5cf6';
+                                    if(o.tipo === 'Entrega') corTipo = '#f59e0b';
+                                    
+                                    return `
+                                    <tr style="border-bottom: 1px solid var(--border); font-size: 13px;">
+                                        <td style="padding: 12px 4px; color: var(--text-muted);">${o.data_ocorrencia.split('-').reverse().join('/')}</td>
+                                        <td style="padding: 12px 4px; color: #60a5fa; font-weight: bold;">${o.codigo}</td>
+                                        <td style="padding: 12px 4px; color: var(--text-main); font-weight: 500;">
+                                            ${o.ass_familias ? `${o.ass_familias.codigo} - ${o.ass_familias.nome_familia}` : 'Família Removida'}
+                                        </td>
+                                        <td style="padding: 12px 4px;">
+                                            <span style="background: ${corTipo}22; color: ${corTipo}; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">
+                                                ${o.tipo}
+                                            </span>
+                                        </td>
+                                        <td style="padding: 12px 4px; color: var(--text-muted); max-width: 300px; white-space: pre-wrap; word-wrap: break-word;">${o.observacao || '-'}</td>
+                                        <td style="padding: 12px 4px; text-align: right;">
+                                            <button onclick="excluirOcorrenciaAss('${o.id}')" style="background:none; border:none; color: #ef4444; cursor:pointer;" title="Excluir Ocorrência">🗑️</button>
+                                        </td>
+                                    </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `}
+            </div>
+        `;
+
+        container.innerHTML = html;
+
+    } catch(err) {
+        console.error(err);
+        container.innerHTML = '<div style="color: #ef4444; padding: 20px;">Erro ao carregar ocorrências.</div>';
+    }
 }
 
 // ==========================================
@@ -1003,7 +1070,125 @@ window.excluirFamiliaAss = async function(id) {
 // ==========================================
 // OUTROS STUBS
 // ==========================================
-window.abrirModalNovaOcorrencia = function() { alert('Modal Nova Ocorrência em breve!'); };
+// ==========================================
+// MODAIS DE OCORRÊNCIAS
+// ==========================================
+
+window.abrirModalNovaOcorrencia = async function() {
+    if(!document.getElementById('modalNovaOcorrenciaAss')) {
+        document.body.insertAdjacentHTML('beforeend', `
+            <div class="modal-overlay" id="modalNovaOcorrenciaAss" style="display: none; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999;">
+                <div class="modal-content" style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 12px; padding: 24px; width: 100%; max-width: 500px;">
+                    <h3 style="margin-top: 0; color: var(--text-main);">Registrar Nova Ocorrência</h3>
+
+                    <form id="formNovaOcorrenciaAss" onsubmit="salvarNovaOcorrenciaAss(event)">
+                        <div style="margin-bottom: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <div>
+                                <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Data</label>
+                                <input type="date" id="assOcorData" class="form-control" required style="width: 100%; background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main); padding: 8px; border-radius: 6px;">
+                            </div>
+                            <div>
+                                <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Código (Ex: RO001)</label>
+                                <input type="text" id="assOcorCodigo" class="form-control" required style="width: 100%; background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main); padding: 8px; border-radius: 6px;">
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 12px;">
+                            <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Família Envolvida</label>
+                            <select id="assOcorFamilia" class="form-control" required style="width: 100%; background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main); padding: 8px; border-radius: 6px;">
+                                <option value="">Carregando famílias...</option>
+                            </select>
+                        </div>
+
+                        <div style="margin-bottom: 12px;">
+                            <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Tipo de Ocorrência</label>
+                            <select id="assOcorTipo" class="form-control" required style="width: 100%; background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main); padding: 8px; border-radius: 6px;">
+                                <option value="Normal">Normal (Visita/Acompanhamento)</option>
+                                <option value="Grave">Grave (Problema/Alerta)</option>
+                                <option value="Entrega">Problema na Entrega</option>
+                                <option value="Familiar">Conflito/Questão Familiar</option>
+                                <option value="Outros">Outros</option>
+                            </select>
+                        </div>
+                        
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Relato / Observação</label>
+                            <textarea id="assOcorObs" class="form-control" rows="4" required style="width: 100%; background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main); padding: 8px; border-radius: 6px; resize: vertical;"></textarea>
+                        </div>
+
+                        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+                            <button type="button" class="btn" onclick="document.getElementById('modalNovaOcorrenciaAss').style.display='none'">Cancelar</button>
+                            <button type="submit" class="btn btn-primary">Salvar Ocorrência</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `);
+    }
+
+    document.getElementById('formNovaOcorrenciaAss').reset();
+    document.getElementById('assOcorData').value = new Date().toISOString().split('T')[0];
+    
+    // Gerar um código sugerido (RO + Timestamp)
+    const timestamp = new Date().getTime().toString().slice(-4);
+    document.getElementById('assOcorCodigo').value = 'RO' + timestamp;
+    
+    try {
+        const { data: familias } = await db.from('ass_familias').select('id, nome_familia, codigo').order('nome_familia');
+        document.getElementById('assOcorFamilia').innerHTML = '<option value="">-- Selecione a família --</option>' + 
+            (familias || []).map(f => `<option value="${f.id}">${f.codigo} - ${f.nome_familia}</option>`).join('');
+    } catch(e) {
+        console.error(e);
+    }
+
+    document.getElementById('modalNovaOcorrenciaAss').style.display = 'flex';
+};
+
+window.salvarNovaOcorrenciaAss = async function(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.textContent = 'Salvando...';
+
+    try {
+        const payload = {
+            data_ocorrencia: document.getElementById('assOcorData').value,
+            codigo: document.getElementById('assOcorCodigo').value.trim(),
+            familia_id: document.getElementById('assOcorFamilia').value,
+            tipo: document.getElementById('assOcorTipo').value,
+            observacao: document.getElementById('assOcorObs').value.trim()
+        };
+
+        const { error } = await db.from('ass_ocorrencias').insert(payload);
+        if (error) throw error;
+
+        document.getElementById('modalNovaOcorrenciaAss').style.display = 'none';
+        carregarListaOcorrencias();
+        
+    } catch(err) {
+        console.error(err);
+        if (err.code === '23505') {
+            alert('Erro: Já existe uma ocorrência com este Código (RO).');
+        } else {
+            alert('Erro ao registrar ocorrência.');
+        }
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Salvar Ocorrência';
+    }
+};
+
+window.excluirOcorrenciaAss = async function(id) {
+    if(!confirm("Deseja realmente excluir esta ocorrência do livro?")) return;
+    try {
+        const { error } = await db.from('ass_ocorrencias').delete().eq('id', id);
+        if (error) throw error;
+        carregarListaOcorrencias();
+    } catch(err) {
+        console.error(err);
+        alert('Erro ao excluir ocorrência.');
+    }
+};
 
 // ==========================================
 // MODAIS DE ENTREGAS E METAS
