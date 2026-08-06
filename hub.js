@@ -69,10 +69,8 @@ async function carregarDadosEstrutura() {
             if (config.apps) {
                 const btnApps = document.querySelector('[data-target="abaApps"]');
                 if(btnApps) btnApps.style.display = 'block';
-                if (isIrradiacao) {
+                if (isIrradiacao || isAssistencia) {
                     carregarAppMiniApps();
-                } else if (isAssistencia) {
-                    carregarAppAssistencia();
                 }
             }
         }
@@ -868,6 +866,40 @@ let currentIrradiacaoDia = 'Segunda-feira';
 async function carregarAppMiniApps() {
     const container = document.getElementById('containerApps');
     
+    // Obter nomeEstrutura
+    const nomeHub = document.getElementById('hubName').textContent || '';
+    const nomeEstrutura = nomeHub.toLowerCase();
+    const isIrradiacao = nomeEstrutura.includes('irradia') || nomeEstrutura.includes('sela');
+    const isAssistencia = nomeEstrutura.includes('assist') && nomeEstrutura.includes('social');
+    
+    let cards = '';
+    
+    if (isIrradiacao) {
+        cards += `
+            <div onclick="abrirMiniAppIrradiacao()" style="background: rgba(79, 70, 229, 0.05); border: 1px solid var(--primary); border-radius: 12px; padding: 24px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.05);" onmouseover="this.style.background='rgba(79, 70, 229, 0.1)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(79, 70, 229, 0.05)'; this.style.transform='none'">
+                <div style="font-size: 32px; margin-bottom: 12px;">✨</div>
+                <h3 style="color: var(--primary); margin-bottom: 8px;">Irradiação Espiritual</h3>
+                <p style="color: var(--text-muted); font-size: 13px; line-height: 1.4;">Módulo de gestão de solicitações e leitura diária para tratamento espiritual à distância.</p>
+            </div>
+        `;
+    }
+    
+    if (isAssistencia) {
+        cards += `
+            <div onclick="carregarAppFamilias()" style="background: rgba(236, 72, 153, 0.05); border: 1px solid #ec4899; border-radius: 12px; padding: 24px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.05);" onmouseover="this.style.background='rgba(236, 72, 153, 0.1)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(236, 72, 153, 0.05)'; this.style.transform='none'">
+                <div style="font-size: 32px; margin-bottom: 12px;">👨‍👩‍👧‍👦</div>
+                <h3 style="color: #ec4899; margin-bottom: 8px;">Famílias Assistidas</h3>
+                <p style="color: var(--text-muted); font-size: 13px; line-height: 1.4;">Acompanhamento Social, Diário de Ocorrências e Cadastro de Dependentes.</p>
+            </div>
+            
+            <div onclick="carregarAppAssistencia()" style="background: rgba(16, 185, 129, 0.05); border: 1px solid #10b981; border-radius: 12px; padding: 24px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.05);" onmouseover="this.style.background='rgba(16, 185, 129, 0.1)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(16, 185, 129, 0.05)'; this.style.transform='none'">
+                <div style="font-size: 32px; margin-bottom: 12px;">📦</div>
+                <h3 style="color: #10b981; margin-bottom: 8px;">Logística de Cestas</h3>
+                <p style="color: var(--text-muted); font-size: 13px; line-height: 1.4;">Gestão do Almoxarifado, Cestas Básicas, Campanhas e Metas de Entrega.</p>
+            </div>
+        `;
+    }
+    
     container.innerHTML = `
         <div style="margin-bottom: 24px;">
             <h2 style="font-size: 20px; color: var(--text-main); margin-bottom: 8px;">📱 Mini-Apps</h2>
@@ -875,12 +907,7 @@ async function carregarAppMiniApps() {
         </div>
         
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
-            <!-- Card Irradiação -->
-            <div onclick="abrirMiniAppIrradiacao()" style="background: rgba(79, 70, 229, 0.05); border: 1px solid var(--primary); border-radius: 12px; padding: 24px; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.05);" onmouseover="this.style.background='rgba(79, 70, 229, 0.1)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(79, 70, 229, 0.05)'; this.style.transform='none'">
-                <div style="font-size: 32px; margin-bottom: 12px;">✨</div>
-                <h3 style="color: var(--primary); margin-bottom: 8px;">Irradiação Espiritual</h3>
-                <p style="color: var(--text-muted); font-size: 13px; line-height: 1.4;">Módulo de gestão de solicitações e leitura diária para tratamento espiritual à distância.</p>
-            </div>
+            ${cards}
             
             <!-- Placeholder para futuros apps -->
             <div style="background: rgba(255, 255, 255, 0.02); border: 1px dashed var(--border); border-radius: 12px; padding: 24px; text-align: center; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.5;">
