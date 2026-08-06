@@ -19,7 +19,7 @@ window.carregarAppFamilias = async function() {
             <!-- Menu Interno do App -->
             <div style="display: flex; gap: 8px; padding: 16px; border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none;">
                 <button onclick="mudarAbaFamilias('dashboard')" id="btnFamDashboard" class="btn" style="white-space: nowrap; border-radius: 8px;">📊 Dashboard</button>
-                <button onclick="mudarAbaFamilias('familias')" id="btnFamCadastro" class="btn" style="white-space: nowrap; border-radius: 8px;">👨‍👩‍👧‍👦 Famílias</button>
+                <button onclick="mudarAbaFamilias('cadastro')" id="btnFamCadastro" class="btn" style="white-space: nowrap; border-radius: 8px;">👨‍👩‍👧‍👦 Famílias</button>
                 
                 
                 <button onclick="mudarAbaFamilias('ocorrencias')" id="btnFamOcorrencias" class="btn" style="white-space: nowrap; border-radius: 8px;">📋 Ocorrências</button>

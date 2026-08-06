@@ -863,7 +863,7 @@ window.salvarProjeto = async (e) => {
 let currentIrradiacaoTab = 'pendentes';
 let currentIrradiacaoDia = 'Segunda-feira';
 
-async function carregarAppMiniApps() {
+window.carregarAppMiniApps = async function() {
     const container = document.getElementById('containerApps');
     
     // Obter nomeEstrutura
