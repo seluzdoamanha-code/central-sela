@@ -69,11 +69,11 @@ window.mudarAbaFamilias = function(aba) {
     
     abas.forEach(a => {
         // Esconder conteúdo
-        const el = document.getElementById('ass' + a.charAt(0).toUpperCase() + a.slice(1));
+        const el = document.getElementById('fam' + a.charAt(0).toUpperCase() + a.slice(1));
         if (el) el.style.display = 'none';
         
         // Resetar botões
-        const btn = document.getElementById('btnAss' + a.charAt(0).toUpperCase() + a.slice(1));
+        const btn = document.getElementById('btnFam' + a.charAt(0).toUpperCase() + a.slice(1));
         if (btn) {
             btn.classList.remove('btn-primary');
             btn.style.fontWeight = 'normal';
@@ -97,8 +97,6 @@ window.mudarAbaFamilias = function(aba) {
     // Disparar carregamento de dados conforme a aba
     if (aba === 'dashboard') carregarDashboardFamilias();
     if (aba === 'cadastro') carregarListaFamilias();
-    if (aba === 'cestas') carregarListaCestas();
-    if (aba === 'entregas') carregarListaEntregas();
     if (aba === 'ocorrencias') carregarListaOcorrencias();
 };
 
@@ -112,11 +110,11 @@ async function carregarDashboardFamilias() {
     
     try {
         // 1. Radar de Famílias
-        const resFam = await db.from('ass_familias').select('id, fixa');
+        const resFam = await db.from('ass_familias').select('id, tipo');
         if (resFam.error) throw resFam.error;
         
         const totalFamilias = resFam.data.length;
-        const totalFixas = resFam.data.filter(f => f.fixa).length;
+        const totalFixas = resFam.data.filter(f => f.tipo === 'Fixa/Assistida').length;
         const totalExtras = totalFamilias - totalFixas;
         
         // 2. Alerta Social (Ocorrências Graves nos últimos 30 dias)
