@@ -190,12 +190,15 @@ async function salvarSociais() {
 // ----------------------------------------------------
 async function carregarPerfis() {
     try {
-        const { data, error } = await db.from('configuracoes').select('valor').eq('chave', 'perfis_pessoas').single();
-        if (data && data.valor) {
-            document.getElementById('inPerfis').value = data.valor;
-        } else {
-            // Default tags se não existir
-            document.getElementById('inPerfis').value = "Presidente, Vice-Presidente, Secretário, Tesoureiro, Conselheiro, Diretor, Coordenador, Associado Efetivo, Associado Proponente, Ex-Associado, Voluntário, Colaborador(a), Palestrante, Evangelizando, Estudante, Assistido(a), Paciente, Membro da Família, Empresa Parceira, Parceiro, Fornecedor, Passista, Líder, Outros";
+        const { data, error } = await db.from('configuracoes').select('*').in('chave', ['perfis_pessoas', 'tags_lideranca']);
+        let map = {};
+        if (data) data.forEach(d => map[d.chave] = d.valor);
+
+        if (document.getElementById('inPerfis')) {
+            document.getElementById('inPerfis').value = map['perfis_pessoas'] || "Presidente, Vice-Presidente, Secretário, Tesoureiro, Conselheiro, Diretor, Coordenador, Associado Efetivo, Associado Proponente, Ex-Associado, Voluntário, Colaborador(a), Palestrante, Evangelizando, Estudante, Assistido(a), Paciente, Membro da Família, Empresa Parceira, Parceiro, Fornecedor, Passista, Líder, Outros";
+        }
+        if (document.getElementById('inLideranca')) {
+            document.getElementById('inLideranca').value = map['tags_lideranca'] || "diretor, líder, lider, coordenador, gerente, presidente";
         }
     } catch(err) {
         console.log("Erro ao carregar perfis, usando default", err);
@@ -218,5 +221,24 @@ window.salvarPerfis = async function(e) {
     } finally {
         btn.disabled = false;
         btn.textContent = 'Salvar Perfis';
+    }
+};
+
+window.salvarLideranca = async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnSalvarLideranca');
+    btn.disabled = true;
+    btn.textContent = 'Salvando...';
+    try {
+        const valor = document.getElementById('inLideranca').value;
+        const { error } = await db.from('configuracoes').upsert({ chave: 'tags_lideranca', valor: valor }, { onConflict: 'chave' });
+        if (error) throw error;
+        showAviso('Regras de Liderança salvas com sucesso!');
+    } catch (err) {
+        console.error("Erro ao salvar liderança", err);
+        alert("Erro ao salvar regras.");
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Salvar Regras';
     }
 };

@@ -89,6 +89,14 @@ async function carregarDadosEstrutura() {
 // ==========================================
 async function carregarEquipe() {
     try {
+        let tagsLideranca = ['diretor', 'diretora', 'diretoria', 'direção', 'direcao', 'líder', 'lider', 'coordenador', 'coordenadora', 'gerente', 'presidente', 'presidenta'];
+        try {
+            const { data } = await db.from('configuracoes').select('valor').eq('chave', 'tags_lideranca').single();
+            if (data && data.valor) {
+                tagsLideranca = data.valor.split(',').map(s => s.trim().toLowerCase()).filter(s => s !== '');
+            }
+        } catch(e) {}
+
         const { data, error } = await db
             .from('vinculos_estrutura')
             .select(`
@@ -122,20 +130,7 @@ async function carregarEquipe() {
             const pessoa = rel.pessoas;
             if (!pessoa) return;
             
-            const isLider = rel.papel && (
-                rel.papel.toLowerCase().includes('diretor') ||
-                rel.papel.toLowerCase().includes('diretora') ||
-                rel.papel.toLowerCase().includes('diretoria') ||
-                rel.papel.toLowerCase().includes('direção') ||
-                rel.papel.toLowerCase().includes('direcao') ||
-                rel.papel.toLowerCase().includes('líder') ||
-                rel.papel.toLowerCase().includes('lider') ||
-                rel.papel.toLowerCase().includes('coordenador') ||
-                rel.papel.toLowerCase().includes('coordenadora') ||
-                rel.papel.toLowerCase().includes('gerente') ||
-                rel.papel.toLowerCase().includes('presidente') ||
-                rel.papel.toLowerCase().includes('presidenta')
-            );
+            const isLider = rel.papel && tagsLideranca.some(tag => rel.papel.toLowerCase().includes(tag));
             
             // Format phone if it exists
             const telefone = pessoa.celular ? `<div style="font-size: 11px; margin-top: 4px; color: var(--text-muted);">📱 ${pessoa.celular}</div>` : '';

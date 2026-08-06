@@ -176,6 +176,20 @@
                         </div>
                     </form>
                 </div>
+                <!-- Seção de Liderança -->
+                <div class="config-section">
+                    <div class="config-header">
+                        <h2 class="config-title">Regras de Liderança (Organograma)</h2>
+                        <p class="config-desc">Defina as palavras-chave (separadas por vírgula) que identificam um Perfil de Liderança no Organograma (ex: Diretor, Coordenador, Presidente).</p>
+                    </div>
+                    
+                    <form id="formLideranca" onsubmit="salvarLideranca(event)">
+                        <textarea id="inLideranca" class="input-field" rows="2" placeholder="Ex: Diretor, Coordenador, Presidente, Líder" style="width: 100%; resize: vertical; margin-bottom: 16px; font-family: monospace;"></textarea>
+                        <div style="display: flex; justify-content: flex-end;">
+                            <button type="submit" id="btnSalvarLideranca" class="btn btn-primary">Salvar Regras</button>
+                        </div>
+                    </form>
+                </div>
                 
                 <!-- Seção de Redes Sociais -->
                 <div class="config-section">
