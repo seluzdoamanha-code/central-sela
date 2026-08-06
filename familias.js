@@ -6,8 +6,9 @@ window.carregarAppFamilias = async function() {
     const abaApps = document.getElementById('abaApps');
     
     abaApps.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
             <div>
+                <button onclick="carregarAppMiniApps()" class="btn btn-secondary" style="margin-bottom: 16px; font-size: 13px;">← Voltar aos Mini-Apps</button>
                 <h2 style="color: var(--text-main); margin: 0; font-size: 24px;">Famílias Assistidas</h2>
                 <p style="color: var(--text-muted); margin: 4px 0 0 0; font-size: 14px;">Acompanhamento Social e Diário de Ocorrências</p>
             </div>
@@ -124,7 +125,7 @@ async function carregarDashboardFamilias() {
         
         const resOco = await db.from('ass_ocorrencias')
             .select('tags')
-            .gte('data_ocorrencia', trintaDiasAtras.toISOString());
+            .gte('data_ocorrencia', trintaDiasAtras.toISOString().split('T')[0]);
             
         let alertasSociais = 0;
         if (resOco.data) {

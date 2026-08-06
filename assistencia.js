@@ -6,8 +6,9 @@ window.carregarAppAssistencia = async function() {
     const abaApps = document.getElementById('abaApps');
     
     abaApps.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
             <div>
+                <button onclick="carregarAppMiniApps()" class="btn btn-secondary" style="margin-bottom: 16px; font-size: 13px;">← Voltar aos Mini-Apps</button>
                 <h2 style="color: var(--text-main); margin: 0; font-size: 24px;">Logística de Cestas (Almoxarifado)</h2>
                 <p style="color: var(--text-muted); margin: 4px 0 0 0; font-size: 14px;">Gestão de Estoque e Planejamento de Entregas</p>
             </div>
@@ -110,7 +111,7 @@ async function carregarDashboardAssistencia() {
     
     try {
         // 1. Termômetro do Estoque (Itens zerados ou negativos)
-        const resEstoque = await db.from('ass_itens_cesta').select('nome, estoque_atual');
+        const resEstoque = await db.from('ass_itens_cesta').select('descricao, estoque_atual');
         if (resEstoque.error) throw resEstoque.error;
         
         let itensCriticos = 0;
