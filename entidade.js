@@ -177,3 +177,17 @@ window.editarEstrutura = async (id) => {
     
     document.getElementById('modalEstrutura').classList.add('show');
 };
+
+window.excluirEstrutura = async (id) => {
+    if (!confirm("Tem certeza que deseja excluir esta estrutura? Todas as permissões e vínculos abaixo dela poderão ser afetados.")) return;
+    
+    try {
+        const { error } = await db.from('estruturas').delete().eq('id', id);
+        if (error) throw error;
+        
+        carregarEstruturas();
+    } catch (error) {
+        console.error('Erro ao excluir estrutura:', error);
+        alert('Erro ao excluir. Tente novamente.');
+    }
+};

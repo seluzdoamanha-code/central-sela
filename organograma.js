@@ -245,10 +245,10 @@ function renderizarGrafico(vinculos) {
                         let deleteBtn = '';
                         if (!isVirtual) {
                             deleteBtn = `
-                            <div style="width: 100%; display: flex; justify-content: flex-end; padding: 8px 8px 0 0; margin-bottom: -24px; z-index: 10;">
-                                <div onclick="window.excluirVinculo('${d.data.id}')" 
+                            <div style="width: 100%; display: flex; justify-content: flex-end; padding: 8px 8px 0 0; margin-bottom: -24px; position: relative; z-index: 100;">
+                                <div onclick="event.stopPropagation(); event.preventDefault(); window.excluirVinculo('${d.data.id}');" 
                                      style="cursor: pointer; background: #ef4444; color: white; width: 24px; height: 24px; 
-                                            border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                                            border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); pointer-events: auto;">
                                     🗑️
                                 </div>
                             </div>`;
