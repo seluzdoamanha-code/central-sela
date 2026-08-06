@@ -133,8 +133,16 @@ async function carregarEquipe() {
             const isLider = rel.papel && tagsLideranca.some(tag => rel.papel.toLowerCase().includes(tag));
             
             // Format phone if it exists
-            const telefone = pessoa.celular ? `<div style="font-size: 11px; margin-top: 4px; color: var(--text-muted);">📱 ${pessoa.celular}</div>` : '';
-            const emailIcon = pessoa.email ? `<div style="font-size: 11px; margin-top: 2px; color: var(--text-muted);">✉️ ${pessoa.email}</div>` : '';
+            let telefone = '';
+            if (pessoa.celular) {
+                const zap = pessoa.celular.replace(/\D/g, '');
+                telefone = `<div style="font-size: 11px; margin-top: 4px; color: var(--text-muted);"><a href="https://wa.me/55${zap}" target="_blank" style="color: inherit; text-decoration: none;" title="Abrir WhatsApp">📱 ${pessoa.celular}</a></div>`;
+            }
+            
+            let emailIcon = '';
+            if (pessoa.email) {
+                emailIcon = `<div style="font-size: 11px; margin-top: 2px; color: var(--text-muted);"><a href="mailto:${pessoa.email}" style="color: inherit; text-decoration: none;" title="Enviar E-mail">✉️ ${pessoa.email}</a></div>`;
+            }
             
             const cardHtml = `
             <div style="background: var(--bg-panel); border: 1px solid ${isLider ? 'var(--primary)' : 'var(--border)'}; border-radius: 8px; padding: 16px; display: flex; flex-direction: column;">
