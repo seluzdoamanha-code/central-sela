@@ -26,6 +26,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Formulario de Documentos
     document.getElementById('formDoc').addEventListener('submit', salvarDocumento);
     
+    // Formulario Tesouraria
+    const formTesouraria = document.getElementById('formTesourariaEnvio');
+    if (formTesouraria) {
+        formTesouraria.addEventListener('submit', salvarEnvioTesouraria);
+    }
+    
     // Formulario de Projetos
     const formProj = document.getElementById('formProjeto');
     if(formProj) formProj.addEventListener('submit', salvarProjeto);
@@ -398,6 +404,61 @@ async function popularSelectDepartamentos() {
         }
     } catch (e) {
         container.innerHTML = '<span style="color: #ef4444;">Erro ao carregar</span>';
+    }
+}
+
+async function salvarEnvioTesouraria(e) {
+    e.preventDefault();
+    
+    const btnSubmit = document.getElementById('btnTesourariaSubmit');
+    btnSubmit.disabled = true;
+    btnSubmit.textContent = 'Enviando...';
+    
+    try {
+        const descricao = document.getElementById('tesourariaDescricao').value;
+        const fileInput = document.getElementById('tesourariaArquivo');
+        let arquivoUrl = null;
+        
+        if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+            const filePath = `tesouraria/${fileName}`;
+            
+            const { error: uploadError } = await db.storage
+                .from('documentos')
+                .upload(filePath, file);
+                
+            if (uploadError) throw uploadError;
+            
+            const { data: publicUrlData } = db.storage.from('documentos').getPublicUrl(filePath);
+            arquivoUrl = publicUrlData.publicUrl;
+        }
+        
+        const { data: sessionData } = await db.auth.getSession();
+        let remetenteNome = 'Desconhecido';
+        if (sessionData?.session?.user) {
+            remetenteNome = sessionData.session.user.user_metadata?.full_name || sessionData.session.user.email || 'Desconhecido';
+        }
+        
+        const { error: dbError } = await db.from('app_tesouraria_envios').insert([{
+            descricao: descricao,
+            arquivo_url: arquivoUrl,
+            remetente_nome: remetenteNome,
+            status: 'pendente',
+            estrutura_origem_id: estruturaId
+        }]);
+        
+        if (dbError) throw dbError;
+        
+        alert('Enviado com sucesso para a Tesouraria!');
+        document.getElementById('formTesourariaEnvio').reset();
+    } catch (error) {
+        console.error('Erro ao enviar para tesouraria:', error);
+        alert('Erro ao enviar. Verifique o console.');
+    } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = 'Enviar para Tesouraria';
     }
 }
 
