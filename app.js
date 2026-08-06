@@ -524,8 +524,8 @@ window.excluirPessoa = async (id) => {
     }
 };
 
-window.renderizarTagsDisponiveis = () => {
-    const TAGS = [
+window.renderizarTagsDisponiveis = async () => {
+    let TAGS = [
         "Presidente", "Vice-Presidente", "Secretário", "Tesoureiro", 
         "Conselheiro", "Diretor", "Coordenador", "Associado Efetivo", 
         "Associado Proponente", "Ex-Associado", "Voluntário", "Colaborador(a)", 
@@ -533,6 +533,15 @@ window.renderizarTagsDisponiveis = () => {
         "Membro da Família", "Empresa Parceira", "Parceiro", "Fornecedor", 
         "Passista", "Líder", "Outros"
     ];
+
+    try {
+        const { data, error } = await db.from('configuracoes').select('valor').eq('chave', 'perfis_pessoas').single();
+        if (data && data.valor) {
+            TAGS = data.valor.split(',').map(s => s.trim()).filter(s => s !== '');
+        }
+    } catch(err) {
+        console.log("Usando tags default");
+    }
     
     const container = document.getElementById('tagsCheckboxContainer');
     if (container) {

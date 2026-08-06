@@ -4,6 +4,7 @@ const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 document.addEventListener('DOMContentLoaded', async () => {
     await carregarDepartamentos();
+    await carregarPerfis();
     await carregarSociais();
     
     document.getElementById('btnSalvarSociais').addEventListener('click', salvarSociais);
@@ -183,3 +184,39 @@ async function salvarSociais() {
         btn.textContent = 'Salvar Redes Sociais';
     }
 }
+
+// ----------------------------------------------------
+// LÓGICA DE PERFIS/TAGS
+// ----------------------------------------------------
+async function carregarPerfis() {
+    try {
+        const { data, error } = await db.from('configuracoes').select('valor').eq('chave', 'perfis_pessoas').single();
+        if (data && data.valor) {
+            document.getElementById('inPerfis').value = data.valor;
+        } else {
+            // Default tags se não existir
+            document.getElementById('inPerfis').value = "Presidente, Vice-Presidente, Secretário, Tesoureiro, Conselheiro, Diretor, Coordenador, Associado Efetivo, Associado Proponente, Ex-Associado, Voluntário, Colaborador(a), Palestrante, Evangelizando, Estudante, Assistido(a), Paciente, Membro da Família, Empresa Parceira, Parceiro, Fornecedor, Passista, Líder, Outros";
+        }
+    } catch(err) {
+        console.log("Erro ao carregar perfis, usando default", err);
+    }
+}
+
+window.salvarPerfis = async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnSalvarPerfis');
+    btn.disabled = true;
+    btn.textContent = 'Salvando...';
+    try {
+        const valor = document.getElementById('inPerfis').value;
+        const { error } = await db.from('configuracoes').upsert({ chave: 'perfis_pessoas', valor: valor }, { onConflict: 'chave' });
+        if (error) throw error;
+        showAviso('Perfis de pessoas salvos com sucesso!');
+    } catch (err) {
+        console.error("Erro ao salvar perfis", err);
+        alert("Erro ao salvar perfis.");
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Salvar Perfis';
+    }
+};

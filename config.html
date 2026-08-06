@@ -162,6 +162,20 @@
                         <!-- Injetado via JS -->
                     </div>
                 </div>
+                <!-- Seção de Perfis/Tags -->
+                <div class="config-section">
+                    <div class="config-header">
+                        <h2 class="config-title">Perfis / Tags de Pessoas</h2>
+                        <p class="config-desc">Defina as tags de perfis que os voluntários poderão usar ao classificar as Pessoas no sistema. (Separe por vírgulas)</p>
+                    </div>
+                    
+                    <form id="formPerfis" onsubmit="salvarPerfis(event)">
+                        <textarea id="inPerfis" class="input-field" rows="4" placeholder="Ex: Presidente, Voluntário, Assistido(a), Membro da Família" style="width: 100%; resize: vertical; margin-bottom: 16px; font-family: monospace;"></textarea>
+                        <div style="display: flex; justify-content: flex-end;">
+                            <button type="submit" id="btnSalvarPerfis" class="btn btn-primary">Salvar Perfis</button>
+                        </div>
+                    </form>
+                </div>
                 
                 <!-- Seção de Redes Sociais -->
                 <div class="config-section">
