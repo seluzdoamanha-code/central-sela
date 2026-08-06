@@ -3,9 +3,9 @@
 // ==========================================
 
 window.carregarAppFamilias = async function() {
-    const abaApps = document.getElementById('abaApps');
+    const container = document.getElementById('containerApps');
     
-    abaApps.innerHTML = `
+    container.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px;">
             <div>
                 <button onclick="carregarAppMiniApps()" class="btn btn-secondary" style="margin-bottom: 16px; font-size: 13px;">← Voltar aos Mini-Apps</button>
