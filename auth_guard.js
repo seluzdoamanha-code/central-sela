@@ -23,7 +23,7 @@ async function checkAuth() {
             };
             
             if (mobileMap[filename]) {
-                window.location.replace(mobileMap[filename] + window.location.search);
+                window.location.replace(mobileMap[filename] + window.location.search + window.location.hash);
                 return;
             }
         }
