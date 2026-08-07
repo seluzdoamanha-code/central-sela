@@ -26,7 +26,7 @@
                 </div>
                 <nav class="main-nav" id="sidebarNav" style="flex: 1;">
                     <a href="index.html" class="nav-item ${currentPage === 'index.html' ? 'active' : ''}" title="Início / Mural">🏠 <span class="nav-text">Início / Mural</span></a>
-                    <a href="entidade.html" class="nav-item ${currentPage === 'entidade.html' || currentPage === 'hub.html' ? 'active' : ''}" title="Entidade & Atividades">🏛️ <span class="nav-text">Entidade & Atividades</span></a>
+                    <a href="atividades.html" class="nav-item ${currentPage === 'atividades.html' || currentPage === 'hub.html' ? 'active' : ''}" title="Atividades">📅 <span class="nav-text">Atividades</span></a>
                     <a href="pessoas.html" class="nav-item ${currentPage === 'pessoas.html' || currentPage === 'perfil.html' ? 'active' : ''}" title="Pessoas & Perfis">👥 <span class="nav-text">Pessoas & Perfis</span></a>
                     
                     <div style="height: 1px; background: rgba(255,255,255,0.05); margin: 8px 16px;" class="desktop-only"></div>
@@ -73,9 +73,9 @@
                     <span class="bottom-nav-icon">🏠</span>
                     <span class="bottom-nav-text">Início</span>
                 </a>
-                <a href="entidade.html" class="bottom-nav-item ${currentPage === 'entidade.html' || currentPage === 'hub.html' ? 'active' : ''}">
-                    <span class="bottom-nav-icon">🏛️</span>
-                    <span class="bottom-nav-text">Entidade</span>
+                <a href="atividades.html" class="bottom-nav-item ${currentPage === 'atividades.html' || currentPage === 'hub.html' ? 'active' : ''}">
+                    <span class="bottom-nav-icon">📅</span>
+                    <span class="bottom-nav-text">Atividades</span>
                 </a>
                 <a href="pessoas.html" class="bottom-nav-item ${currentPage === 'pessoas.html' || currentPage === 'perfil.html' ? 'active' : ''}">
                     <span class="bottom-nav-icon">👥</span>

@@ -12,10 +12,20 @@ async function checkAuth() {
     const filename = window.location.pathname.split('/').pop() || 'index.html';
     if (!filename.startsWith('m_') && filename !== 'login.html') {
         if (window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-            // Mapeia para a equivalente mobile se existir, senao m_index
-            const hasMobileEq = ['index.html', 'pessoas.html', 'perfil.html'].includes(filename);
-            window.location.replace(hasMobileEq ? "m_" + filename + window.location.search : "m_index.html");
-            return;
+            // Mapeia para a equivalente mobile se existir
+            const mobileMap = {
+                'index.html': 'm_index.html',
+                'pessoas.html': 'm_pessoas.html',
+                'perfil.html': 'm_perfil.html',
+                'atividades.html': 'm_atividades.html',
+                'entidade.html': 'm_atividades.html',
+                'config.html': 'm_config.html'
+            };
+            
+            if (mobileMap[filename]) {
+                window.location.replace(mobileMap[filename] + window.location.search);
+                return;
+            }
         }
     }
 
