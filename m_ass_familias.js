@@ -56,7 +56,7 @@
         document.getElementById('mLoadingState').style.display = 'block';
 
         try {
-            const { data, error } = await db.from('ass_familias').select('*').order('nome_familia');
+            const { data, error } = await db.from('ass_familias').select('*, ass_membros_familia(id)').order('nome_familia');
             if (error) throw error;
             
             allFamilias = data || [];
@@ -88,6 +88,10 @@
         });
 
         renderizar(filtrados);
+        const headerTitle = document.getElementById('mMainTitle');
+        if (headerTitle) {
+            headerTitle.innerText = `Famílias Assistidas (${filtrados.length})`;
+        }
     }
 
     function renderizar(dados) {
@@ -103,16 +107,22 @@
             const card = document.createElement('div');
             card.className = 'm-fam-card';
             
-            const bairroStr = f.endereco_bairro ? f.endereco_bairro : 'Bairro ñ info';
+            const membersCount = f.ass_membros_familia ? f.ass_membros_familia.length + 1 : 1;
+            const tipoStr = f.tipo || 'Fixa/Assistida';
 
             card.innerHTML = `
                 <div class="m-fam-header">
                     <div class="m-fam-name">${f.nome_familia || 'Sem Nome'}</div>
                     <div class="m-fam-status status-${f.status || 'Ativa'}">${f.status || 'Ativa'}</div>
                 </div>
-                <div class="m-fam-info">
-                    <span class="m-fam-code">${f.codigo || 'S/C'}</span>
-                    <span>${bairroStr}</span>
+                <div class="m-fam-info" style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <span class="m-fam-code" style="margin-right:6px; font-weight:600; color:var(--text-main);">${f.codigo || 'S/C'}</span>
+                        <span style="font-size:13px;">Membros (${membersCount})</span>
+                    </div>
+                    <div style="font-size:11px; color:var(--text-muted); background:rgba(255,255,255,0.05); padding:3px 8px; border-radius:12px;">
+                        ${tipoStr}
+                    </div>
                 </div>
             `;
             

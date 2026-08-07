@@ -225,7 +225,7 @@ async function carregarListaFamilias() {
                             <span style="background: ${f.tipo === 'Extra' ? 'rgba(234,179,8,0.1)' : 'rgba(16,185,129,0.1)'}; color: ${f.tipo === 'Extra' ? '#eab308' : '#10b981'}; padding: 2px 6px; border-radius: 4px; font-size: 11px;">
                                 ${f.tipo}
                             </span>
-                            <span style="background: ${f.status === 'Ativo' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)'}; color: ${f.status === 'Ativo' ? '#10b981' : '#ef4444'}; padding: 2px 6px; border-radius: 4px; font-size: 11px;">
+                            <span style="background: ${f.status === 'Ativa' || f.status === 'Ativo' ? 'rgba(16,185,129,0.1)' : f.status === 'Triagem' ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)'}; color: ${f.status === 'Ativa' || f.status === 'Ativo' ? '#10b981' : f.status === 'Triagem' ? '#f59e0b' : '#ef4444'}; padding: 2px 6px; border-radius: 4px; font-size: 11px;">
                                 ${f.status}
                             </span>
                         </div>
@@ -646,8 +646,9 @@ window.abrirModalNovaFamilia = async function() {
                             <div>
                                 <label style="display: block; color: var(--text-muted); font-size: 13px; margin-bottom: 4px;">Status</label>
                                 <select id="assFamStatus" class="form-control" required style="width: 100%; background: var(--bg-body); border: 1px solid var(--border); color: var(--text-main); padding: 8px; border-radius: 6px;">
-                                    <option value="Ativo">Ativo</option>
-                                    <option value="Inativo">Inativo</option>
+                                    <option value="Ativa">Ativa</option>
+                                    <option value="Triagem">Triagem</option>
+                                    <option value="Inativa">Inativa</option>
                                 </select>
                             </div>
                         </div>
