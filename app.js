@@ -294,12 +294,14 @@ function renderizarTabela(dados) {
                     </div>
                 </td>
                 <td style="text-align: right;">
+                    ${(typeof window.podeEditarPessoas === 'function' && window.podeEditarPessoas()) ? `
                     <button onclick="editarPessoa('${pessoa.id}')" class="btn-primary" style="padding: 4px 12px; font-size: 12px; min-width: auto;">
                         Editar
                     </button>
                     <button onclick="excluirPessoa('${pessoa.id}')" class="btn-primary" style="padding: 4px 12px; font-size: 12px; min-width: auto; background: var(--bg-dark); border: 1px solid var(--border); color: #ef4444;">
                         Excluir
                     </button>
+                    ` : ''}
                     <a href="perfil.html?id=${pessoa.id}" class="btn-primary" style="padding: 4px 12px; font-size: 12px; min-width: auto; background: var(--bg-dark); border: 1px solid var(--primary); color: var(--primary); text-decoration: none; margin-left: 8px;">Acessar Perfil &rarr;</a>
                 </td>
             </tr>
