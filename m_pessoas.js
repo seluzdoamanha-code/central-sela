@@ -47,12 +47,12 @@
 
     async function carregarPessoas() {
         const loading = document.getElementById('mLoadingState');
-        const container = document.getElementById('mListPessoas');
+        if (loading) loading.innerText = 'Buscando do banco...';
 
         try {
-            const { data, error } = await db.from('pessoas').select('id, nome_completo, nome_curto, tipo_pessoa, papeis, celular, cpf_cnpj, foto_url, created_at').order('nome_completo');
+            const { data, error } = await db.from('pessoas').select('id, nome_completo, nome_curto, tipo_pessoa, papeis, celular, email, cpf_cnpj, foto_url, created_at').order('nome_completo');
             
-            loading.style.display = 'none';
+            if (loading) loading.style.display = 'none';
 
             if (error) throw error;
 
