@@ -27,6 +27,10 @@
                 
                 document.getElementById('btnSaveEdit').addEventListener('click', salvarEdicao);
                 
+                // Esconde exclusao em modo "Novo"
+                const btnExcluir = document.getElementById('btnExcluir');
+                if (btnExcluir) btnExcluir.style.display = 'none';
+                
                 preencherFormulario();
                 modal.classList.add('open');
                 return;
@@ -77,6 +81,26 @@
                     v = v.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
                 }
                 e.target.value = v;
+            });
+        }
+
+        const btnExcluir = document.getElementById('btnExcluir');
+        if (btnExcluir) {
+            btnExcluir.addEventListener('click', async () => {
+                if (!currentId) return;
+                const conf = confirm('Tem certeza que deseja excluir esta pessoa permanentemente? Esta ação não pode ser desfeita.');
+                if (conf) {
+                    try {
+                        btnExcluir.innerText = 'Excluindo...';
+                        const { error } = await db.from('pessoas').delete().eq('id', currentId);
+                        if (error) throw error;
+                        window.location.href = 'm_pessoas.html';
+                    } catch (e) {
+                        console.error(e);
+                        alert('Erro ao excluir. Verifique se a pessoa possui vínculos.');
+                        btnExcluir.innerText = '🗑️ Excluir Pessoa';
+                    }
+                }
             });
         }
     });
@@ -240,6 +264,10 @@
         document.getElementById('inpCidade').value = p.cidade || '';
         document.getElementById('inpEstado').value = p.estado || '';
 
+        // Limpar arquivo de foto para nova edicao
+        const inpFoto = document.getElementById('inpFoto');
+        if (inpFoto) inpFoto.value = '';
+
         // Checkboxes de Papeis
         const checkboxes = document.querySelectorAll('input[name="mPapeis"]');
         checkboxes.forEach(cb => {
@@ -270,6 +298,28 @@
         };
 
         try {
+            // Verifica Foto
+            const inpFoto = document.getElementById('inpFoto');
+            if (inpFoto && inpFoto.files && inpFoto.files.length > 0) {
+                btnSaveEdit.innerText = 'Subindo Foto...';
+                const file = inpFoto.files[0];
+                const ext = file.name.split('.').pop();
+                const fileName = `${Math.random()}.${ext}`;
+                
+                const { error: uploadError } = await db.storage
+                    .from('fotos_perfil')
+                    .upload(fileName, file);
+
+                if (!uploadError) {
+                    const { data: publicUrlData } = db.storage
+                        .from('fotos_perfil')
+                        .getPublicUrl(fileName);
+                    dados.foto_url = publicUrlData.publicUrl;
+                }
+            }
+
+            btnSaveEdit.innerText = 'Salvando Dados...';
+
             if (currentId) {
                 const { error } = await db.from('pessoas').update(dados).eq('id', currentId);
                 if (error) throw error;
