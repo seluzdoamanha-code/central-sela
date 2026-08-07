@@ -8,6 +8,13 @@
     document.addEventListener('DOMContentLoaded', async () => {
         await carregarPessoas();
 
+        // Se voltar pela navegação nativa do Safari/Chrome (BFCache), recarrega
+        window.addEventListener('pageshow', (e) => {
+            if (e.persisted) {
+                carregarPessoas();
+            }
+        });
+
         // Configurar busca e filtros
         const searchInput = document.getElementById('mSearchInput');
         const filterTipo = document.getElementById('mFilterTipo');
