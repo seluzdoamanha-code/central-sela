@@ -8,13 +8,27 @@
     document.addEventListener('DOMContentLoaded', async () => {
         await carregarPessoas();
 
-        // Configurar busca
+        // Configurar busca e filtros
         const searchInput = document.getElementById('mSearchInput');
-        if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
-                filtrarLista(e.target.value);
+        const filterTipo = document.getElementById('mFilterTipo');
+        const sortOrder = document.getElementById('mSortOrder');
+        const btnToggleFilter = document.getElementById('btnToggleFilter');
+        const filterPanel = document.getElementById('mFilterPanel');
+
+        if (btnToggleFilter && filterPanel) {
+            btnToggleFilter.addEventListener('click', () => {
+                const isHidden = filterPanel.style.display === 'none';
+                filterPanel.style.display = isHidden ? 'flex' : 'none';
+                btnToggleFilter.style.color = isHidden ? 'var(--primary)' : 'var(--text-muted)';
+                btnToggleFilter.style.borderColor = isHidden ? 'var(--primary)' : 'var(--border)';
             });
         }
+
+        const triggerFilter = () => filtrarLista();
+
+        if (searchInput) searchInput.addEventListener('input', triggerFilter);
+        if (filterTipo) filterTipo.addEventListener('change', triggerFilter);
+        if (sortOrder) sortOrder.addEventListener('change', triggerFilter);
     });
 
     function obterIniciais(nome) {
@@ -29,7 +43,7 @@
         const container = document.getElementById('mListPessoas');
 
         try {
-            const { data, error } = await db.from('pessoas').select('id, nome_completo, nome_curto, tipo_pessoa, papeis, celular, cpf_cnpj, foto_url').order('nome_completo');
+            const { data, error } = await db.from('pessoas').select('id, nome_completo, nome_curto, tipo_pessoa, papeis, celular, cpf_cnpj, foto_url, created_at').order('nome_completo');
             
             loading.style.display = 'none';
 
@@ -119,17 +133,35 @@
         container.innerHTML = html;
     }
 
-    function filtrarLista(termo) {
-        termo = termo.toLowerCase().trim();
-        if (!termo) {
-            renderizarLista(allPessoas);
-            return;
-        }
+    function filtrarLista() {
+        const input = document.getElementById('mSearchInput');
+        const selectTipo = document.getElementById('mFilterTipo');
+        const selectSort = document.getElementById('mSortOrder');
+        
+        const termo = (input ? input.value.toLowerCase().trim() : '');
+        const tipo = selectTipo ? selectTipo.value : '';
+        const sort = selectSort ? selectSort.value : 'nome_az';
 
-        const filtrados = allPessoas.filter(p => {
+        // Filter
+        let filtrados = allPessoas.filter(p => {
             const nome = (p.nome_completo || '').toLowerCase();
             const doc = (p.cpf_cnpj || '').toLowerCase();
-            return nome.includes(termo) || doc.includes(termo);
+            const matchTermo = termo === '' || nome.includes(termo) || doc.includes(termo);
+            const matchTipo = tipo === '' || p.tipo_pessoa === tipo;
+            return matchTermo && matchTipo;
+        });
+
+        // Sort
+        filtrados.sort((a, b) => {
+            if (sort === 'recentes') {
+                const dateA = new Date(a.created_at || 0);
+                const dateB = new Date(b.created_at || 0);
+                return dateB - dateA; // Descending
+            } else if (sort === 'nome_za') {
+                return (b.nome_completo || '').localeCompare(a.nome_completo || '');
+            } else {
+                return (a.nome_completo || '').localeCompare(b.nome_completo || '');
+            }
         });
 
         renderizarLista(filtrados);

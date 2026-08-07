@@ -60,7 +60,27 @@
         <div class="m-screen" id="screen-pessoas">
             
             <div class="m-search-box">
-                <input type="text" id="mSearchInput" class="m-search-input" placeholder="Buscar pessoa ou empresa...">
+                <div style="position: relative;">
+                    <input type="text" id="mSearchInput" class="m-search-input" placeholder="Buscar pessoa ou empresa..." style="padding-right: 48px;">
+                    <button id="btnToggleFilter" style="position: absolute; right: 8px; top: 8px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-muted); width: 32px; height: 32px; border-radius: 8px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+                    </button>
+                </div>
+                
+                <div id="mFilterPanel" style="display: none; padding-top: 12px; gap: 8px; flex-direction: column;">
+                    <div style="display: flex; gap: 8px;">
+                        <select id="mFilterTipo" class="m-search-input" style="padding: 10px; font-size: 14px; flex: 1;">
+                            <option value="">Todos os Tipos</option>
+                            <option value="Física">Pessoa Física</option>
+                            <option value="Jurídica">Pessoa Jurídica</option>
+                        </select>
+                        <select id="mSortOrder" class="m-search-input" style="padding: 10px; font-size: 14px; flex: 1;">
+                            <option value="nome_az">A - Z</option>
+                            <option value="nome_za">Z - A</option>
+                            <option value="recentes">Recentes</option>
+                        </select>
+                    </div>
+                </div>
             </div>
 
             <div id="mLoadingState" style="text-align: center; color: var(--text-muted); padding: 40px; font-size: 14px;">
