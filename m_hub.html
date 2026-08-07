@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Portal SELA - Hub</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="m_style.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth_guard.js"></script>
+    <link rel="icon" type="image/png" href="logo_sela.png">
+    <style>
+        .m-header-nav {
+            display: flex;
+            align-items: center;
+            height: 60px;
+            padding: 0 16px;
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .m-back-btn {
+            background: none;
+            border: none;
+            color: var(--text-main);
+            padding: 8px;
+            margin-left: -8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .m-hub-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-left: 8px;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .m-edit-btn {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .m-hub-hero {
+            padding: 24px 20px;
+            background: linear-gradient(to bottom, var(--bg-panel), var(--bg-dark));
+            border-bottom: 1px solid var(--border);
+            text-align: center;
+        }
+        .m-hub-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 32px;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0 auto 16px auto;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .m-hub-name {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: var(--text-main);
+        }
+        .m-hub-type {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+        .m-hub-desc {
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--text-main);
+            background: rgba(255,255,255,0.03);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: left;
+        }
+        .m-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-panel);
+            position: sticky;
+            top: 60px;
+            z-index: 99;
+        }
+        .m-tab {
+            flex: 1;
+            text-align: center;
+            padding: 14px 0;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-muted);
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+        }
+        .m-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        .m-apps-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            padding: 20px;
+        }
+        .m-app-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px 16px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            text-decoration: none;
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .m-app-icon {
+            font-size: 28px;
+            margin-bottom: 12px;
+        }
+        .m-app-name {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .m-team-list {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        /* Modal de Edição */
+        .m-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--bg-dark);
+            z-index: 200;
+            display: none;
+            flex-direction: column;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .m-modal.active {
+            display: flex;
+            transform: translateY(0);
+        }
+        .m-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border);
+        }
+        .m-modal-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .m-input-group {
+            margin-bottom: 16px;
+        }
+        .m-input-group label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+        .m-input-group input, .m-input-group select, .m-input-group textarea {
+            width: 100%;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 15px;
+            font-family: inherit;
+        }
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            width: 100%;
+            padding: 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            margin-top: 24px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    
+    <header class="m-header-nav">
+        <button class="m-back-btn" onclick="window.location.href='m_atividades.html'">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <div class="m-hub-title">Detalhes da Atividade</div>
+        <button class="m-edit-btn" id="btnOpenEdit" style="display: none;">Editar</button>
+    </header>
+
+    <div id="mLoadingState" style="text-align: center; padding: 40px; color: var(--text-muted);">
+        Carregando informações...
+    </div>
+
+    <main id="mainContent" style="display: none;">
+        <div class="m-hub-hero">
+            <div class="m-hub-icon" id="lblIcone">?</div>
+            <div class="m-hub-name" id="lblNome">-</div>
+            <div class="m-hub-type" id="lblTipo">-</div>
+            <div class="m-hub-desc" id="lblDescricao">Nenhuma descrição informada.</div>
+        </div>
+
+        <div class="m-tabs">
+            <div class="m-tab active" id="tabApps">Mini-apps</div>
+            <div class="m-tab" id="tabEquipe">Equipe (<span id="lblQtdEquipe">0</span>)</div>
+        </div>
+
+        <!-- Conteúdo: Apps -->
+        <div id="contentApps" class="m-apps-grid">
+            <!-- Apps dinâmicos injetados via JS -->
+        </div>
+
+        <!-- Conteúdo: Equipe -->
+        <div id="contentEquipe" class="m-team-list" style="display: none;">
+            <!-- Pessoas injetadas via JS -->
+        </div>
+    </main>
+
+    <!-- Modal de Edição -->
+    <div class="m-modal" id="modalEdit">
+        <div class="m-modal-header">
+            <button class="m-back-btn" id="btnCloseEdit">Cancelar</button>
+            <div class="m-hub-title" style="text-align: center; margin: 0;">Editar Atividade</div>
+            <button class="m-edit-btn" id="btnSaveEdit" style="background: var(--primary); color: white;">Salvar</button>
+        </div>
+        <div class="m-modal-content">
+            <form id="formEdit">
+                <div class="m-input-group">
+                    <label>Nome da Estrutura</label>
+                    <input type="text" id="inNome" required>
+                </div>
+                <div class="m-input-group">
+                    <label>Tipo</label>
+                    <select id="inTipo" required>
+                        <option value="Departamento">Departamento</option>
+                        <option value="Atividade">Atividade</option>
+                        <option value="Família">Família</option>
+                        <option value="Turma">Turma</option>
+                        <option value="Grupo de Estudo">Grupo de Estudo</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+                <div class="m-input-group">
+                    <label>Descrição (Opcional)</label>
+                    <textarea id="inDescricao" rows="4"></textarea>
+                </div>
+                
+                <button type="button" class="btn-danger" id="btnExcluir" style="display: none;">Excluir Estrutura</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="m_hub.js"></script>
+</body>
+</html>

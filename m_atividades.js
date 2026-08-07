@@ -132,8 +132,9 @@
                 </div>
             `;
             
+            // Redireciona para o Hub da Atividade
             card.addEventListener('click', () => {
-                alert('Edição de atividades no celular em breve!');
+                window.location.href = 'm_hub.html?id=' + est.id;
             });
             
             container.appendChild(card);
