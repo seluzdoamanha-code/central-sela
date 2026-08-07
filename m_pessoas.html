@@ -107,6 +107,30 @@
         </div>
     </main>
 
+    <!-- Floating Action Button para Adicionar -->
+    <button id="btnAdicionar" style="
+        position: fixed;
+        bottom: calc(var(--safe-bottom) + 80px); /* Acima da Bottom Nav */
+        right: 24px;
+        width: 56px;
+        height: 56px;
+        border-radius: 28px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        font-size: 28px;
+        font-weight: 300;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        cursor: pointer;
+        z-index: 100;
+        transition: transform 0.2s;
+    " onclick="window.location.href='m_perfil.html?action=new'">
+        +
+    </button>
+
     <nav class="m-bottom-nav">
         <a href="m_index.html" class="m-nav-item">
             <span class="m-nav-icon">🏠</span>

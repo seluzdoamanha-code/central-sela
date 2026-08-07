@@ -9,9 +9,32 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
         if (!currentId) {
-            alert('Pessoa não encontrada.');
-            window.location.href = 'm_pessoas.html';
-            return;
+            const action = new URLSearchParams(window.location.search).get('action');
+            if (action === 'new') {
+                pessoaAtual = { tipo_pessoa: 'Física', papeis: [] };
+                await carregarTags();
+                document.getElementById('mLoadingState').style.display = 'none';
+                
+                const modal = document.getElementById('mEditModal');
+                document.querySelector('#mEditModal .m-header-title').innerText = 'Nova Pessoa';
+                
+                // Sobrescreve o comportamento de fechar para voltar à lista
+                const btnCloseEdit = document.getElementById('btnCloseEdit');
+                btnCloseEdit.addEventListener('click', (e) => {
+                    e.stopImmediatePropagation();
+                    window.location.href = 'm_pessoas.html';
+                }, { once: true });
+                
+                document.getElementById('btnSaveEdit').addEventListener('click', salvarEdicao);
+                
+                preencherFormulario();
+                modal.classList.add('open');
+                return;
+            } else {
+                alert('Pessoa não encontrada.');
+                window.location.href = 'm_pessoas.html';
+                return;
+            }
         }
 
         await carregarTags();
@@ -247,15 +270,20 @@
         };
 
         try {
-            const { error } = await db.from('pessoas').update(dados).eq('id', currentId);
-            if (error) throw error;
-            
-            // Sucesso! Atualiza obj local e re-renderiza
-            Object.assign(pessoaAtual, dados);
-            renderizarVisualizacao();
-            
-            // Fecha modal
-            document.getElementById('mEditModal').classList.remove('open');
+            if (currentId) {
+                const { error } = await db.from('pessoas').update(dados).eq('id', currentId);
+                if (error) throw error;
+                
+                Object.assign(pessoaAtual, dados);
+                renderizarVisualizacao();
+                document.getElementById('mEditModal').classList.remove('open');
+            } else {
+                dados.tipo_pessoa = 'Física';
+                const { data, error } = await db.from('pessoas').insert([dados]).select('id').single();
+                if (error) throw error;
+                
+                window.location.replace(`m_perfil.html?id=${data.id}`);
+            }
             
         } catch(e) {
             console.error(e);
