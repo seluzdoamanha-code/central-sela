@@ -22,7 +22,7 @@
                         <img src="logo_sela.png" alt="Logo SELA" style="height: 40px; width: auto; border-radius: 50%;">
                         <h2 style="margin: 0;">Portal SELA</h2>
                     </div>
-                    <button id="toggleSidebarBtn" class="desktop-only" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; padding: 4px;">◀</button>
+                    <button id="toggleSidebarBtn" class="toggle-sidebar-btn" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; padding: 4px;">◀</button>
                 </div>
                 <nav class="main-nav" id="sidebarNav" style="flex: 1;">
                     <a href="index.html" class="nav-item ${currentPage === 'index.html' ? 'active' : ''}" title="Início / Mural">🏠 <span class="nav-text">Início / Mural</span></a>
