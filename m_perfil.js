@@ -138,12 +138,7 @@
         }
     });
 
-    // Rascunho para futuras ACLs (Access Control List)
-    async function checarPermissaoEdicao() {
-        // Futuro: Verificar perfil do usuarioLogado no banco
-        // Por enquanto, liberado para testes da Diretoria.
-        return true; 
-    }
+    // ACL substituida por auth_guard.js: window.podeEditarPessoas()
 
     async function carregarTags() {
         let TAGS = [
@@ -213,7 +208,7 @@
             pessoaAtual = data;
             renderizarVisualizacao();
 
-            const podeEditar = await checarPermissaoEdicao();
+            const podeEditar = window.podeEditarPessoas();
             if (podeEditar) {
                 document.getElementById('btnOpenEdit').style.display = 'block';
             }

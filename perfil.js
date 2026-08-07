@@ -15,9 +15,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Configura o link de edição
     const btnEditar = document.getElementById('btnEditarCadastro');
     if (btnEditar) {
-        btnEditar.onclick = () => {
-            window.location.href = `pessoas.html?edit=${pessoaId}`;
-        };
+        if (typeof window.podeEditarPessoas === 'function' && !window.podeEditarPessoas()) {
+            btnEditar.style.display = 'none';
+        } else {
+            btnEditar.onclick = () => {
+                window.location.href = `pessoas.html?edit=${pessoaId}`;
+            };
+        }
     }
 
     await carregarPerfil();

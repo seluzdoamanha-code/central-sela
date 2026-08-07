@@ -8,6 +8,17 @@ const GUARD_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXB
 const authDb = window.supabase.createClient(GUARD_SUPABASE_URL, GUARD_SUPABASE_KEY);
 
 async function checkAuth() {
+    // 0. Redirecionamento Mobile
+    const filename = window.location.pathname.split('/').pop() || 'index.html';
+    if (!filename.startsWith('m_') && filename !== 'login.html') {
+        if (window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            // Mapeia para a equivalente mobile se existir, senao m_index
+            const hasMobileEq = ['index.html', 'pessoas.html', 'perfil.html'].includes(filename);
+            window.location.replace(hasMobileEq ? "m_" + filename + window.location.search : "m_index.html");
+            return;
+        }
+    }
+
     // 1. Pega a sessão atual
     const { data: { session }, error: sessionError } = await authDb.auth.getSession();
     
@@ -48,10 +59,24 @@ async function checkAuth() {
     // Vamos injetar os dados dele no localStorage para o sidebar.js puxar
     const userProfile = {
         nome: whitelist.nome || session.user.user_metadata.full_name || 'Trabalhador SELA',
-        foto: session.user.user_metadata.avatar_url || 'https://ui-avatars.com/api/?name=Sela&background=random'
+        foto: session.user.user_metadata.avatar_url || 'https://ui-avatars.com/api/?name=Sela&background=random',
+        email: email,
+        nivel_acesso: whitelist.nivel_acesso || 'comum'
     };
     localStorage.setItem('sela_user_profile', JSON.stringify(userProfile));
 }
 
 // Executa imediatamente
 checkAuth();
+
+// Funções globais de permissão
+window.podeEditarPessoas = function() {
+    try {
+        const profStr = localStorage.getItem('sela_user_profile');
+        if (!profStr) return false;
+        const prof = JSON.parse(profStr);
+        return (prof.nivel_acesso === 'admin' || prof.nivel_acesso === 'secretaria');
+    } catch(e) {
+        return false;
+    }
+};

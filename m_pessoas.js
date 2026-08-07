@@ -15,6 +15,12 @@
             }
         });
 
+        // Hide add button if no permission
+        if (typeof window.podeEditarPessoas === 'function' && !window.podeEditarPessoas()) {
+            const fab = document.querySelector('.m-fab');
+            if (fab) fab.style.display = 'none';
+        }
+
         // Configurar busca e filtros
         const searchInput = document.getElementById('mSearchInput');
         const filterTag = document.getElementById('mFilterTag');

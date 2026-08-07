@@ -310,6 +310,9 @@ function renderizarTabela(dados) {
 function setupModal() {
     const modal = document.getElementById('modalPessoa');
     const btnNovo = document.getElementById('btnNovaPessoa');
+    if (typeof window.podeEditarPessoas === 'function' && !window.podeEditarPessoas()) {
+        if (btnNovo) btnNovo.style.display = 'none';
+    }
     const btnClose = document.getElementById('btnCloseModal');
     const btnCancel = document.getElementById('btnCancelModal');
     const form = document.getElementById('formPessoa');
