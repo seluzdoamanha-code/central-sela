@@ -233,12 +233,12 @@
                 matchTag = p.papeis && p.papeis.includes(tag);
             }
 
-            // Lógica de "Outros" (exclui Efetivos e Proponentes se marcado)
+            // Lógica de "Outros"
             let matchOutros = true;
-            if (showOutros) {
-                const temEfetivo = p.papeis && p.papeis.includes('Associado Efetivo');
-                const temProponente = p.papeis && p.papeis.includes('Associado Proponente');
-                if (temEfetivo || temProponente) {
+            if (!showOutros) {
+                // Se a flag não estiver marcada, esconde as pessoas que têm a tag 'Outros'
+                const temOutros = p.papeis && p.papeis.some(role => role.toLowerCase().includes('outro'));
+                if (temOutros) {
                     matchOutros = false;
                 }
             }
