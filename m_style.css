@@ -164,6 +164,17 @@ input:-webkit-autofill:active {
     gap: 16px;
 }
 
+.m-input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-main);
+    font-size: 15px;
+    color-scheme: dark;
+}
+
 .m-card-icon {
     width: 48px;
     height: 48px;

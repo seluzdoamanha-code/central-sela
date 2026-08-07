@@ -309,10 +309,11 @@
 
     function preencherFormulario() {
         const p = pessoaAtual;
-        document.getElementById('inpNome').value = p.nome_completo || '';
-        document.getElementById('inpNomeCurto').value = p.nome_curto || '';
-        document.getElementById('inpCelular').value = p.celular || '';
-        document.getElementById('inpEmail').value = p.email || '';
+        document.getElementById('inpNome').value = pessoaAtual.nome_completo || '';
+        document.getElementById('inpNomeCurto').value = pessoaAtual.nome_curto || '';
+        document.getElementById('inpCpfCnpj').value = formatarCpfCnpj(pessoaAtual.cpf_cnpj) || '';
+        document.getElementById('inpCelular').value = pessoaAtual.celular || '';
+        document.getElementById('inpEmail').value = pessoaAtual.email || '';
         document.getElementById('inpNascimento').value = p.data_nascimento || '';
         
         // Novos Campos
@@ -362,8 +363,9 @@
         const papeis = Array.from(document.querySelectorAll('input[name="mPapeis"]:checked')).map(cb => cb.value);
 
         const dados = {
-            nome_completo: document.getElementById('inpNome').value.trim(),
-            nome_curto: document.getElementById('inpNomeCurto').value.trim(),
+            cpf_cnpj: document.getElementById('inpCpfCnpj').value.replace(/\D/g, '') || null,
+            nome_completo: document.getElementById('inpNome').value.trim() || null,
+            nome_curto: document.getElementById('inpNomeCurto').value.trim() || null,
             celular: document.getElementById('inpCelular').value.trim(),
             email: document.getElementById('inpEmail').value.trim(),
             data_nascimento: document.getElementById('inpNascimento').value || null,
@@ -433,6 +435,13 @@
     }
 
     // Input formatters
+    const inpCpfCnpj = document.getElementById('inpCpfCnpj');
+    if (inpCpfCnpj) {
+        inpCpfCnpj.addEventListener('input', (e) => {
+            e.target.value = formatarCpfCnpj(e.target.value);
+        });
+    }
+
     const inpCelular = document.getElementById('inpCelular');
     if (inpCelular) {
         inpCelular.addEventListener('input', (e) => {
