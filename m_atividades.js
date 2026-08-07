@@ -67,6 +67,34 @@
                 });
             }
 
+            // Dashboard Stats
+            const depts = allEstruturas.filter(e => e.tipo === 'Departamento').length;
+            const ativs = allEstruturas.filter(e => e.tipo === 'Atividade').length;
+            const famis = allEstruturas.filter(e => e.tipo === 'Família').length;
+            const turms = allEstruturas.filter(e => e.tipo === 'Turma').length;
+
+            const dashEl = document.getElementById('mDashboardStats');
+            if (dashEl) {
+                dashEl.innerHTML = `
+                    <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); padding: 12px 16px; border-radius: 12px; min-width: 90px; flex-shrink: 0; text-align: center;">
+                        <div style="font-size: 20px; font-weight: bold; color: #3b82f6;">${depts}</div>
+                        <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Depart.</div>
+                    </div>
+                    <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 12px 16px; border-radius: 12px; min-width: 90px; flex-shrink: 0; text-align: center;">
+                        <div style="font-size: 20px; font-weight: bold; color: #10b981;">${ativs}</div>
+                        <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Atividades</div>
+                    </div>
+                    <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2); padding: 12px 16px; border-radius: 12px; min-width: 90px; flex-shrink: 0; text-align: center;">
+                        <div style="font-size: 20px; font-weight: bold; color: #f59e0b;">${famis}</div>
+                        <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Famílias</div>
+                    </div>
+                    <div style="background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.2); padding: 12px 16px; border-radius: 12px; min-width: 90px; flex-shrink: 0; text-align: center;">
+                        <div style="font-size: 20px; font-weight: bold; color: #8b5cf6;">${turms}</div>
+                        <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Turmas</div>
+                    </div>
+                `;
+            }
+
             filtrarLista();
         } catch (e) {
             console.error('Erro geral:', e);
