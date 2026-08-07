@@ -294,15 +294,19 @@ function renderizarTabela(dados) {
                     </div>
                 </td>
                 <td style="text-align: right;">
-                    ${(typeof window.podeEditarPessoas === 'function' && window.podeEditarPessoas()) ? `
-                    <button onclick="editarPessoa('${pessoa.id}')" class="btn-primary" style="padding: 4px 12px; font-size: 12px; min-width: auto;">
-                        Editar
-                    </button>
-                    <button onclick="excluirPessoa('${pessoa.id}')" class="btn-primary" style="padding: 4px 12px; font-size: 12px; min-width: auto; background: var(--bg-dark); border: 1px solid var(--border); color: #ef4444;">
-                        Excluir
-                    </button>
-                    ` : ''}
-                    <a href="perfil.html?id=${pessoa.id}" class="btn-primary" style="padding: 4px 12px; font-size: 12px; min-width: auto; background: var(--bg-dark); border: 1px solid var(--primary); color: var(--primary); text-decoration: none; margin-left: 8px;">Acessar Perfil &rarr;</a>
+                    <div style="display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
+                        ${(typeof window.podeEditarPessoas === 'function' && window.podeEditarPessoas()) ? `
+                        <button onclick="editarPessoa('${pessoa.id}')" style="background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; white-space: nowrap;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
+                            Editar
+                        </button>
+                        <button onclick="excluirPessoa('${pessoa.id}')" style="background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); border-radius: 6px; padding: 6px 12px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; white-space: nowrap;" onmouseover="this.style.background='rgba(239,68,68,0.2)'" onmouseout="this.style.background='rgba(239,68,68,0.1)'">
+                            Excluir
+                        </button>
+                        ` : ''}
+                        <a href="perfil.html?id=${pessoa.id}" style="background: var(--primary); color: #fff; border: 1px solid var(--primary); border-radius: 6px; padding: 6px 16px; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; transition: all 0.2s; white-space: nowrap; box-shadow: 0 2px 4px rgba(79,70,229,0.3);" onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter='none'">
+                            Perfil
+                        </a>
+                    </div>
                 </td>
             </tr>
         `;
