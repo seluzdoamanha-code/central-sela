@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Portal SELA Mobile</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="m_style.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="auth_guard.js"></script>
+    
+    <!-- Meta tags nativas -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="logo_sela.png">
+    <link rel="icon" type="image/png" href="logo_sela.png">
+</head>
+<body>
+    
+    <!-- Header Principal Fixa -->
+    <header class="m-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <img src="logo_sela.png" alt="Logo" style="height: 28px; border-radius: 50%;">
+            <div class="m-header-title">Mural do Portal</div>
+        </div>
+        <button class="m-header-action" id="btnPerfil">👤</button>
+    </header>
+
+    <!-- Área de Telas (Stack) -->
+    <main class="m-viewport">
+        <!-- Tela Home/Mural -->
+        <div class="m-screen" id="screen-home">
+            
+            <div id="mLoadingState" style="text-align: center; color: var(--text-muted); padding: 40px; font-size: 14px;">
+                Carregando novidades...
+            </div>
+            
+            <div id="mContentArea" style="display: none;">
+                <div class="m-section-title">Acesso Rápido</div>
+                <!-- Miniaturas (Mini-cards de atalho) -->
+                <div style="display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 24px; scrollbar-width: none;">
+                    <div style="background: var(--bg-panel); border: 1px solid var(--border); padding: 12px; border-radius: 12px; min-width: 100px; text-align: center;">
+                        <div style="font-size: 24px; margin-bottom: 8px;">🤝</div>
+                        <div style="font-size: 11px; color: var(--text-muted); font-weight: 500;">Assistência</div>
+                    </div>
+                    <div style="background: var(--bg-panel); border: 1px solid var(--border); padding: 12px; border-radius: 12px; min-width: 100px; text-align: center;">
+                        <div style="font-size: 24px; margin-bottom: 8px;">🌱</div>
+                        <div style="font-size: 11px; color: var(--text-muted); font-weight: 500;">Evangelização</div>
+                    </div>
+                    <div style="background: var(--bg-panel); border: 1px solid var(--border); padding: 12px; border-radius: 12px; min-width: 100px; text-align: center;">
+                        <div style="font-size: 24px; margin-bottom: 8px;">📚</div>
+                        <div style="font-size: 11px; color: var(--text-muted); font-weight: 500;">Biblioteca</div>
+                    </div>
+                </div>
+
+                <div class="m-section-title">Mural de Eventos</div>
+                <div id="muralContainer">
+                    <!-- Cards de evento inseridos por JS -->
+                </div>
+            </div>
+            
+        </div>
+    </main>
+
+    <!-- Barra de Navegação Inferior -->
+    <nav class="m-bottom-nav">
+        <a href="m_index.html" class="m-nav-item active">
+            <span class="m-nav-icon">🏠</span>
+            <span class="m-nav-label">Início</span>
+        </a>
+        <a href="m_entidade.html" class="m-nav-item">
+            <span class="m-nav-icon">🏛️</span>
+            <span class="m-nav-label">Entidade</span>
+        </a>
+        <a href="m_pessoas.html" class="m-nav-item">
+            <span class="m-nav-icon">👥</span>
+            <span class="m-nav-label">Pessoas</span>
+        </a>
+        <a href="m_config.html" class="m-nav-item">
+            <span class="m-nav-icon">⚙️</span>
+            <span class="m-nav-label">Config.</span>
+        </a>
+    </nav>
+
+    <script src="m_app.js"></script>
+</body>
+</html>

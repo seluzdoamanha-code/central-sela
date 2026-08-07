@@ -1,0 +1,204 @@
+/* 📱 Portal SELA Mobile CSS - App Dedicado */
+:root {
+    --primary: #6366f1;
+    --primary-hover: #4f46e5;
+    --bg-dark: #0f0f11;
+    --bg-panel: #1a1a1f;
+    --bg-card: #222228;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --border: #2a2a35;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-top: env(safe-area-inset-top, 0px);
+}
+
+/* Base Reset & Native Feel */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent; /* Remove o quadrado azul feio ao clicar no iOS */
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    overflow: hidden; /* O body não rola, quem rola são as telas internas */
+    width: 100vw;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header Superior Minimalista */
+.m-header {
+    height: calc(56px + var(--safe-top));
+    padding-top: var(--safe-top);
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-left: 16px;
+    padding-right: 16px;
+    z-index: 100;
+}
+
+.m-header-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.m-header-action {
+    background: none;
+    border: none;
+    color: var(--primary);
+    font-size: 24px;
+    cursor: pointer;
+}
+
+/* Área Principal de Conteúdo */
+.m-viewport {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+}
+
+.m-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px;
+    padding-bottom: calc(24px + 65px + var(--safe-bottom)); /* Espaço para nav inferior */
+    background: var(--bg-dark);
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Navegação Inferior Nativa */
+.m-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: calc(65px + var(--safe-bottom));
+    padding-bottom: var(--safe-bottom);
+    background: rgba(26, 26, 31, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 100;
+}
+
+.m-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    text-decoration: none;
+    flex: 1;
+    height: 100%;
+    transition: color 0.2s;
+}
+
+.m-nav-item.active {
+    color: var(--primary);
+}
+
+.m-nav-icon {
+    font-size: 22px;
+    margin-bottom: 4px;
+    transition: transform 0.2s;
+}
+
+.m-nav-item.active .m-nav-icon {
+    transform: scale(1.1) translateY(-2px);
+}
+
+.m-nav-label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+/* Tipografia e Títulos de Sessão */
+.m-section-title {
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-bottom: 12px;
+    margin-top: 24px;
+}
+.m-section-title:first-child { margin-top: 8px; }
+
+/* Cartões (Cards) Mobile */
+.m-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.m-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.m-card-content {
+    flex: 1;
+}
+
+.m-card-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.m-card-subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+/* Botões */
+.m-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    border: none;
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    background: var(--primary);
+    margin-top: 16px;
+}
+.m-btn:active {
+    background: var(--primary-hover);
+    transform: scale(0.98);
+}
