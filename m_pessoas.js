@@ -117,7 +117,7 @@
 
             // Card HTML
             html += `
-            <div class="m-card" onclick="alert('Perfil detalhado em breve no mobile!')" style="cursor: pointer; position: relative;">
+            <div class="m-card" onclick="window.location.href='m_perfil.html?id=${p.id}'" style="cursor: pointer; position: relative;">
                 <div class="m-card-icon" style="${p.foto_url ? 'background: transparent; border: none;' : (isEmpresa ? 'background: var(--bg-panel); color: #34d399;' : 'background: var(--bg-panel); color: var(--primary);')} border: ${p.foto_url ? 'none' : '1px solid var(--border)'}; font-size: 16px;">
                     ${visualIcone}
                 </div>
