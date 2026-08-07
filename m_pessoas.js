@@ -79,16 +79,39 @@
         }
     }
 
-    function renderizarLista(lista) {
+    function renderizarLista(pessoas) {
         const container = document.getElementById('mListPessoas');
+        const dash = document.getElementById('mDashboardStats');
+
+        // Atualizar Dashboard
+        if (dash) {
+            const total = pessoas.length;
+            const fisicas = pessoas.filter(p => p.tipo_pessoa === 'Física' || !p.tipo_pessoa).length;
+            const juridicas = pessoas.filter(p => p.tipo_pessoa === 'Jurídica').length;
+
+            dash.innerHTML = `
+                <div style="flex: 1; min-width: 90px; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.2); padding: 10px; border-radius: 12px; text-align: center;">
+                    <div style="font-size: 18px; font-weight: 700; color: var(--primary);">${total}</div>
+                    <div style="font-size: 10px; color: var(--text-muted); font-weight: 500; text-transform: uppercase;">Total</div>
+                </div>
+                <div style="flex: 1; min-width: 90px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 10px; border-radius: 12px; text-align: center;">
+                    <div style="font-size: 18px; font-weight: 700; color: #10b981;">${fisicas}</div>
+                    <div style="font-size: 10px; color: var(--text-muted); font-weight: 500; text-transform: uppercase;">Físicas</div>
+                </div>
+                <div style="flex: 1; min-width: 90px; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2); padding: 10px; border-radius: 12px; text-align: center;">
+                    <div style="font-size: 18px; font-weight: 700; color: #f59e0b;">${juridicas}</div>
+                    <div style="font-size: 10px; color: var(--text-muted); font-weight: 500; text-transform: uppercase;">Jurídicas</div>
+                </div>
+            `;
+        }
         
-        if (lista.length === 0) {
+        if (pessoas.length === 0) {
             container.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding: 20px;">Nenhuma pessoa encontrada.</div>`;
             return;
         }
 
         let html = '';
-        lista.forEach(p => {
+        pessoas.forEach(p => {
             const isEmpresa = p.tipo_pessoa === 'Jurídica';
             const nomeExibicao = p.nome_curto || p.nome_completo || 'Sem Nome';
             
