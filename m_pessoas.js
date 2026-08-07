@@ -12,6 +12,8 @@
         const searchInput = document.getElementById('mSearchInput');
         const filterTipo = document.getElementById('mFilterTipo');
         const sortOrder = document.getElementById('mSortOrder');
+        const filterPapel = document.getElementById('mFilterPapel');
+        const showOutros = document.getElementById('mShowOutros');
         const btnToggleFilter = document.getElementById('btnToggleFilter');
         const filterPanel = document.getElementById('mFilterPanel');
 
@@ -29,6 +31,8 @@
         if (searchInput) searchInput.addEventListener('input', triggerFilter);
         if (filterTipo) filterTipo.addEventListener('change', triggerFilter);
         if (sortOrder) sortOrder.addEventListener('change', triggerFilter);
+        if (filterPapel) filterPapel.addEventListener('change', triggerFilter);
+        if (showOutros) showOutros.addEventListener('change', triggerFilter);
     });
 
     function obterIniciais(nome) {
@@ -137,10 +141,14 @@
         const input = document.getElementById('mSearchInput');
         const selectTipo = document.getElementById('mFilterTipo');
         const selectSort = document.getElementById('mSortOrder');
+        const selectPapel = document.getElementById('mFilterPapel');
+        const chkOutros = document.getElementById('mShowOutros');
         
         const termo = (input ? input.value.toLowerCase().trim() : '');
         const tipo = selectTipo ? selectTipo.value : '';
         const sort = selectSort ? selectSort.value : 'nome_az';
+        const papel = selectPapel ? selectPapel.value : '';
+        const showOutros = chkOutros ? chkOutros.checked : false;
 
         // Filter
         let filtrados = allPessoas.filter(p => {
@@ -148,7 +156,24 @@
             const doc = (p.cpf_cnpj || '').toLowerCase();
             const matchTermo = termo === '' || nome.includes(termo) || doc.includes(termo);
             const matchTipo = tipo === '' || p.tipo_pessoa === tipo;
-            return matchTermo && matchTipo;
+            
+            // Lógica de "Papel"
+            let matchPapel = true;
+            if (papel !== '') {
+                matchPapel = p.papeis && p.papeis.includes(papel);
+            }
+
+            // Lógica de "Outros" (exclui Efetivos e Proponentes se marcado)
+            let matchOutros = true;
+            if (showOutros) {
+                const temEfetivo = p.papeis && p.papeis.includes('Associado Efetivo');
+                const temProponente = p.papeis && p.papeis.includes('Associado Proponente');
+                if (temEfetivo || temProponente) {
+                    matchOutros = false;
+                }
+            }
+
+            return matchTermo && matchTipo && matchPapel && matchOutros;
         });
 
         // Sort
