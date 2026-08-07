@@ -56,7 +56,7 @@
         document.getElementById('mLoadingState').style.display = 'block';
 
         try {
-            const { data, error } = await db.from('ass_familias').select('*, ass_membros_familia(id)').order('nome_familia');
+            const { data, error } = await db.from('ass_familias').select('*, pessoas(*), ass_membros_familia(id)').order('nome_familia');
             if (error) throw error;
             
             allFamilias = data || [];
@@ -147,27 +147,52 @@
         document.getElementById('mdCodigo').innerText = f.codigo || '-';
         document.getElementById('mdStatus').innerText = f.status || 'Ativa';
         
+        const resp = f.pessoas || {};
+        const elCelular = document.getElementById('mdCelular');
+        if(elCelular) elCelular.innerText = resp.telefone_celular || '-';
+        
+        const elEmail = document.getElementById('mdEmail');
+        if(elEmail) elEmail.innerText = resp.email || '-';
+        
+        const elQtd = document.getElementById('mdQtdPessoas');
+        if(elQtd) elQtd.innerText = f.ass_membros_familia ? (f.ass_membros_familia.length + 1) : 1;
+        
         // Contato
         const btnZap = document.getElementById('btnWhatsApp');
-        if (f.telefone) {
+        if (resp.telefone_celular || f.telefone) {
             btnZap.style.display = 'flex';
-            btnZap.href = 'https://wa.me/' + formatarWhatsApp(f.telefone);
+            btnZap.href = 'https://wa.me/' + formatarWhatsApp(resp.telefone_celular || f.telefone);
         } else {
             btnZap.style.display = 'none';
         }
 
         // Endereço
-        let endCompleto = '';
-        if (f.endereco_logradouro) endCompleto += f.endereco_logradouro;
-        if (f.endereco_numero) endCompleto += ', ' + f.endereco_numero;
-        if (f.endereco_bairro) endCompleto += ' - ' + f.endereco_bairro;
+        let endCompletoArr = [];
+        let r = resp;
+        if (r.endereco_logradouro) {
+            let logNum = r.endereco_logradouro;
+            if (r.endereco_numero) logNum += ', ' + r.endereco_numero;
+            endCompletoArr.push(logNum);
+        }
+        if (r.endereco_bairro) endCompletoArr.push(r.endereco_bairro);
+        if (r.endereco_cidade) endCompletoArr.push(r.endereco_cidade);
+        if (r.endereco_estado) endCompletoArr.push(r.endereco_estado);
         
+        let endCompleto = endCompletoArr.join(', ');
+        
+        // Fallback for old forms
+        if (!endCompleto && f.endereco_logradouro) {
+            endCompleto = f.endereco_logradouro;
+            if(f.endereco_numero) endCompleto += ', ' + f.endereco_numero;
+            if(f.endereco_bairro) endCompleto += ' - ' + f.endereco_bairro;
+        }
+
         document.getElementById('mdEndereco').innerText = endCompleto || 'Não informado';
         
         const btnMaps = document.getElementById('btnGoogleMaps');
         if (endCompleto) {
             btnMaps.style.display = 'flex';
-            const endBusca = encodeURIComponent(endCompleto + ' Ponta Grossa PR');
+            const endBusca = encodeURIComponent(endCompleto);
             btnMaps.href = 'https://www.google.com/maps/search/?api=1&query=' + endBusca;
         } else {
             btnMaps.style.display = 'none';
@@ -180,9 +205,8 @@
         ml.innerHTML = 'Buscando membros...';
         try {
             const { data: membros, error } = await db.from('ass_membros_familia')
-                .select('nome, parentesco, data_nascimento')
-                .eq('familia_id', f.id)
-                .order('nome');
+                .select('parentesco, pessoas(nome_completo, data_nascimento)')
+                .eq('familia_id', f.id);
                 
             if (error) throw error;
             if (!membros || membros.length === 0) {
@@ -190,19 +214,21 @@
             } else {
                 ml.innerHTML = membros.map(m => {
                     let idadeStr = '';
-                    if (m.data_nascimento) {
-                        const age = new Date().getFullYear() - new Date(m.data_nascimento).getFullYear();
+                    const p = m.pessoas || {};
+                    if (p.data_nascimento) {
+                        const age = new Date().getFullYear() - new Date(p.data_nascimento).getFullYear();
                         idadeStr = `(${age} anos)`;
                     }
                     return `
                         <div class="m-member-row">
-                            <span style="color:var(--text-main); font-weight:500;">${m.nome}</span>
+                            <span style="color:var(--text-main); font-weight:500;">${p.nome_completo || 'Sem Nome'}</span>
                             <span>${m.parentesco || ''} ${idadeStr}</span>
                         </div>
                     `;
                 }).join('');
             }
         } catch (e) {
+            console.error('Erro buscar membros', e);
             ml.innerHTML = 'Erro ao buscar membros.';
         }
     }
