@@ -93,9 +93,14 @@
                 if (conf) {
                     try {
                         btnExcluir.innerText = 'Excluindo...';
-                        const { error } = await db.from('pessoas').delete().eq('id', currentId);
-                        if (error) throw error;
-                        window.location.href = 'm_pessoas.html';
+                        try {
+                            await db.from('pessoas').delete().eq('id', currentId);
+                            alert('Pessoa excluída com sucesso.');
+                            window.location.href = 'm_pessoas.html';
+                        } catch (e) {
+                            console.error(e);
+                            alert('Erro ao excluir pessoa.');
+                        }
                     } catch (e) {
                         console.error(e);
                         alert('Erro ao excluir. Verifique se a pessoa possui vínculos.');
@@ -157,8 +162,13 @@
         } catch(err) {
             // Usa tags padrao
         }
-        todasAsTags = [...TAGS].sort((a, b) => a.localeCompare(b));
+        // Sort logic: 1. Associado Efetivo, 2. Outros, 3. Resto alfabeticamente
+        let specialTags = [];
+        if (TAGS.includes('Associado Efetivo')) { specialTags.push('Associado Efetivo'); }
+        if (TAGS.includes('Outros')) { specialTags.push('Outros'); }
         
+        let otherTags = TAGS.filter(t => t !== 'Associado Efetivo' && t !== 'Outros').sort((a, b) => a.localeCompare(b));
+        todasAsTags = [...specialTags, ...otherTags];
         const container = document.getElementById('mTagsContainer');
         if (container) {
             container.innerHTML = todasAsTags.map(tag => `
@@ -187,6 +197,15 @@
         }
     }
 
+    function formatarCEP(v) {
+        if (!v) return '';
+        v = v.replace(/\D/g, '');
+        if (v.length > 8) v = v.slice(0, 8);
+        if (v.length >= 5) {
+            return v.replace(/(\d{5})(\d{1,3})/, "$1-$2");
+        }
+        return v;
+    }
     async function carregarPerfil() {
         try {
             const { data, error } = await db.from('pessoas').select('*').eq('id', currentId).single();
@@ -412,4 +431,46 @@
             btnSaveEdit.disabled = false;
         }
     }
+
+    // Input formatters
+    const inpCelular = document.getElementById('inpCelular');
+    if (inpCelular) {
+        inpCelular.addEventListener('input', (e) => {
+            let val = e.target.value.replace(/\D/g, '');
+            if (val.length > 11) val = val.slice(0, 11);
+            if (val.length > 2) val = `(${val.slice(0, 2)}) ${val.slice(2)}`;
+            if (val.length > 10) val = `${val.slice(0, 10)}-${val.slice(10)}`;
+            e.target.value = val;
+        });
+    }
+
+    const inpCep = document.getElementById('inpCep');
+    if (inpCep) {
+        inpCep.addEventListener('input', (e) => {
+            e.target.value = formatarCEP(e.target.value);
+        });
+    }
+
+    const inpEstado = document.getElementById('inpEstado');
+    if (inpEstado) {
+        inpEstado.addEventListener('input', (e) => {
+            let val = e.target.value.replace(/[^A-Za-z]/g, '').toUpperCase();
+            if (val.length > 2) val = val.slice(0, 2);
+            e.target.value = val;
+        });
+    }
 })();
+
+// Accordion global toggle
+window.toggleAccordion = function(headerElement) {
+    const accordion = headerElement.parentElement;
+    
+    // Toggle active class
+    if (accordion.classList.contains('active')) {
+        accordion.classList.remove('active');
+        accordion.querySelector('.m-accordion-content').style.maxHeight = '0px';
+    } else {
+        accordion.classList.add('active');
+        accordion.querySelector('.m-accordion-content').style.maxHeight = '2000px';
+    }
+};
