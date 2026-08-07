@@ -5,10 +5,12 @@
 
     let allFamilias = [];
     let hubId = null;
+    let autoFamiliaId = null;
 
     document.addEventListener('DOMContentLoaded', async () => {
         const urlParams = new URLSearchParams(window.location.search);
         hubId = urlParams.get('id');
+        autoFamiliaId = urlParams.get('familia_id');
 
         document.getElementById('btnVoltarHub').addEventListener('click', () => {
             if (hubId) window.location.href = 'm_hub.html?id=' + hubId;
@@ -21,6 +23,16 @@
         document.getElementById('btnSalvar').addEventListener('click', salvarRegistro);
 
         await carregarFamiliasBase();
+        
+        if (autoFamiliaId && allFamilias.length > 0) {
+            const f = allFamilias.find(x => x.id == autoFamiliaId);
+            if (f) {
+                document.getElementById('inpBuscaFam').value = `[${f.codigo || 'S/C'}] ${f.nome_familia}`;
+                document.getElementById('hdnFamId').value = f.id;
+                document.getElementById('btnSalvar').disabled = false;
+            }
+        }
+        
         await carregarHistoricoHoje();
     });
 
