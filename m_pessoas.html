@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Pessoas - SELA Mobile</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="m_style.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth_guard.js"></script>
+    
+    <!-- Meta tags nativas -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="logo_sela.png">
+    <link rel="icon" type="image/png" href="logo_sela.png">
+
+    <style>
+        .m-search-box {
+            position: sticky;
+            top: 0;
+            background: var(--bg-dark);
+            padding-top: 8px;
+            padding-bottom: 16px;
+            z-index: 10;
+        }
+        .m-search-input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--bg-panel);
+            color: var(--text-main);
+            font-size: 16px;
+            outline: none;
+        }
+        .m-search-input:focus {
+            border-color: var(--primary);
+        }
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            background: rgba(255,255,255,0.1);
+        }
+    </style>
+</head>
+<body>
+    
+    <header class="m-header">
+        <div class="m-header-title">Gestão de Pessoas</div>
+        <button class="m-header-action" onclick="alert('Funcionalidade de cadastro em breve no mobile!')">+</button>
+    </header>
+
+    <main class="m-viewport">
+        <div class="m-screen" id="screen-pessoas">
+            
+            <div class="m-search-box">
+                <input type="text" id="mSearchInput" class="m-search-input" placeholder="Buscar pessoa ou empresa...">
+            </div>
+
+            <div id="mLoadingState" style="text-align: center; color: var(--text-muted); padding: 40px; font-size: 14px;">
+                Carregando lista...
+            </div>
+            
+            <div id="mListPessoas">
+                <!-- Cards de pessoas serão injetados aqui -->
+            </div>
+            
+        </div>
+    </main>
+
+    <nav class="m-bottom-nav">
+        <a href="m_index.html" class="m-nav-item">
+            <span class="m-nav-icon">🏠</span>
+            <span class="m-nav-label">Início</span>
+        </a>
+        <a href="m_entidade.html" class="m-nav-item">
+            <span class="m-nav-icon">🏛️</span>
+            <span class="m-nav-label">Entidade</span>
+        </a>
+        <a href="m_pessoas.html" class="m-nav-item active">
+            <span class="m-nav-icon">👥</span>
+            <span class="m-nav-label">Pessoas</span>
+        </a>
+        <a href="m_config.html" class="m-nav-item">
+            <span class="m-nav-icon">⚙️</span>
+            <span class="m-nav-label">Config.</span>
+        </a>
+    </nav>
+
+    <script src="m_pessoas.js"></script>
+</body>
+</html>
