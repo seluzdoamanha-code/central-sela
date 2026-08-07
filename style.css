@@ -366,10 +366,7 @@ body {
     }
     
     .mobile-header {
-        display: flex;
-        position: sticky;
-        top: 0;
-        z-index: 999;
+        display: none !important;
     }
     
     .bottom-nav {
