@@ -5,6 +5,7 @@
 
     let pessoaAtual = null;
     let todasAsTags = [];
+    let flagRemoverFoto = false;
     let currentId = new URLSearchParams(window.location.search).get('id');
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -106,13 +107,28 @@
 
         // Preview de Foto ao Selecionar Arquivo
         const inpFoto = document.getElementById('inpFoto');
+        const btnRemoverFoto = document.getElementById('btnRemoverFoto');
+        
         if (inpFoto) {
             inpFoto.addEventListener('change', (e) => {
                 const previewFoto = document.getElementById('previewFoto');
                 if (e.target.files && e.target.files[0]) {
+                    flagRemoverFoto = false;
                     previewFoto.src = URL.createObjectURL(e.target.files[0]);
                     previewFoto.style.display = 'block';
+                    if (btnRemoverFoto) btnRemoverFoto.style.display = 'block';
                 }
+            });
+        }
+
+        if (btnRemoverFoto) {
+            btnRemoverFoto.addEventListener('click', () => {
+                flagRemoverFoto = true;
+                const previewFoto = document.getElementById('previewFoto');
+                previewFoto.style.display = 'none';
+                previewFoto.src = '';
+                if (inpFoto) inpFoto.value = '';
+                btnRemoverFoto.style.display = 'none';
             });
         }
     });
@@ -279,14 +295,18 @@
         // Limpar arquivo de foto para nova edicao
         const inpFoto = document.getElementById('inpFoto');
         if (inpFoto) inpFoto.value = '';
+        flagRemoverFoto = false;
 
         const previewFoto = document.getElementById('previewFoto');
+        const btnRemoverFoto = document.getElementById('btnRemoverFoto');
         if (p.foto_url) {
             previewFoto.src = p.foto_url;
             previewFoto.style.display = 'block';
+            if (btnRemoverFoto) btnRemoverFoto.style.display = 'block';
         } else {
             previewFoto.src = '';
             previewFoto.style.display = 'none';
+            if (btnRemoverFoto) btnRemoverFoto.style.display = 'none';
         }
 
         // Checkboxes de Papeis
@@ -337,6 +357,8 @@
                         .getPublicUrl(fileName);
                     dados.foto_url = publicUrlData.publicUrl;
                 }
+            } else if (flagRemoverFoto) {
+                dados.foto_url = null;
             }
 
             btnSaveEdit.innerText = 'Salvando Dados...';
