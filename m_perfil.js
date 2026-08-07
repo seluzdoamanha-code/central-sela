@@ -138,10 +138,9 @@
         }
 
         const endereco = [];
-        if (p.logradouro) endereco.push(p.logradouro);
-        if (p.numero) endereco.push(p.numero);
+        if (p.endereco) endereco.push(p.endereco);
         if (p.bairro) endereco.push(p.bairro);
-        if (p.cidade) endereco.push(`${p.cidade} - ${p.uf || ''}`);
+        if (p.cidade) endereco.push(`${p.cidade} - ${p.estado || ''}`);
         
         if (endereco.length > 0) {
             document.getElementById('lblEnderecoCompleto').innerText = endereco.join(', ') + (p.cep ? ` (CEP: ${p.cep})` : '');
@@ -158,11 +157,10 @@
         document.getElementById('inpEmail').value = p.email || '';
         document.getElementById('inpNascimento').value = p.data_nascimento || '';
         document.getElementById('inpCep').value = p.cep || '';
-        document.getElementById('inpLogradouro').value = p.logradouro || '';
-        document.getElementById('inpNumero').value = p.numero || '';
+        document.getElementById('inpEndereco').value = p.endereco || '';
         document.getElementById('inpBairro').value = p.bairro || '';
         document.getElementById('inpCidade').value = p.cidade || '';
-        document.getElementById('inpUf').value = p.uf || '';
+        document.getElementById('inpEstado').value = p.estado || '';
     }
 
     async function salvarEdicao() {
@@ -177,11 +175,10 @@
             email: document.getElementById('inpEmail').value.trim(),
             data_nascimento: document.getElementById('inpNascimento').value || null,
             cep: document.getElementById('inpCep').value.trim(),
-            logradouro: document.getElementById('inpLogradouro').value.trim(),
-            numero: document.getElementById('inpNumero').value.trim(),
+            endereco: document.getElementById('inpEndereco').value.trim(),
             bairro: document.getElementById('inpBairro').value.trim(),
             cidade: document.getElementById('inpCidade').value.trim(),
-            uf: document.getElementById('inpUf').value.trim().toUpperCase()
+            estado: document.getElementById('inpEstado').value.trim().toUpperCase()
         };
 
         try {
