@@ -96,17 +96,19 @@ function renderizarTabela(dados) {
                 <td style="color: var(--text-muted); font-size: 14px;">
                     👥 ${estrutura.total_pessoas} pessoa(s)
                 </td>
-                <td>
-                    <div style="display: flex; gap: 8px;">
-                        <a href="hub.html?id=${estrutura.id}" class="btn-primary" style="padding: 6px 12px; font-size: 12px; text-decoration: none; min-width: auto;">
-                            Acessar Hub &nearr;
-                        </a>
-                        <button onclick="editarEstrutura('${estrutura.id}')" class="btn-primary" style="padding: 6px 12px; font-size: 12px; min-width: auto; background: transparent; border: 1px solid var(--border); color: var(--text-muted);">
+                <td style="text-align: right;">
+                    <div style="display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
+                        ${(typeof window.podeEditarPessoas === 'function' && window.podeEditarPessoas()) ? `
+                        <button onclick="editarEstrutura('${estrutura.id}')" style="background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; white-space: nowrap;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
                             Editar
                         </button>
-                        <button onclick="excluirEstrutura('${estrutura.id}')" class="btn-primary" style="padding: 6px 12px; font-size: 12px; min-width: auto; background: var(--bg-dark); border: 1px solid var(--border); color: #ef4444;">
+                        <button onclick="excluirEstrutura('${estrutura.id}')" style="background: rgba(239,68,68,0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); border-radius: 6px; padding: 6px 12px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s; white-space: nowrap;" onmouseover="this.style.background='rgba(239,68,68,0.2)'" onmouseout="this.style.background='rgba(239,68,68,0.1)'">
                             Excluir
                         </button>
+                        ` : ''}
+                        <a href="hub.html?id=${estrutura.id}" style="background: var(--primary); color: #fff; border: 1px solid var(--primary); border-radius: 6px; padding: 6px 16px; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; transition: all 0.2s; white-space: nowrap; box-shadow: 0 2px 4px rgba(79,70,229,0.3);" onmouseover="this.style.filter='brightness(1.1)'" onmouseout="this.style.filter='none'">
+                            Hub
+                        </a>
                     </div>
                 </td>
         `;
