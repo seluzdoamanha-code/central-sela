@@ -351,40 +351,73 @@ body {
     gap: 32px;
 }
 
+.bottom-nav {
+    display: none;
+}
+
 @media (max-width: 768px) {
     .app-container {
         flex-direction: column;
+        padding-bottom: 70px; /* Space for bottom nav */
     }
     
     .sidebar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        height: 100vh;
-        width: 80%;
-        max-width: 300px;
-        transform: translateX(-100%);
-        box-shadow: 2px 0 10px rgba(0,0,0,0.5);
-    }
-    
-    .sidebar.show-mobile {
-        transform: translateX(0);
+        display: none !important;
     }
     
     .mobile-header {
         display: flex;
+        position: sticky;
+        top: 0;
+        z-index: 999;
     }
     
-    .sidebar-footer {
-        display: block !important;
+    .bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 70px;
+        background: rgba(28, 25, 23, 0.85); /* var(--bg-dark) with opacity */
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-top: 1px solid var(--border);
+        z-index: 1000;
+        justify-content: space-around;
+        align-items: center;
+        padding: 0 8px;
     }
     
-    .main-nav {
-        display: flex !important;
+    .bottom-nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        color: var(--text-muted);
+        flex: 1;
+        height: 100%;
+        transition: all 0.2s;
     }
     
-    .desktop-only {
-        display: none !important;
+    .bottom-nav-item.active {
+        color: var(--primary);
+    }
+    
+    .bottom-nav-icon {
+        font-size: 24px;
+        margin-bottom: 4px;
+        transition: transform 0.2s;
+    }
+    
+    .bottom-nav-item.active .bottom-nav-icon {
+        transform: translateY(-2px);
+    }
+    
+    .bottom-nav-text {
+        font-size: 11px;
+        font-weight: 500;
     }
     
     /* Ajustes Gerais de Conteúdo */

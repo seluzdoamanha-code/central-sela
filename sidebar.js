@@ -56,37 +56,56 @@
         `;
 
         const existingSidebar = document.querySelector('aside.sidebar');
-        const backdropHTML = `<div id="sidebarBackdrop" class="sidebar-backdrop"></div>`;
         const mobileHeaderHTML = `
             <div class="mobile-header">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <img src="logo_sela.png" alt="Logo" style="height: 32px; border-radius: 50%;">
                     <h2 style="font-size: 16px; margin: 0; background: linear-gradient(to right, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Portal SELA</h2>
                 </div>
-                <button id="mobileMenuBtn" style="background: none; border: none; color: var(--text-main); font-size: 24px; cursor: pointer;">☰</button>
+                <!-- Perfil icon for mobile (optional) -->
+                <div id="mobileProfileArea"></div>
             </div>
+        `;
+        
+        const bottomNavHTML = `
+            <nav class="bottom-nav">
+                <a href="index.html" class="bottom-nav-item ${currentPage === 'index.html' ? 'active' : ''}">
+                    <span class="bottom-nav-icon">🏠</span>
+                    <span class="bottom-nav-text">Início</span>
+                </a>
+                <a href="entidade.html" class="bottom-nav-item ${currentPage === 'entidade.html' || currentPage === 'hub.html' ? 'active' : ''}">
+                    <span class="bottom-nav-icon">🏛️</span>
+                    <span class="bottom-nav-text">Entidade</span>
+                </a>
+                <a href="pessoas.html" class="bottom-nav-item ${currentPage === 'pessoas.html' || currentPage === 'perfil.html' ? 'active' : ''}">
+                    <span class="bottom-nav-icon">👥</span>
+                    <span class="bottom-nav-text">Pessoas</span>
+                </a>
+                <a href="config.html" class="bottom-nav-item ${currentPage === 'config.html' ? 'active' : ''}">
+                    <span class="bottom-nav-icon">⚙️</span>
+                    <span class="bottom-nav-text">Config.</span>
+                </a>
+            </nav>
         `;
         
         if (existingSidebar) {
             existingSidebar.outerHTML = sidebarHTML;
-            if (!document.getElementById('sidebarBackdrop')) {
+            if (!document.querySelector('.mobile-header')) {
                 const container = document.querySelector('.app-container');
-                container.insertAdjacentHTML('beforeend', backdropHTML);
                 container.insertAdjacentHTML('afterbegin', mobileHeaderHTML);
+                container.insertAdjacentHTML('beforeend', bottomNavHTML);
             }
         } else {
             const container = document.querySelector('.app-container');
             if (container) {
                 container.insertAdjacentHTML('afterbegin', mobileHeaderHTML);
                 container.insertAdjacentHTML('afterbegin', sidebarHTML);
-                container.insertAdjacentHTML('beforeend', backdropHTML);
+                container.insertAdjacentHTML('beforeend', bottomNavHTML);
             }
         }
         
-        // Lógica do Menu Hambúrguer (Mobile) e Collapse (Desktop)
-        const btnMenu = document.getElementById('mobileMenuBtn');
+        // Lógica de Collapse (Desktop)
         const sidebar = document.querySelector('.sidebar');
-        const backdrop = document.getElementById('sidebarBackdrop');
         const btnToggle = document.getElementById('toggleSidebarBtn');
         
         // Verifica preferência de colapso
@@ -102,16 +121,6 @@
                 localStorage.setItem('sidebar_collapsed', isCollapsed);
                 btnToggle.textContent = isCollapsed ? '▶' : '◀';
             });
-        }
-        
-        if(btnMenu && sidebar && backdrop) {
-            const toggleMobile = () => {
-                sidebar.classList.toggle('show-mobile');
-                backdrop.classList.toggle('show');
-            };
-            
-            btnMenu.addEventListener('click', toggleMobile);
-            backdrop.addEventListener('click', toggleMobile);
         }
         
         await carregarAtalhosDinamicos();
