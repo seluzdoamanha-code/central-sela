@@ -79,8 +79,19 @@ body {
 .sidebar.collapsed .logo-area h2,
 .sidebar.collapsed .nav-item span.nav-text,
 .sidebar.collapsed .desktop-only,
-.sidebar.collapsed .sidebar-footer {
+.sidebar.collapsed .hide-on-collapse {
     display: none !important;
+}
+
+.sidebar.collapsed .show-on-collapse {
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+}
+
+.sidebar.collapsed #userProfileArea {
+    background: transparent !important;
+    padding: 16px 0 !important;
 }
 
 .sidebar.collapsed .logo-area {

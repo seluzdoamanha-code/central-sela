@@ -46,10 +46,9 @@
                     <div class="desktop-only">
                         <div>&copy; 2026 Luz do Amanhã</div>
                         <div style="opacity: 0.6; margin-top: 4px;">Dev by Portal SELA</div>
+                    <!-- User Profile Placeholder -->
+                    <div id="userProfileArea" style="margin-top: 24px; padding: 16px; background: var(--bg-dark); border-radius: 12px; display: flex; flex-direction: column; align-items: center; gap: 8px;">
                     </div>
-                    
-                    <div id="userProfileArea" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; align-items: center; gap: 8px;">
-                        <!-- Injetado via JS -->
                     </div>
                 </div>
             </aside>
@@ -145,17 +144,23 @@
         const userFoto = session.user.user_metadata?.avatar_url || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(userName) + '&background=random';
         
         container.innerHTML = `
-            <img src="${userFoto}" alt="Foto" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
-            <span style="font-weight: 500; color: var(--text-main); font-size: 13px;">${userName}</span>
-            <button id="btnLogout" style="margin-top: 4px; background: transparent; border: 1px solid rgba(239, 68, 68, 0.4); color: #ef4444; padding: 4px 12px; border-radius: 6px; cursor: pointer; transition: 0.2s;">Sair</button>
+            <img src="${userFoto}" alt="Foto" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);">
+            <span class="hide-on-collapse" style="font-weight: 500; color: var(--text-main); font-size: 13px; text-align: center;">${userName}</span>
+            <button id="btnLogout" class="hide-on-collapse" style="margin-top: 8px; width: 100%; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; padding: 6px 12px; border-radius: 6px; font-weight: 500; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.2)'" onmouseout="this.style.background='rgba(239,68,68,0.1)'">Sair</button>
+            <button id="btnLogoutMini" class="show-on-collapse" style="display: none; margin-top: 8px; width: 40px; height: 40px; border-radius: 20px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; cursor: pointer; transition: all 0.2s;" title="Sair" onmouseover="this.style.background='rgba(239,68,68,0.2)'" onmouseout="this.style.background='rgba(239,68,68,0.1)'">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+            </button>
         `;
 
-        document.getElementById('btnLogout').addEventListener('click', async () => {
+        const doLogout = async () => {
             if(sidebarDb) {
                 await sidebarDb.auth.signOut();
                 window.location.href = 'login.html';
             }
-        });
+        };
+
+        document.getElementById('btnLogout').addEventListener('click', doLogout);
+        document.getElementById('btnLogoutMini').addEventListener('click', doLogout);
     }
 
     async function carregarAtalhosDinamicos() {
