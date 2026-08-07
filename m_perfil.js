@@ -103,6 +103,18 @@
                 }
             });
         }
+
+        // Preview de Foto ao Selecionar Arquivo
+        const inpFoto = document.getElementById('inpFoto');
+        if (inpFoto) {
+            inpFoto.addEventListener('change', (e) => {
+                const previewFoto = document.getElementById('previewFoto');
+                if (e.target.files && e.target.files[0]) {
+                    previewFoto.src = URL.createObjectURL(e.target.files[0]);
+                    previewFoto.style.display = 'block';
+                }
+            });
+        }
     });
 
     // Rascunho para futuras ACLs (Access Control List)
@@ -267,6 +279,15 @@
         // Limpar arquivo de foto para nova edicao
         const inpFoto = document.getElementById('inpFoto');
         if (inpFoto) inpFoto.value = '';
+
+        const previewFoto = document.getElementById('previewFoto');
+        if (p.foto_url) {
+            previewFoto.src = p.foto_url;
+            previewFoto.style.display = 'block';
+        } else {
+            previewFoto.src = '';
+            previewFoto.style.display = 'none';
+        }
 
         // Checkboxes de Papeis
         const checkboxes = document.querySelectorAll('input[name="mPapeis"]');
