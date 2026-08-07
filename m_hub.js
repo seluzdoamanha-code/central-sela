@@ -4,7 +4,6 @@
     const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let estruturaAtual = null;
-    let membrosEquipe = [];
 
     document.addEventListener('DOMContentLoaded', async () => {
         const urlParams = new URLSearchParams(window.location.search);
@@ -16,61 +15,33 @@
             return;
         }
 
-        await carregarEstrutura(id);
-
-        // Setup UI listeners
-        document.getElementById('tabApps').addEventListener('click', () => switchTab('apps'));
-        document.getElementById('tabEquipe').addEventListener('click', () => switchTab('equipe'));
-
-        // Permissões
-        const podeEditar = typeof window.podeEditarPessoas === 'function' && window.podeEditarPessoas();
-        if (podeEditar) {
-            document.getElementById('btnOpenEdit').style.display = 'block';
-            document.getElementById('btnExcluir').style.display = 'block';
+        // Configurar fechamento do Bottom Sheet ao clicar no backdrop
+        const backdrop = document.getElementById('mBottomSheetBackdrop');
+        if(backdrop) {
+            backdrop.addEventListener('click', () => {
+                document.getElementById('mBottomSheet').classList.remove('active');
+                backdrop.classList.remove('active');
+            });
         }
 
-        // Modal Listeners
-        document.getElementById('btnOpenEdit').addEventListener('click', abrirModalEdicao);
-        document.getElementById('btnCloseEdit').addEventListener('click', fecharModalEdicao);
-        document.getElementById('btnSaveEdit').addEventListener('click', salvarEdicao);
-        document.getElementById('btnExcluir').addEventListener('click', excluirEstrutura);
+        await carregarEstrutura(id);
     });
 
     async function carregarEstrutura(id) {
-        document.getElementById('mLoadingState').style.display = 'block';
-        document.getElementById('mainContent').style.display = 'none';
-
         try {
-            // Fetch estrutura
             const { data, error } = await db.from('estruturas').select('*').eq('id', id).single();
             if (error) throw error;
             if (!data) throw new Error("Estrutura não encontrada.");
             
             estruturaAtual = data;
             
-            // Fetch team members
-            const { data: vinculos, error: vError } = await db
-                .from('vinculos_estrutura')
-                .select(`
-                    id, 
-                    papel_na_estrutura,
-                    pessoas ( id, nome_completo, foto_url )
-                `)
-                .eq('estrutura_id', id);
-            
-            if (!vError && vinculos) {
-                membrosEquipe = vinculos;
-            }
-
             renderizarDetalhes();
             renderizarApps();
-            renderizarEquipe();
+            configurarMenuSubindo();
 
-            document.getElementById('mLoadingState').style.display = 'none';
-            document.getElementById('mainContent').style.display = 'block';
         } catch (e) {
             console.error('Erro:', e);
-            document.getElementById('mLoadingState').innerText = 'Erro ao carregar dados.';
+            document.getElementById('mHubTitle').innerText = 'Erro ao carregar';
         }
     }
 
@@ -82,11 +53,12 @@
     }
 
     function renderizarDetalhes() {
-        document.getElementById('lblNome').innerText = estruturaAtual.nome;
-        document.getElementById('lblTipo').innerText = estruturaAtual.tipo;
-        document.getElementById('lblIcone').innerText = obterIniciais(estruturaAtual.nome);
+        document.getElementById('mHubTitle').innerText = estruturaAtual.nome;
+        document.getElementById('mHubName').innerText = estruturaAtual.nome;
+        document.getElementById('mHubType').innerText = estruturaAtual.tipo;
+        document.getElementById('mHubIcon').innerText = obterIniciais(estruturaAtual.nome);
         
-        const descEl = document.getElementById('lblDescricao');
+        const descEl = document.getElementById('mHubDesc');
         if (estruturaAtual.descricao && estruturaAtual.descricao.trim() !== '') {
             descEl.innerText = estruturaAtual.descricao;
             descEl.style.display = 'block';
@@ -94,185 +66,123 @@
             descEl.style.display = 'none';
         }
 
-        // Cor do ícone baseada no tipo (mesmo do m_atividades)
         const tipo = estruturaAtual.tipo;
         let bg = 'linear-gradient(135deg, #64748b, #475569)';
         if (tipo === 'Departamento') bg = 'linear-gradient(135deg, #3b82f6, #2563eb)';
         else if (tipo === 'Atividade') bg = 'linear-gradient(135deg, #10b981, #059669)';
         else if (tipo === 'Família') bg = 'linear-gradient(135deg, #f59e0b, #d97706)';
         else if (tipo === 'Turma') bg = 'linear-gradient(135deg, #8b5cf6, #7c3aed)';
-        document.getElementById('lblIcone').style.background = bg;
+        document.getElementById('mHubIcon').style.background = bg;
 
-        document.getElementById('lblQtdEquipe').innerText = membrosEquipe.length;
+        // Dynamic Nav Name
+        const navName = document.getElementById('dynamicActivityName');
+        const nomeCurto = estruturaAtual.nome.split(' ')[0];
+        if (navName) navName.innerText = (nomeCurto.length > 10 ? nomeCurto.substring(0, 10) + '...' : nomeCurto);
     }
 
     function renderizarApps() {
-        const container = document.getElementById('contentApps');
+        const container = document.getElementById('mAppsGrid');
         let html = '';
         const nome = (estruturaAtual.nome || '').toLowerCase();
 
-        // Lógica de "Mini-apps" específicos para o Mobile
+        // Ícones SVG Limpos
         if (nome.includes('assistência') || nome.includes('social')) {
             html += `
-                <a href="#" class="m-app-card" onclick="alert('Indo para Famílias Assistidas...')">
-                    <div class="m-app-icon">👨‍👩‍👧‍👦</div>
+                <a href="m_ass_familias.html?id=${estruturaAtual.id}" class="m-app-card">
+                    <div class="m-app-icon">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    </div>
                     <div class="m-app-name">Famílias</div>
                 </a>
-                <a href="#" class="m-app-card" onclick="alert('Indo para Distribuição de Cestas...')">
-                    <div class="m-app-icon">📦</div>
+                <a href="m_ass_entregas.html?id=${estruturaAtual.id}" class="m-app-card">
+                    <div class="m-app-icon">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                    </div>
                     <div class="m-app-name">Entregas</div>
                 </a>
             `;
+            // Dynamic Icon in Nav
+            document.getElementById('dynamicActivityIconContainer').innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z"></path></svg>';
         } else if (nome.includes('irradiação')) {
             html += `
                 <a href="pedido-irradiacao.html" class="m-app-card">
-                    <div class="m-app-icon">✨</div>
+                    <div class="m-app-icon">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                    </div>
                     <div class="m-app-name">LivroLuz</div>
                 </a>
-                <a href="#" class="m-app-card">
-                    <div class="m-app-icon">📖</div>
+                <a href="#" class="m-app-card" onclick="alert('Módulo em breve no celular!'); return false;">
+                    <div class="m-app-icon">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                    </div>
                     <div class="m-app-name">Mensagens</div>
                 </a>
             `;
+            document.getElementById('dynamicActivityIconContainer').innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>';
         } else if (nome.includes('tesouraria') || nome.includes('financeiro')) {
              html += `
-                <a href="#" class="m-app-card">
-                    <div class="m-app-icon">💸</div>
+                <a href="#" class="m-app-card" onclick="alert('Lançamentos em breve!'); return false;">
+                    <div class="m-app-icon">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
+                    </div>
                     <div class="m-app-name">Lançamentos</div>
                 </a>
-                <a href="#" class="m-app-card">
-                    <div class="m-app-icon">📊</div>
+                <a href="#" class="m-app-card" onclick="alert('Relatórios em breve!'); return false;">
+                    <div class="m-app-icon">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                    </div>
                     <div class="m-app-name">Relatórios</div>
                 </a>
             `;
+            document.getElementById('dynamicActivityIconContainer').innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>';
         } else {
             // Genéricos
             html += `
-                <a href="#" class="m-app-card" onclick="document.getElementById('tabEquipe').click();">
-                    <div class="m-app-icon">👥</div>
-                    <div class="m-app-name">Participantes</div>
+                <a href="#" class="m-app-card" onclick="alert('Mural / Feed em breve no celular!'); return false;">
+                    <div class="m-app-icon">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                    </div>
+                    <div class="m-app-name">Mural</div>
                 </a>
-                <a href="#" class="m-app-card" onclick="alert('Módulo de Agenda em breve no celular!')">
-                    <div class="m-app-icon">📅</div>
-                    <div class="m-app-name">Agenda</div>
+                <a href="#" class="m-app-card" onclick="alert('Metas em breve!'); return false;">
+                    <div class="m-app-icon">
+                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    </div>
+                    <div class="m-app-name">Metas</div>
                 </a>
             `;
+            document.getElementById('dynamicActivityIconContainer').innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>';
         }
 
         container.innerHTML = html;
     }
 
-    function renderizarEquipe() {
-        const container = document.getElementById('contentEquipe');
-        if (membrosEquipe.length === 0) {
-            container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">Ninguém vinculado ainda.</div>';
-            return;
-        }
-
-        let html = '';
-        membrosEquipe.forEach(v => {
-            const p = v.pessoas || {};
-            const nome = p.nome_completo || 'Pessoa Desconhecida';
-            const iniciais = obterIniciais(nome);
-            
-            html += `
-                <div class="m-card" style="display: flex; align-items: center; gap: 12px; padding: 12px; cursor: pointer;" onclick="window.location.href='m_perfil.html?id=${p.id}'">
-                    <div style="width: 40px; height: 40px; border-radius: 20px; background: var(--bg-dark); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--text-muted);">
-                        ${p.foto_url ? `<img src="${p.foto_url}" style="width:100%;height:100%;border-radius:20px;object-fit:cover;">` : iniciais}
-                    </div>
-                    <div style="flex: 1;">
-                        <div style="font-weight: 500; font-size: 14px; color: var(--text-main); margin-bottom: 2px;">${nome}</div>
-                        <div style="font-size: 12px; color: var(--primary);">${v.papel_na_estrutura || 'Membro'}</div>
-                    </div>
-                </div>
-            `;
-        });
-        container.innerHTML = html;
-    }
-
-    function switchTab(tab) {
-        document.getElementById('tabApps').classList.remove('active');
-        document.getElementById('tabEquipe').classList.remove('active');
-        document.getElementById('contentApps').style.display = 'none';
-        document.getElementById('contentEquipe').style.display = 'none';
-
-        if (tab === 'apps') {
-            document.getElementById('tabApps').classList.add('active');
-            document.getElementById('contentApps').style.display = 'grid';
-        } else {
-            document.getElementById('tabEquipe').classList.add('active');
-            document.getElementById('contentEquipe').style.display = 'flex';
-        }
-    }
-
-    // Modal de Edição
-    function abrirModalEdicao() {
-        document.getElementById('inNome').value = estruturaAtual.nome || '';
-        document.getElementById('inTipo').value = estruturaAtual.tipo || 'Departamento';
-        document.getElementById('inDescricao').value = estruturaAtual.descricao || '';
+    function configurarMenuSubindo() {
+        const sheetContent = document.getElementById('mBottomSheetContent');
         
-        document.getElementById('modalEdit').classList.add('active');
+        sheetContent.innerHTML = `
+            <a href="#" class="m-sheet-item" onclick="alert('Equipe & Organograma em breve no celular!'); fecharGaveta(); return false;">
+                <span class="m-sheet-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+                Equipe & Organograma
+            </a>
+            <a href="#" class="m-sheet-item" onclick="alert('Agenda em breve no celular!'); fecharGaveta(); return false;">
+                <span class="m-sheet-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+                Agenda
+            </a>
+            <a href="#" class="m-sheet-item" onclick="alert('Documentos em breve no celular!'); fecharGaveta(); return false;">
+                <span class="m-sheet-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span>
+                Documentos Gerais
+            </a>
+            <a href="m_atividades.html" class="m-sheet-item" style="color: var(--primary);">
+                <span class="m-sheet-icon" style="color: var(--primary);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/></svg></span>
+                Voltar para Todas Atividades
+            </a>
+        `;
     }
-
-    function fecharModalEdicao() {
-        document.getElementById('modalEdit').classList.remove('active');
-    }
-
-    async function salvarEdicao() {
-        const nome = document.getElementById('inNome').value.trim();
-        const tipo = document.getElementById('inTipo').value;
-        const descricao = document.getElementById('inDescricao').value.trim();
-
-        if (!nome) {
-            alert('O nome é obrigatório.');
-            return;
-        }
-
-        document.getElementById('btnSaveEdit').innerText = 'Salvando...';
-        document.getElementById('btnSaveEdit').disabled = true;
-
-        try {
-            const { error } = await db.from('estruturas').update({
-                nome: nome,
-                tipo: tipo,
-                descricao: descricao
-            }).eq('id', estruturaAtual.id);
-
-            if (error) throw error;
-
-            estruturaAtual.nome = nome;
-            estruturaAtual.tipo = tipo;
-            estruturaAtual.descricao = descricao;
-
-            renderizarDetalhes();
-            renderizarApps(); // Recarrega atalhos baseados no novo nome
-            fecharModalEdicao();
-        } catch (e) {
-            console.error('Erro ao salvar:', e);
-            alert('Erro ao salvar as alterações.');
-        } finally {
-            document.getElementById('btnSaveEdit').innerText = 'Salvar';
-            document.getElementById('btnSaveEdit').disabled = false;
-        }
-    }
-
-    async function excluirEstrutura() {
-        if (!confirm('ATENÇÃO: Deseja realmente excluir esta atividade/departamento? Esta ação não pode ser desfeita e todos os vínculos serão perdidos.')) return;
-        
-        try {
-            // Deleta vínculos primeiro
-            await db.from('vinculos_estrutura').delete().eq('estrutura_id', estruturaAtual.id);
-            // Deleta estrutura
-            const { error } = await db.from('estruturas').delete().eq('id', estruturaAtual.id);
-            
-            if (error) throw error;
-            
-            alert('Atividade excluída com sucesso.');
-            window.location.href = 'm_atividades.html';
-        } catch (e) {
-            console.error('Erro ao excluir:', e);
-            alert('Erro ao excluir. Tente novamente.');
-        }
-    }
+    
+    window.fecharGaveta = function() {
+        document.getElementById('mBottomSheet').classList.remove('active');
+        document.getElementById('mBottomSheetBackdrop').classList.remove('active');
+    };
 
 })();

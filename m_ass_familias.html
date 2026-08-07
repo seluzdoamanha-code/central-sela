@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Portal SELA - Famílias</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="m_style.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth_guard.js"></script>
+    <link rel="icon" type="image/png" href="logo_sela.png">
+    <style>
+        .m-header-nav {
+            display: flex;
+            align-items: center;
+            height: 60px;
+            padding: 0 16px;
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .m-back-btn {
+            background: none;
+            border: none;
+            color: var(--text-main);
+            padding: 8px;
+            margin-left: -8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .m-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-left: 8px;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .m-search-box {
+            position: sticky;
+            top: 60px;
+            background: var(--bg-dark);
+            padding: 12px 16px;
+            z-index: 10;
+        }
+        .m-search-input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--bg-panel);
+            color: var(--text-main);
+            font-size: 16px;
+            outline: none;
+        }
+        .m-search-input:focus {
+            border-color: var(--primary);
+        }
+        
+        .m-fam-list {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-bottom: 80px;
+        }
+        
+        .m-fam-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .m-fam-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .m-fam-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+        .m-fam-code {
+            font-size: 12px;
+            font-family: monospace;
+            background: rgba(255,255,255,0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--text-muted);
+        }
+        .m-fam-info {
+            font-size: 13px;
+            color: var(--text-muted);
+            display: flex;
+            gap: 12px;
+        }
+        .m-fam-status {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+        .status-Ativa { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .status-Inativa { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .status-Triagem { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        
+        /* Modal Detalhes */
+        .m-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--bg-dark);
+            z-index: 3000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        .m-modal-overlay.active {
+            transform: translateX(0);
+        }
+        .m-modal-content {
+            padding: 16px;
+            overflow-y: auto;
+            flex: 1;
+            padding-bottom: env(safe-area-inset-bottom, 20px);
+        }
+        
+        .m-det-block {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .m-det-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+        .m-det-item {
+            margin-bottom: 12px;
+        }
+        .m-det-item:last-child {
+            margin-bottom: 0;
+        }
+        .m-det-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+        .m-det-value {
+            font-size: 15px;
+            color: var(--text-main);
+        }
+        .m-action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 15px;
+            text-decoration: none;
+            margin-top: 8px;
+        }
+        .btn-whatsapp {
+            background: #25D366;
+            color: white;
+            border: none;
+        }
+        .btn-maps {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+    </style>
+</head>
+<body>
+    
+    <header class="m-header-nav">
+        <button class="m-back-btn" id="btnVoltarHub">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        <div class="m-title">Famílias Assistidas</div>
+    </header>
+
+    <div class="m-search-box">
+        <input type="text" id="mSearchInput" class="m-search-input" placeholder="Buscar por nome ou código..." autocomplete="off">
+    </div>
+
+    <main class="m-viewport">
+        <div id="mLoadingState" style="text-align: center; color: var(--text-muted); padding: 40px; font-size: 14px;">
+            Carregando famílias...
+        </div>
+        
+        <div class="m-fam-list" id="mFamList">
+            <!-- Cards injetados via JS -->
+        </div>
+    </main>
+
+    <!-- Modal Detalhes (Desliza da Direita) -->
+    <div id="mDetModal" class="m-modal-overlay">
+        <header class="m-header-nav">
+            <button class="m-back-btn" onclick="document.getElementById('mDetModal').classList.remove('active');">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            </button>
+            <div class="m-title" id="mdNome">Detalhes da Família</div>
+        </header>
+        
+        <div class="m-modal-content">
+            <div class="m-det-block">
+                <div class="m-det-title">Informações Principais</div>
+                <div class="m-det-item">
+                    <div class="m-det-label">Responsável / Nome da Família</div>
+                    <div class="m-det-value" id="mdResp">-</div>
+                </div>
+                <div class="m-det-item">
+                    <div class="m-det-label">Código</div>
+                    <div class="m-det-value" id="mdCodigo">-</div>
+                </div>
+                <div class="m-det-item">
+                    <div class="m-det-label">Status</div>
+                    <div class="m-det-value" id="mdStatus">-</div>
+                </div>
+                <div class="m-det-item" style="margin-top: 16px;">
+                    <a href="#" id="btnWhatsApp" class="m-action-btn btn-whatsapp" target="_blank" style="display: none;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+                        Chamar WhatsApp
+                    </a>
+                </div>
+            </div>
+            
+            <div class="m-det-block">
+                <div class="m-det-title">Endereço</div>
+                <div class="m-det-item">
+                    <div class="m-det-value" id="mdEndereco">-</div>
+                </div>
+                <div class="m-det-item">
+                    <a href="#" id="btnGoogleMaps" class="m-action-btn btn-maps" target="_blank" style="display: none;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                        Abrir no Maps
+                    </a>
+                </div>
+            </div>
+            
+            <div class="m-det-block">
+                <div class="m-det-title">Logística</div>
+                <div class="m-det-item">
+                    <div class="m-det-label">Modelo de Cesta</div>
+                    <div class="m-det-value" id="mdCesta">-</div>
+                </div>
+                <div class="m-det-item">
+                    <div class="m-det-label">Dia de Retirada</div>
+                    <div class="m-det-value" id="mdDiaRetirada">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="m_ass_familias.js"></script>
+</body>
+</html>

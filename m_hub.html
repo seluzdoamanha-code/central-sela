@@ -93,28 +93,6 @@
             border-radius: 8px;
             text-align: left;
         }
-        .m-tabs {
-            display: flex;
-            border-bottom: 1px solid var(--border);
-            background: var(--bg-panel);
-            position: sticky;
-            top: 60px;
-            z-index: 99;
-        }
-        .m-tab {
-            flex: 1;
-            text-align: center;
-            padding: 14px 0;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text-muted);
-            border-bottom: 2px solid transparent;
-            cursor: pointer;
-        }
-        .m-tab.active {
-            color: var(--primary);
-            border-bottom-color: var(--primary);
-        }
         .m-apps-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -122,50 +100,121 @@
             padding: 20px;
         }
         .m-app-card {
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px 16px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 24px 16px;
             text-align: center;
             cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             text-decoration: none;
             color: var(--text-main);
             display: flex;
             flex-direction: column;
             align-items: center;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: transform 0.2s, background 0.2s;
+        }
+        .m-app-card:active {
+            transform: scale(0.96);
+            background: rgba(255,255,255,0.08);
         }
         .m-app-icon {
-            font-size: 28px;
             margin-bottom: 12px;
+            color: var(--primary);
         }
         .m-app-name {
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 600;
         }
-        .m-team-list {
-            padding: 20px;
+        
+        /* Bottom Sheet Styles */
+        .m-bottom-sheet {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(28, 25, 23, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border);
+            border-radius: 24px 24px 0 0;
+            padding: 12px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+            z-index: 2000;
+            box-shadow: 0 -4px 24px rgba(0,0,0,0.5);
+        }
+        .m-bottom-sheet.active {
+            transform: translateY(0);
+        }
+        .m-bottom-sheet-backdrop {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 1999;
+        }
+        .m-bottom-sheet.active ~ .m-bottom-sheet-backdrop,
+        .m-bottom-sheet-backdrop.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .m-bottom-sheet-handle {
+            width: 40px;
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 2px;
+            margin: 0 auto 16px auto;
+        }
+        .m-bottom-sheet-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        .m-sheet-item {
             display: flex;
-            flex-direction: column;
-            gap: 12px;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-main);
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        .m-sheet-item:last-child {
+            border-bottom: none;
+        }
+        .m-sheet-icon {
+            margin-right: 16px;
+            color: var(--text-muted);
         }
         
-        /* Modal de Edição */
-        .m-modal {
+        .m-nav-item.active {
+            color: var(--primary);
+        }
+        .m-nav-item.active .m-nav-icon svg {
+            filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.6));
+        }
+
+        /* Drawer Overlay container for editing */
+        .m-drawer-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
             background: var(--bg-dark);
-            z-index: 200;
-            display: none;
-            flex-direction: column;
+            z-index: 3000;
             transform: translateY(100%);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .m-modal.active {
+            transition: transform 0.3s ease;
             display: flex;
+            flex-direction: column;
+        }
+        .m-drawer-overlay.active {
             transform: translateY(0);
         }
-        .m-modal-header {
+        .m-drawer-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -173,40 +222,10 @@
             background: var(--bg-panel);
             border-bottom: 1px solid var(--border);
         }
-        .m-modal-content {
-            flex: 1;
-            padding: 20px;
+        .m-drawer-content {
+            padding: 16px;
             overflow-y: auto;
-        }
-        .m-input-group {
-            margin-bottom: 16px;
-        }
-        .m-input-group label {
-            display: block;
-            font-size: 13px;
-            color: var(--text-muted);
-            margin-bottom: 6px;
-        }
-        .m-input-group input, .m-input-group select, .m-input-group textarea {
-            width: 100%;
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            color: var(--text-main);
-            border-radius: 8px;
-            padding: 12px;
-            font-size: 15px;
-            font-family: inherit;
-        }
-        .btn-danger {
-            background: rgba(239, 68, 68, 0.1);
-            color: #ef4444;
-            border: 1px solid rgba(239, 68, 68, 0.2);
-            width: 100%;
-            padding: 14px;
-            border-radius: 8px;
-            font-weight: 600;
-            margin-top: 24px;
-            cursor: pointer;
+            flex: 1;
         }
     </style>
 </head>
@@ -214,73 +233,70 @@
     
     <header class="m-header-nav">
         <button class="m-back-btn" onclick="window.location.href='m_atividades.html'">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
         </button>
-        <div class="m-hub-title">Detalhes da Atividade</div>
-        <button class="m-edit-btn" id="btnOpenEdit" style="display: none;">Editar</button>
+        <div class="m-hub-title" id="mHubTitle">Carregando...</div>
+        <button id="btnEditAtividade" class="m-edit-btn" style="display: none;">Editar</button>
     </header>
 
-    <div id="mLoadingState" style="text-align: center; padding: 40px; color: var(--text-muted);">
-        Carregando informações...
-    </div>
-
-    <main id="mainContent" style="display: none;">
+    <main class="m-viewport" style="padding-bottom: 80px;">
         <div class="m-hub-hero">
-            <div class="m-hub-icon" id="lblIcone">?</div>
-            <div class="m-hub-name" id="lblNome">-</div>
-            <div class="m-hub-type" id="lblTipo">-</div>
-            <div class="m-hub-desc" id="lblDescricao">Nenhuma descrição informada.</div>
+            <div class="m-hub-icon" id="mHubIcon">?</div>
+            <div class="m-hub-name" id="mHubName">Carregando...</div>
+            <div class="m-hub-type" id="mHubType"></div>
+            <div class="m-hub-desc" id="mHubDesc" style="display: none;"></div>
         </div>
-
-        <div class="m-tabs">
-            <div class="m-tab active" id="tabApps">Mini-apps</div>
-            <div class="m-tab" id="tabEquipe">Equipe (<span id="lblQtdEquipe">0</span>)</div>
-        </div>
-
-        <!-- Conteúdo: Apps -->
-        <div id="contentApps" class="m-apps-grid">
-            <!-- Apps dinâmicos injetados via JS -->
-        </div>
-
-        <!-- Conteúdo: Equipe -->
-        <div id="contentEquipe" class="m-team-list" style="display: none;">
-            <!-- Pessoas injetadas via JS -->
+        
+        <!-- Apps Grid (Principal) -->
+        <div id="mTabApps">
+            <div class="m-apps-grid" id="mAppsGrid">
+                <!-- Injetado via JS -->
+            </div>
         </div>
     </main>
 
-    <!-- Modal de Edição -->
-    <div class="m-modal" id="modalEdit">
-        <div class="m-modal-header">
-            <button class="m-back-btn" id="btnCloseEdit">Cancelar</button>
-            <div class="m-hub-title" style="text-align: center; margin: 0;">Editar Atividade</div>
-            <button class="m-edit-btn" id="btnSaveEdit" style="background: var(--primary); color: white;">Salvar</button>
-        </div>
-        <div class="m-modal-content">
-            <form id="formEdit">
-                <div class="m-input-group">
-                    <label>Nome da Estrutura</label>
-                    <input type="text" id="inNome" required>
-                </div>
-                <div class="m-input-group">
-                    <label>Tipo</label>
-                    <select id="inTipo" required>
-                        <option value="Departamento">Departamento</option>
-                        <option value="Atividade">Atividade</option>
-                        <option value="Família">Família</option>
-                        <option value="Turma">Turma</option>
-                        <option value="Grupo de Estudo">Grupo de Estudo</option>
-                        <option value="Outro">Outro</option>
-                    </select>
-                </div>
-                <div class="m-input-group">
-                    <label>Descrição (Opcional)</label>
-                    <textarea id="inDescricao" rows="4"></textarea>
-                </div>
-                
-                <button type="button" class="btn-danger" id="btnExcluir" style="display: none;">Excluir Estrutura</button>
-            </form>
+    <!-- Menu Subindo (Bottom Sheet) -->
+    <div class="m-bottom-sheet-backdrop" id="mBottomSheetBackdrop"></div>
+    <div class="m-bottom-sheet" id="mBottomSheet">
+        <div class="m-bottom-sheet-handle"></div>
+        <div class="m-bottom-sheet-title">Mais Opções</div>
+        <div class="m-bottom-sheet-content" id="mBottomSheetContent">
+            <!-- Injetado via JS (Equipe, Agenda, Documentos) -->
         </div>
     </div>
+
+    <!-- Drawer para Edição -->
+    <div id="mEditDrawer" class="m-drawer-overlay">
+        <!-- Injetado via JS -->
+    </div>
+
+    <!-- Contextual Bottom Nav -->
+    <nav class="m-bottom-nav" id="mHubBottomNav">
+        <a href="m_index.html" class="m-nav-item">
+            <span class="m-nav-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            </span>
+            <span class="m-nav-label">Início</span>
+        </a>
+        <a href="m_atividades.html" class="m-nav-item">
+            <span class="m-nav-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect><line x1="16" x2="16" y1="2" y2="6"></line><line x1="8" x2="8" y1="2" y2="6"></line><line x1="3" x2="21" y1="10" y2="10"></line></svg>
+            </span>
+            <span class="m-nav-label">Atividades</span>
+        </a>
+        <a href="#" class="m-nav-item active" id="btnNavSocial" onclick="document.getElementById('mBottomSheet').classList.remove('active'); document.getElementById('mBottomSheetBackdrop').classList.remove('active'); return false;">
+            <span class="m-nav-icon" id="dynamicActivityIconContainer">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z"></path></svg>
+            </span>
+            <span class="m-nav-label" id="dynamicActivityName">Social</span>
+        </a>
+        <a href="#" class="m-nav-item" id="btnNavMais" onclick="document.getElementById('mBottomSheet').classList.add('active'); document.getElementById('mBottomSheetBackdrop').classList.add('active'); return false;">
+            <span class="m-nav-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+            </span>
+            <span class="m-nav-label">Mais</span>
+        </a>
+    </nav>
 
     <script src="m_hub.js"></script>
 </body>
