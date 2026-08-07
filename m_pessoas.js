@@ -65,9 +65,17 @@
         let html = '';
         lista.forEach(p => {
             const isEmpresa = p.tipo_pessoa === 'Jurídica';
-            const iniciais = obterIniciais(p.nome_completo);
             const nomeExibicao = p.nome_curto || p.nome_completo || 'Sem Nome';
             
+            // Foto ou Iniciais
+            let visualIcone = '';
+            if (p.foto_url) {
+                visualIcone = `<img src="${p.foto_url}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">`;
+            } else {
+                const iniciais = obterIniciais(p.nome_completo);
+                visualIcone = iniciais;
+            }
+
             // Papeis (Até 3 badges)
             let papeisHtml = '';
             if (p.papeis && p.papeis.length > 0) {
@@ -85,17 +93,18 @@
             let whatsAppBtn = '';
             if (p.celular) {
                 const numeroLimpo = p.celular.replace(/\D/g, '');
-                whatsAppBtn = `<a href="https://wa.me/55${numeroLimpo}" target="_blank" style="color: #22c55e; font-size: 20px; text-decoration: none; padding: 8px;" onclick="event.stopPropagation();">💬</a>`;
+                // Ajustado para não quebrar a altura da linha: sem padding, line-height 1
+                whatsAppBtn = `<a href="https://wa.me/55${numeroLimpo}" target="_blank" style="color: #22c55e; font-size: 18px; text-decoration: none; line-height: 1; margin-left: 8px;" onclick="event.stopPropagation();">💬</a>`;
             }
 
             // Card HTML
             html += `
             <div class="m-card" onclick="alert('Perfil detalhado em breve no mobile!')" style="cursor: pointer; position: relative;">
-                <div class="m-card-icon" style="background: var(--bg-panel); color: ${isEmpresa ? '#34d399' : 'var(--primary)'}; border: 1px solid var(--border); font-size: 16px;">
-                    ${iniciais}
+                <div class="m-card-icon" style="${p.foto_url ? 'background: transparent; border: none;' : (isEmpresa ? 'background: var(--bg-panel); color: #34d399;' : 'background: var(--bg-panel); color: var(--primary);')} border: ${p.foto_url ? 'none' : '1px solid var(--border)'}; font-size: 16px;">
+                    ${visualIcone}
                 </div>
                 <div class="m-card-content">
-                    <div class="m-card-title" style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div class="m-card-title" style="display: flex; justify-content: space-between; align-items: center;">
                         <span style="display: block; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${nomeExibicao}</span>
                         ${whatsAppBtn}
                     </div>
