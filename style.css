@@ -68,6 +68,55 @@ body {
     border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
+    transition: width 0.3s ease, transform 0.3s ease;
+    z-index: 1000;
+}
+
+.sidebar.collapsed {
+    width: 80px;
+}
+
+.sidebar.collapsed .logo-area h2,
+.sidebar.collapsed .nav-item span.nav-text,
+.sidebar.collapsed .desktop-only,
+.sidebar.collapsed .sidebar-footer {
+    display: none !important;
+}
+
+.sidebar.collapsed .logo-area {
+    justify-content: center;
+    padding: 24px 0;
+}
+
+.sidebar.collapsed .nav-item {
+    justify-content: center;
+    padding: 12px 0;
+}
+
+.sidebar-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+    z-index: 999;
+}
+
+.sidebar-backdrop.show {
+    display: block;
+}
+
+/* Header/Topbar for mobile menu button */
+.mobile-header {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border);
 }
 
 .logo-area {
@@ -304,63 +353,37 @@ body {
         flex-direction: column;
     }
     
-    /* Navbar Superior Retrátil no Celular */
     .sidebar {
-        width: 100%;
-        flex-direction: column;
-        border-right: none;
-        border-bottom: 1px solid var(--border);
-        overflow: hidden;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 80%;
+        max-width: 300px;
+        transform: translateX(-100%);
+        box-shadow: 2px 0 10px rgba(0,0,0,0.5);
     }
     
-    .logo-area {
-        padding: 16px;
-        border-bottom: none;
-        border-right: none;
-        width: 100%;
-    }
-    .logo-area h2 {
-        font-size: 16px;
+    .sidebar.show-mobile {
+        transform: translateX(0);
     }
     
-    .mobile-menu-btn {
-        display: block !important;
+    .mobile-header {
+        display: flex;
     }
     
     .sidebar-footer {
-        display: none !important;
+        display: block !important;
     }
     
     .main-nav {
-        flex-direction: column;
-        padding: 0;
-        width: 100%;
-        display: none; /* Oculto por padrão no celular */
+        display: flex !important;
     }
     
-    .main-nav.show-mobile {
-        display: flex;
-        border-top: 1px solid rgba(255,255,255,0.05);
+    .desktop-only {
+        display: none !important;
     }
     
-    .nav-item {
-        padding: 12px 16px;
-        font-size: 14px;
-        white-space: normal;
-        border-right: none;
-        border-bottom: none !important;
-        border-left: none !important;
-    }
-    
-    .nav-item[style*="margin-top: 24px"] {
-        margin-top: 0 !important;
-    }
-
-    .nav-item.active {
-        border-right: none;
-        border-bottom: 3px solid #818cf8;
-    }
-
     /* Ajustes Gerais de Conteúdo */
     .topbar {
         flex-direction: column;
@@ -414,20 +437,17 @@ body {
         padding: 20px 16px;
     }
     .tabs-nav {
-        flex-direction: column !important;
-        padding: 0 !important;
-        display: none !important; /* Hide by default on mobile, toggled by hamburger */
+        flex-wrap: nowrap !important;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 8px !important;
+        scrollbar-width: none;
     }
-    .tabs-nav.show-mobile {
-        display: flex !important;
-        border-top: 1px solid rgba(255,255,255,0.05);
+    .tabs-nav::-webkit-scrollbar {
+        display: none;
     }
     .tab-btn {
-        width: 100%;
-        text-align: left;
-        border-radius: 0;
-        padding: 16px;
-        border-bottom: none !important;
+        flex: 0 0 auto;
     }
     .tab-content {
         padding: 20px 16px;
@@ -436,6 +456,12 @@ body {
         flex-direction: column;
         align-items: stretch !important;
         gap: 12px;
+    }
+    
+    .grid-2-col, .grid-3-col {
+        grid-template-columns: 1fr !important;
+        display: flex !important;
+        flex-direction: column;
     }
     
     .mural-grid {

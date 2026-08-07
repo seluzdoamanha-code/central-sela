@@ -22,12 +22,12 @@
                         <img src="logo_sela.png" alt="Logo SELA" style="height: 40px; width: auto; border-radius: 50%;">
                         <h2 style="margin: 0;">Portal SELA</h2>
                     </div>
-                    <button id="mobileMenuBtn" class="mobile-menu-btn" style="background: none; border: none; color: white; font-size: 28px; cursor: pointer; display: none;">=</button>
+                    <button id="toggleSidebarBtn" class="desktop-only" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; padding: 4px;">◀</button>
                 </div>
                 <nav class="main-nav" id="sidebarNav" style="flex: 1;">
-                    <a href="index.html" class="nav-item ${currentPage === 'index.html' ? 'active' : ''}">🏠 Início / Mural</a>
-                    <a href="entidade.html" class="nav-item ${currentPage === 'entidade.html' || currentPage === 'hub.html' ? 'active' : ''}">🏛️ Entidade & Atividades</a>
-                    <a href="pessoas.html" class="nav-item ${currentPage === 'pessoas.html' || currentPage === 'perfil.html' ? 'active' : ''}">👥 Pessoas & Perfis</a>
+                    <a href="index.html" class="nav-item ${currentPage === 'index.html' ? 'active' : ''}" title="Início / Mural">🏠 <span class="nav-text">Início / Mural</span></a>
+                    <a href="entidade.html" class="nav-item ${currentPage === 'entidade.html' || currentPage === 'hub.html' ? 'active' : ''}" title="Entidade & Atividades">🏛️ <span class="nav-text">Entidade & Atividades</span></a>
+                    <a href="pessoas.html" class="nav-item ${currentPage === 'pessoas.html' || currentPage === 'perfil.html' ? 'active' : ''}" title="Pessoas & Perfis">👥 <span class="nav-text">Pessoas & Perfis</span></a>
                     
                     <div style="height: 1px; background: rgba(255,255,255,0.05); margin: 8px 16px;" class="desktop-only"></div>
 
@@ -56,24 +56,62 @@
         `;
 
         const existingSidebar = document.querySelector('aside.sidebar');
+        const backdropHTML = `<div id="sidebarBackdrop" class="sidebar-backdrop"></div>`;
+        const mobileHeaderHTML = `
+            <div class="mobile-header">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <img src="logo_sela.png" alt="Logo" style="height: 32px; border-radius: 50%;">
+                    <h2 style="font-size: 16px; margin: 0; background: linear-gradient(to right, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Portal SELA</h2>
+                </div>
+                <button id="mobileMenuBtn" style="background: none; border: none; color: var(--text-main); font-size: 24px; cursor: pointer;">☰</button>
+            </div>
+        `;
+        
         if (existingSidebar) {
             existingSidebar.outerHTML = sidebarHTML;
+            if (!document.getElementById('sidebarBackdrop')) {
+                const container = document.querySelector('.app-container');
+                container.insertAdjacentHTML('beforeend', backdropHTML);
+                container.insertAdjacentHTML('afterbegin', mobileHeaderHTML);
+            }
         } else {
             const container = document.querySelector('.app-container');
-            if (container) container.insertAdjacentHTML('afterbegin', sidebarHTML);
+            if (container) {
+                container.insertAdjacentHTML('afterbegin', mobileHeaderHTML);
+                container.insertAdjacentHTML('afterbegin', sidebarHTML);
+                container.insertAdjacentHTML('beforeend', backdropHTML);
+            }
         }
         
-        // Lógica do Menu Hambúrguer (Mobile)
+        // Lógica do Menu Hambúrguer (Mobile) e Collapse (Desktop)
         const btnMenu = document.getElementById('mobileMenuBtn');
-        const navMenu = document.getElementById('sidebarNav');
-        if(btnMenu && navMenu) {
-            btnMenu.addEventListener('click', () => {
-                if (typeof window.onMobileMenuClick === 'function') {
-                    window.onMobileMenuClick();
-                } else {
-                    navMenu.classList.toggle('show-mobile');
-                }
+        const sidebar = document.querySelector('.sidebar');
+        const backdrop = document.getElementById('sidebarBackdrop');
+        const btnToggle = document.getElementById('toggleSidebarBtn');
+        
+        // Verifica preferência de colapso
+        if (localStorage.getItem('sidebar_collapsed') === 'true' && window.innerWidth > 768) {
+            sidebar.classList.add('collapsed');
+            if(btnToggle) btnToggle.textContent = '▶';
+        }
+        
+        if(btnToggle) {
+            btnToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('collapsed');
+                const isCollapsed = sidebar.classList.contains('collapsed');
+                localStorage.setItem('sidebar_collapsed', isCollapsed);
+                btnToggle.textContent = isCollapsed ? '▶' : '◀';
             });
+        }
+        
+        if(btnMenu && sidebar && backdrop) {
+            const toggleMobile = () => {
+                sidebar.classList.toggle('show-mobile');
+                backdrop.classList.toggle('show');
+            };
+            
+            btnMenu.addEventListener('click', toggleMobile);
+            backdrop.addEventListener('click', toggleMobile);
         }
         
         await carregarAtalhosDinamicos();
@@ -139,7 +177,7 @@
                 const urlParams = new URLSearchParams(window.location.search);
                 const isActive = (window.location.pathname.includes('hub.html') && urlParams.get('id') == d.id);
                 
-                html += `<a href="hub.html?id=${d.id}" class="nav-item ${isActive ? 'active' : ''}">${icon} ${d.nome}</a>`;
+                html += `<a href="hub.html?id=${d.id}" class="nav-item ${isActive ? 'active' : ''}" title="${d.nome}">${icon} <span class="nav-text">${d.nome}</span></a>`;
             });
             
             container.innerHTML = html;
