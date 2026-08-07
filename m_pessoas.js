@@ -173,6 +173,14 @@
                 whatsAppBtn = `<a href="https://wa.me/55${numeroLimpo}" target="_blank" style="color: #22c55e; font-size: 18px; text-decoration: none; line-height: 1; margin-left: 8px;" onclick="event.stopPropagation();">💬</a>`;
             }
 
+            // Email link
+            let emailBtn = '';
+            let emailText = '';
+            if (p.email) {
+                emailBtn = `<a href="mailto:${p.email}" style="color: #6366f1; font-size: 18px; text-decoration: none; line-height: 1; margin-left: 8px;" onclick="event.stopPropagation();">📧</a>`;
+                emailText = `<div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">✉️ ${p.email}</div>`;
+            }
+
             // Card HTML
             html += `
             <div class="m-card" onclick="window.location.href='m_perfil.html?id=${p.id}'" style="cursor: pointer; position: relative;">
@@ -181,13 +189,17 @@
                 </div>
                 <div class="m-card-content">
                     <div class="m-card-title" style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="display: block; max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${nomeExibicao}</span>
-                        ${whatsAppBtn}
+                        <span style="display: block; max-width: 170px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${nomeExibicao}</span>
+                        <div style="display: flex; align-items: center;">
+                            ${emailBtn}
+                            ${whatsAppBtn}
+                        </div>
                     </div>
                     <div style="margin-top: 2px;">
                         ${papeisHtml}
                     </div>
                     ${documento}
+                    ${emailText}
                 </div>
             </div>`;
         });
