@@ -434,12 +434,19 @@ function setupModal() {
         const estado_civil = document.getElementById('inEstadoCivil').value || null;
         const profissao = document.getElementById('inProfissao').value || null;
         
+        const cep = document.getElementById('inCep').value || null;
+        const endereco = document.getElementById('inEndereco').value || null;
+        const bairro = document.getElementById('inBairro').value || null;
+        const cidade = document.getElementById('inCidade').value || null;
+        const estado = document.getElementById('inEstado').value || null;
+        
         // Coleta tags selecionadas
         const papeis = Array.from(document.querySelectorAll('input[name="papeis"]:checked')).map(cb => cb.value);
 
         const dados = {
             cpf_cnpj, nome_completo, nome_curto, tipo_pessoa, celular, email, papeis,
-            status, data_nascimento, sexo, naturalidade, nacionalidade, nome_mae, nome_pai, estado_civil, profissao
+            status, data_nascimento, sexo, naturalidade, nacionalidade, nome_mae, nome_pai, estado_civil, profissao,
+            cep, endereco, bairro, cidade, estado
         };
         
         try {
@@ -521,6 +528,12 @@ window.editarPessoa = async (id) => {
     document.getElementById('inNomePai').value = pessoa.nome_pai || '';
     document.getElementById('inEstadoCivil').value = pessoa.estado_civil || '';
     document.getElementById('inProfissao').value = pessoa.profissao || '';
+    
+    document.getElementById('inCep').value = pessoa.cep || '';
+    document.getElementById('inEndereco').value = pessoa.endereco || '';
+    document.getElementById('inBairro').value = pessoa.bairro || '';
+    document.getElementById('inCidade').value = pessoa.cidade || '';
+    document.getElementById('inEstado').value = pessoa.estado || '';
 
     document.getElementById('inFoto').value = ''; // Limpa o input de arquivo
     
