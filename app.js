@@ -327,7 +327,10 @@ function setupModal() {
         pessoaEditandoId = null;
     };
     
-    btnNovo.addEventListener('click', () => modal.classList.add('show'));
+    btnNovo.addEventListener('click', () => {
+        if(window.switchTab) window.switchTab('basico');
+        modal.classList.add('show');
+    });
     btnClose.addEventListener('click', fecharModal);
     btnCancel.addEventListener('click', fecharModal);
     
@@ -489,6 +492,9 @@ function setupModal() {
 }
 
 window.editarPessoa = async (id) => {
+    // Reset tabs
+    if(window.switchTab) window.switchTab('basico');
+
     const pessoa = pessoasGlobais.find(p => p.id === id);
     if (!pessoa) return;
     
@@ -558,12 +564,20 @@ window.renderizarTagsDisponiveis = async () => {
     try {
         const { data, error } = await db.from('configuracoes').select('valor').eq('chave', 'perfis_pessoas').single();
         if (data && data.valor) {
-            TAGS = data.valor.split(',').map(s => s.trim()).filter(s => s !== '');
+        TAGS = data.valor.split(',').map(s => s.trim()).filter(s => s !== '');
         }
     } catch(err) {
         console.log("Usando tags default");
     }
     
+    // Sort logic as requested: 1. Associado Efetivo, 2. Outros, 3. Resto alfabeticamente
+    let specialTags = [];
+    if (TAGS.includes('Associado Efetivo')) { specialTags.push('Associado Efetivo'); }
+    if (TAGS.includes('Outros')) { specialTags.push('Outros'); }
+    
+    let otherTags = TAGS.filter(t => t !== 'Associado Efetivo' && t !== 'Outros').sort((a, b) => a.localeCompare(b));
+    TAGS = [...specialTags, ...otherTags];
+
     const container = document.getElementById('tagsCheckboxContainer');
     if (container) {
         container.innerHTML = TAGS.map(tag => `
@@ -604,3 +618,27 @@ window.renderizarTagsDisponiveis = async () => {
         });
     }
 };
+
+// Global switchTab function
+window.switchTab = function(tabId, event) {
+    if (event) event.preventDefault();
+    
+    // Deactivate all contents
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    // Deactivate all buttons
+    document.querySelectorAll('.modal-tab-btn').forEach(el => el.classList.remove('active'));
+    
+    // Activate requested tab
+    const content = document.getElementById('tab-' + tabId);
+    if (content) content.classList.add('active');
+    
+    // Activate button
+    if (event && event.currentTarget) {
+        event.currentTarget.classList.add('active');
+    } else {
+        const btn = document.querySelector(`.modal-tab-btn[onclick*="${tabId}"]`);
+        if (btn) btn.classList.add('active');
+    }
+};
+
+window.renderizarTagsDisponiveis();

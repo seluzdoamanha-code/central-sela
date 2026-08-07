@@ -265,7 +265,7 @@ body {
 
 .modal-content {
     background: var(--bg-panel);
-    width: 90%; max-width: 500px;
+    width: 90%; max-width: 650px;
     border-radius: 12px;
     border: 1px solid var(--border);
     box-shadow: 0 10px 25px rgba(0,0,0,0.5);
@@ -291,6 +291,46 @@ body {
 .modal-footer {
     padding: 16px 24px; border-top: 1px solid var(--border);
     display: flex; justify-content: flex-end; gap: 12px;
+}
+
+/* Modal Tabs */
+.modal-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    background: rgba(0,0,0,0.2);
+    padding: 0 16px;
+    overflow-x: auto;
+}
+
+.modal-tab-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.modal-tab-btn:hover {
+    color: var(--text-main);
+}
+
+.modal-tab-btn.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+.tab-content {
+    display: none;
+    padding-top: 16px;
+}
+
+.tab-content.active {
+    display: block;
 }
 
 /* Scrollbar Personalizada para o modal */
