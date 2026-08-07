@@ -17,9 +17,8 @@
 
         // Configurar busca e filtros
         const searchInput = document.getElementById('mSearchInput');
-        const filterTipo = document.getElementById('mFilterTipo');
+        const filterTag = document.getElementById('mFilterTag');
         const sortOrder = document.getElementById('mSortOrder');
-        const filterPapel = document.getElementById('mFilterPapel');
         const showOutros = document.getElementById('mShowOutros');
         const btnToggleFilter = document.getElementById('btnToggleFilter');
         const filterPanel = document.getElementById('mFilterPanel');
@@ -33,13 +32,10 @@
             });
         }
 
-        const triggerFilter = () => filtrarLista();
-
-        if (searchInput) searchInput.addEventListener('input', triggerFilter);
-        if (filterTipo) filterTipo.addEventListener('change', triggerFilter);
-        if (sortOrder) sortOrder.addEventListener('change', triggerFilter);
-        if (filterPapel) filterPapel.addEventListener('change', triggerFilter);
-        if (showOutros) showOutros.addEventListener('change', triggerFilter);
+        if (searchInput) searchInput.addEventListener('input', filtrarLista);
+        if (filterTag) filterTag.addEventListener('change', filtrarLista);
+        if (sortOrder) sortOrder.addEventListener('change', filtrarLista);
+        if (showOutros) showOutros.addEventListener('change', filtrarLista);
     });
 
     function obterIniciais(nome) {
@@ -61,11 +57,43 @@
             if (error) throw error;
 
             allPessoas = data || [];
-            renderizarLista(allPessoas);
-
+            
+            await carregarTagsDisponiveis();
+            filtrarLista();
         } catch (e) {
-            console.error(e);
-            loading.innerText = 'Erro ao carregar lista.';
+            console.error('Erro geral:', e);
+            document.getElementById('mLoadingState').innerText = 'Erro ao carregar dados.';
+        }
+    }
+
+    async function carregarTagsDisponiveis() {
+        let TAGS = [
+            "Presidente", "Vice-Presidente", "Secretário", "Tesoureiro", 
+            "Conselheiro", "Diretor", "Coordenador", "Associado Efetivo", 
+            "Associado Proponente", "Ex-Associado", "Voluntário", "Colaborador(a)", 
+            "Palestrante", "Evangelizando", "Estudante", "Assistido(a)", "Paciente", 
+            "Membro da Família", "Empresa Parceira", "Parceiro", "Fornecedor", 
+            "Passista", "Líder", "Outros"
+        ];
+        try {
+            const { data, error } = await db.from('configuracoes').select('valor').eq('chave', 'perfis_pessoas').single();
+            if (data && data.valor) {
+                TAGS = data.valor.split(',').map(s => s.trim()).filter(s => s !== '');
+            }
+        } catch(err) {}
+
+        const filterTag = document.getElementById('mFilterTag');
+        if (filterTag) {
+            while (filterTag.options.length > 4) {
+                filterTag.remove(4);
+            }
+            const sortedTags = [...TAGS].sort((a, b) => a.localeCompare(b));
+            sortedTags.forEach(tag => {
+                const option = document.createElement('option');
+                option.value = tag;
+                option.text = tag;
+                filterTag.appendChild(option);
+            });
         }
     }
 
@@ -169,15 +197,13 @@
 
     function filtrarLista() {
         const input = document.getElementById('mSearchInput');
-        const selectTipo = document.getElementById('mFilterTipo');
+        const filterTag = document.getElementById('mFilterTag');
         const selectSort = document.getElementById('mSortOrder');
-        const selectPapel = document.getElementById('mFilterPapel');
         const chkOutros = document.getElementById('mShowOutros');
         
         const termo = (input ? input.value.toLowerCase().trim() : '');
-        const tipo = selectTipo ? selectTipo.value : '';
+        const tag = filterTag ? filterTag.value : '';
         const sort = selectSort ? selectSort.value : 'nome_az';
-        const papel = selectPapel ? selectPapel.value : '';
         const showOutros = chkOutros ? chkOutros.checked : false;
 
         // Filter
@@ -185,12 +211,14 @@
             const nome = (p.nome_completo || '').toLowerCase();
             const doc = (p.cpf_cnpj || '').toLowerCase();
             const matchTermo = termo === '' || nome.includes(termo) || doc.includes(termo);
-            const matchTipo = tipo === '' || p.tipo_pessoa === tipo;
             
-            // Lógica de "Papel"
-            let matchPapel = true;
-            if (papel !== '') {
-                matchPapel = p.papeis && p.papeis.includes(papel);
+            let matchTag = true;
+            if (tag === 'Física') {
+                matchTag = (p.tipo_pessoa === 'Física' || !p.tipo_pessoa);
+            } else if (tag === 'Jurídica') {
+                matchTag = (p.tipo_pessoa === 'Jurídica');
+            } else if (tag !== '') {
+                matchTag = p.papeis && p.papeis.includes(tag);
             }
 
             // Lógica de "Outros" (exclui Efetivos e Proponentes se marcado)
@@ -203,7 +231,7 @@
                 }
             }
 
-            return matchTermo && matchTipo && matchPapel && matchOutros;
+            return matchTermo && matchTag && matchOutros;
         });
 
         // Sort

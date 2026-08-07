@@ -69,28 +69,22 @@
                 
                 <div id="mFilterPanel" style="display: none; padding-top: 12px; gap: 8px; flex-direction: column;">
                     <div style="display: flex; gap: 8px;">
-                        <select id="mFilterTipo" class="m-search-input" style="padding: 10px; font-size: 14px; flex: 1;">
-                            <option value="">Todos os Tipos</option>
-                            <option value="Física">Pessoa Física</option>
-                            <option value="Jurídica">Pessoa Jurídica</option>
+                        <select id="mFilterTag" class="m-search-input" style="padding: 10px; font-size: 14px; flex: 1; background-color: var(--bg-panel);">
+                            <option value="">Todos os Tipos e Perfis</option>
+                            <option value="Física">Apenas Pessoa Física</option>
+                            <option value="Jurídica">Apenas Pessoa Jurídica</option>
+                            <option disabled>──────</option>
                         </select>
-                        <select id="mSortOrder" class="m-search-input" style="padding: 10px; font-size: 14px; flex: 1;">
+                        <select id="mSortOrder" class="m-search-input" style="padding: 10px; font-size: 14px; flex: 1; background-color: var(--bg-panel);">
                             <option value="nome_az">A - Z</option>
                             <option value="nome_za">Z - A</option>
-                            <option value="recentes">Recentes</option>
+                            <option value="recentes">Mais Recentes</option>
                         </select>
                     </div>
-                    <div style="display: flex; gap: 8px; align-items: center;">
-                        <select id="mFilterPapel" class="m-search-input" style="padding: 10px; font-size: 14px; flex: 1;">
-                            <option value="">Todos os Perfis</option>
-                            <option value="Associado Efetivo">Associado Efetivo</option>
-                            <option value="Associado Proponente">Associado Proponente</option>
-                            <option value="Voluntário">Voluntário</option>
-                            <option value="Diretoria">Diretoria</option>
-                        </select>
-                        <label style="display: flex; align-items: center; gap: 4px; font-size: 14px; color: var(--text-muted); white-space: nowrap; padding-right: 4px;">
-                            <input type="checkbox" id="mShowOutros" style="width: 16px; height: 16px; accent-color: var(--primary);">
-                            Outros
+                    <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; font-size: 13px; color: var(--text-muted); margin-bottom: 12px; margin-top: 4px;">
+                        <span style="font-weight: 500;">Exibir:</span>
+                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                            <input type="checkbox" id="mShowOutros" style="width: 16px; height: 16px; accent-color: var(--primary);"> Outros
                         </label>
                     </div>
                 </div>
