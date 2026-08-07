@@ -135,6 +135,19 @@ async function carregarPerfil() {
         document.getElementById('infoEstadoCivil').textContent = pessoa.estado_civil || '-';
         document.getElementById('infoProfissao').textContent = pessoa.profissao || '-';
 
+        // Endereço
+        let cepFormatado = pessoa.cep ? pessoa.cep.replace(/\D/g, '') : '';
+        if (cepFormatado.length >= 5) cepFormatado = cepFormatado.replace(/(\d{5})(\d{1,3})/, "$1-$2");
+        
+        document.getElementById('infoCep').textContent = cepFormatado || '-';
+        document.getElementById('infoEndereco').textContent = pessoa.endereco || '-';
+        document.getElementById('infoBairro').textContent = pessoa.bairro || '-';
+        
+        let cidadeEstado = [];
+        if (pessoa.cidade) cidadeEstado.push(pessoa.cidade);
+        if (pessoa.estado) cidadeEstado.push(pessoa.estado.toUpperCase());
+        document.getElementById('infoCidadeEstado').textContent = cidadeEstado.length > 0 ? cidadeEstado.join(' / ') : '-';
+
         // Renderizar Papéis
         const containerPapeis = document.getElementById('infoPapeis');
         if (pessoa.papeis && pessoa.papeis.length > 0) {

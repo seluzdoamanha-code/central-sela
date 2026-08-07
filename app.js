@@ -220,6 +220,16 @@ function formatarCelular(v) {
     return v.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
 }
 
+function formatarCEP(v) {
+    if (!v) return '';
+    v = v.replace(/\D/g, '');
+    if (v.length > 8) v = v.slice(0, 8);
+    if (v.length >= 5) {
+        return v.replace(/(\d{5})(\d{1,3})/, "$1-$2");
+    }
+    return v;
+}
+
 function renderizarTabela(dados) {
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '';
@@ -398,12 +408,21 @@ function setupModal() {
     
     // Máscara de Celular
     document.getElementById('inCelular').addEventListener('input', (e) => {
-        let v = e.target.value.replace(/\D/g, '');
-        if (v.length <= 10) {
-            e.target.value = v.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
-        } else {
-            e.target.value = v.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-        }
+        let val = e.target.value.replace(/\D/g, '');
+        if (val.length > 11) val = val.slice(0, 11);
+        if (val.length > 2) val = `(${val.slice(0, 2)}) ${val.slice(2)}`;
+        if (val.length > 10) val = `${val.slice(0, 10)}-${val.slice(10)}`;
+        e.target.value = val;
+    });
+
+    document.getElementById('inCep').addEventListener('input', (e) => {
+        e.target.value = formatarCEP(e.target.value);
+    });
+
+    document.getElementById('inEstado').addEventListener('input', (e) => {
+        let val = e.target.value.replace(/[^A-Za-z]/g, '').toUpperCase();
+        if (val.length > 2) val = val.slice(0, 2);
+        e.target.value = val;
     });
     
     // --- FUNCOES UTILITARIAS ---
@@ -529,11 +548,11 @@ window.editarPessoa = async (id) => {
     document.getElementById('inEstadoCivil').value = pessoa.estado_civil || '';
     document.getElementById('inProfissao').value = pessoa.profissao || '';
     
-    document.getElementById('inCep').value = pessoa.cep || '';
+    document.getElementById('inCep').value = formatarCEP(pessoa.cep) || '';
     document.getElementById('inEndereco').value = pessoa.endereco || '';
     document.getElementById('inBairro').value = pessoa.bairro || '';
     document.getElementById('inCidade').value = pessoa.cidade || '';
-    document.getElementById('inEstado').value = pessoa.estado || '';
+    document.getElementById('inEstado').value = (pessoa.estado || '').toUpperCase();
 
     document.getElementById('inFoto').value = ''; // Limpa o input de arquivo
     
