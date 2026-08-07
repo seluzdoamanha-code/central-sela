@@ -250,13 +250,19 @@ function renderizarTabela(dados) {
             avatarHtml = `<div style="width: 32px; height: 32px; border-radius: 16px; background: ${colors[colorIndex]}; color: white; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0;">${iniciais.toUpperCase()}</div>`;
         }
         
+        // Status Icon
+        const isAtivo = pessoa.status !== 'Inativo' && pessoa.status !== 'Inativa' && pessoa.status !== false;
+        const statusIcon = isAtivo 
+            ? `<span style="display: inline-block; width: 10px; height: 10px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 6px rgba(34, 197, 94, 0.6); margin-right: 6px;" title="Ativo"></span>` 
+            : `<span style="display: inline-block; width: 10px; height: 10px; background: #9ca3af; border-radius: 50%; margin-right: 6px;" title="Inativo"></span>`;
+
         tbody.innerHTML += `
             <tr>
                 <td>
                     <div style="display: flex; align-items: center; gap: 12px;">
                         ${avatarHtml}
                         <div>
-                            <div style="font-weight: 500;">${pessoa.nome_curto || pessoa.nome_completo}</div>
+                            <div style="font-weight: 500; display: flex; align-items: center;">${statusIcon} ${pessoa.nome_curto || pessoa.nome_completo}</div>
                             <div style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">
                                 <span style="opacity: 0.7;">${pessoa.nome_completo !== pessoa.nome_curto ? pessoa.nome_completo : ''}</span> 
                                 ${pessoa.cpf_cnpj ? `• ${formatarDocumento(pessoa.cpf_cnpj)}` : ''}
@@ -408,26 +414,29 @@ function setupModal() {
         btnSave.disabled = true;
         btnSave.textContent = 'Salvando...';
         
-        const tipo = inTipo.value;
-        const documentoOriginal = inputCpfCnpj.value;
-        const documento = documentoOriginal ? documentoOriginal.replace(/\D/g, '') : null;
-        const nome = document.getElementById('inNome').value;
-        const nome_curto = document.getElementById('inNomeCurto').value;
-        const celular = document.getElementById('inCelular').value || null;
-        const email = document.getElementById('inEmail').value || null;
+        const cpf_cnpj = inputCpfCnpj.value ? inputCpfCnpj.value.replace(/\D/g, '') : null;
+        const nome_completo = document.getElementById('inNome').value.trim();
+        const nome_curto = document.getElementById('inNomeCurto').value.trim();
+        const tipo_pessoa = document.getElementById('inTipo').value;
+        const celular = document.getElementById('inCelular').value.replace(/\D/g, '');
+        const email = document.getElementById('inEmail').value.trim();
+        
+        const status = document.getElementById('inStatus').value || 'Ativo';
+        const data_nascimento = document.getElementById('inNascimento').value || null;
+        const sexo = document.getElementById('inSexo').value || null;
+        const naturalidade = document.getElementById('inNaturalidade').value || null;
+        const nacionalidade = document.getElementById('inNacionalidade').value || null;
+        const nome_mae = document.getElementById('inNomeMae').value || null;
+        const nome_pai = document.getElementById('inNomePai').value || null;
+        const estado_civil = document.getElementById('inEstadoCivil').value || null;
+        const profissao = document.getElementById('inProfissao').value || null;
         
         // Coleta tags selecionadas
-        const checkboxes = document.querySelectorAll('input[name="papeis"]:checked');
-        const papeis = Array.from(checkboxes).map(cb => cb.value);
+        const papeis = Array.from(document.querySelectorAll('input[name="papeis"]:checked')).map(cb => cb.value);
 
         const dados = {
-            cpf_cnpj: documento,
-            nome_completo: nome,
-            nome_curto: nome_curto,
-            celular: celular,
-            email: email,
-            tipo_pessoa: tipo,
-            papeis: papeis
+            cpf_cnpj, nome_completo, nome_curto, tipo_pessoa, celular, email, papeis,
+            status, data_nascimento, sexo, naturalidade, nacionalidade, nome_mae, nome_pai, estado_civil, profissao
         };
         
         try {
@@ -495,6 +504,18 @@ window.editarPessoa = async (id) => {
     document.getElementById('inNomeCurto').value = pessoa.nome_curto || '';
     document.getElementById('inCelular').value = pessoa.celular || '';
     document.getElementById('inEmail').value = pessoa.email || '';
+    document.getElementById('inEmail').value = pessoa.email || '';
+    
+    document.getElementById('inStatus').value = pessoa.status || 'Ativo';
+    document.getElementById('inNascimento').value = pessoa.data_nascimento || '';
+    document.getElementById('inSexo').value = pessoa.sexo || '';
+    document.getElementById('inNaturalidade').value = pessoa.naturalidade || '';
+    document.getElementById('inNacionalidade').value = pessoa.nacionalidade || '';
+    document.getElementById('inNomeMae').value = pessoa.nome_mae || '';
+    document.getElementById('inNomePai').value = pessoa.nome_pai || '';
+    document.getElementById('inEstadoCivil').value = pessoa.estado_civil || '';
+    document.getElementById('inProfissao').value = pessoa.profissao || '';
+
     document.getElementById('inFoto').value = ''; // Limpa o input de arquivo
     
     // Marcar as tags corretas

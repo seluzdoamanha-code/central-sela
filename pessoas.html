@@ -162,9 +162,18 @@
                         <input type="text" id="inCpfCnpj" required>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label id="lblNome">Nome Completo</label>
-                    <input type="text" id="inNome" required>
+                <div class="form-group" style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <div style="flex: 2; min-width: 150px;">
+                        <label id="lblNome">Nome Completo</label>
+                        <input type="text" id="inNome" required>
+                    </div>
+                    <div style="flex: 1; min-width: 150px;">
+                        <label>Status</label>
+                        <select id="inStatus">
+                            <option value="Ativo">Ativo</option>
+                            <option value="Inativo">Inativo</option>
+                        </select>
+                    </div>
                 </div>
                 
                 <div class="form-group" style="display: flex; gap: 12px; flex-wrap: wrap;">
@@ -187,6 +196,67 @@
                         <input type="email" id="inEmail" placeholder="email@exemplo.com">
                     </div>
                 </div>
+                
+                <hr style="border: 0; border-top: 1px solid var(--border); margin: 20px 0;">
+                <h4 style="margin-top: 0; margin-bottom: 12px; font-size: 14px; color: var(--text-main);">Dados Pessoais (Opcional)</h4>
+                
+                <div class="form-group" style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 150px;">
+                        <label>Data de Nascimento</label>
+                        <input type="date" id="inNascimento">
+                    </div>
+                    <div style="flex: 1; min-width: 150px;">
+                        <label>Sexo</label>
+                        <select id="inSexo">
+                            <option value=""></option>
+                            <option value="Masculino">Masculino</option>
+                            <option value="Feminino">Feminino</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group" style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 150px;">
+                        <label>Naturalidade</label>
+                        <input type="text" id="inNaturalidade">
+                    </div>
+                    <div style="flex: 1; min-width: 150px;">
+                        <label>Nacionalidade</label>
+                        <input type="text" id="inNacionalidade">
+                    </div>
+                </div>
+
+                <div class="form-group" style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 150px;">
+                        <label>Nome da Mãe</label>
+                        <input type="text" id="inNomeMae">
+                    </div>
+                    <div style="flex: 1; min-width: 150px;">
+                        <label>Nome do Pai</label>
+                        <input type="text" id="inNomePai">
+                    </div>
+                </div>
+
+                <div class="form-group" style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 150px;">
+                        <label>Estado Civil</label>
+                        <select id="inEstadoCivil">
+                            <option value=""></option>
+                            <option value="Solteiro(a)">Solteiro(a)</option>
+                            <option value="Casado(a)">Casado(a)</option>
+                            <option value="Divorciado(a)">Divorciado(a)</option>
+                            <option value="Viúvo(a)">Viúvo(a)</option>
+                            <option value="União Estável">União Estável</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1; min-width: 150px;">
+                        <label>Profissão</label>
+                        <input type="text" id="inProfissao">
+                    </div>
+                </div>
+                <hr style="border: 0; border-top: 1px solid var(--border); margin: 20px 0;">
                 <div class="form-group">
                     <label>Papéis / Tags</label>
                     <div style="background: rgba(0,0,0,0.15); border: 1px solid var(--border); border-radius: 8px; padding: 12px;">

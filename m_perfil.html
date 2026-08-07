@@ -174,7 +174,7 @@
                 </div>
             </div>
 
-            <div class="m-section-title" style="padding: 0 16px;">Documentos</div>
+            <div class="m-section-title" style="padding: 0 16px;">Dados Pessoais e Documentos</div>
             <div class="m-info-group">
                 <div class="m-info-row">
                     <div class="m-info-icon">🪪</div>
@@ -188,6 +188,55 @@
                     <div class="m-info-content">
                         <div class="m-info-label">Data de Nascimento</div>
                         <div class="m-info-value" id="lblNascimento">-</div>
+                    </div>
+                </div>
+                <div class="m-info-row">
+                    <div class="m-info-icon">🚻</div>
+                    <div class="m-info-content">
+                        <div class="m-info-label">Sexo</div>
+                        <div class="m-info-value" id="lblSexo">-</div>
+                    </div>
+                </div>
+                <div class="m-info-row">
+                    <div class="m-info-icon">🌍</div>
+                    <div class="m-info-content">
+                        <div class="m-info-label">Naturalidade</div>
+                        <div class="m-info-value" id="lblNaturalidade">-</div>
+                    </div>
+                </div>
+                <div class="m-info-row">
+                    <div class="m-info-icon">🏳️</div>
+                    <div class="m-info-content">
+                        <div class="m-info-label">Nacionalidade</div>
+                        <div class="m-info-value" id="lblNacionalidade">-</div>
+                    </div>
+                </div>
+                <div class="m-info-row">
+                    <div class="m-info-icon">👨‍👧</div>
+                    <div class="m-info-content">
+                        <div class="m-info-label">Nome do Pai</div>
+                        <div class="m-info-value" id="lblNomePai">-</div>
+                    </div>
+                </div>
+                <div class="m-info-row">
+                    <div class="m-info-icon">👩‍👧</div>
+                    <div class="m-info-content">
+                        <div class="m-info-label">Nome da Mãe</div>
+                        <div class="m-info-value" id="lblNomeMae">-</div>
+                    </div>
+                </div>
+                <div class="m-info-row">
+                    <div class="m-info-icon">💍</div>
+                    <div class="m-info-content">
+                        <div class="m-info-label">Estado Civil</div>
+                        <div class="m-info-value" id="lblEstadoCivil">-</div>
+                    </div>
+                </div>
+                <div class="m-info-row">
+                    <div class="m-info-icon">💼</div>
+                    <div class="m-info-content">
+                        <div class="m-info-label">Profissão</div>
+                        <div class="m-info-value" id="lblProfissao">-</div>
                     </div>
                 </div>
             </div>
@@ -214,6 +263,13 @@
         </header>
         <div style="flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 60px;">
             <div class="m-form-group">
+                <label>Status</label>
+                <select id="inpStatus" class="m-input">
+                    <option value="Ativo">Ativo</option>
+                    <option value="Inativo">Inativo</option>
+                </select>
+            </div>
+            <div class="m-form-group">
                 <label>Nome Completo</label>
                 <input type="text" id="inpNome" class="m-input">
             </div>
@@ -233,7 +289,51 @@
                 <label>Data de Nascimento</label>
                 <input type="date" id="inpNascimento" class="m-input">
             </div>
-            
+            <div class="m-form-group">
+                <label>Sexo</label>
+                <select id="inpSexo" class="m-input">
+                    <option value=""></option>
+                    <option value="Masculino">Masculino</option>
+                    <option value="Feminino">Feminino</option>
+                    <option value="Outro">Outro</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <div class="m-form-group" style="flex: 1;">
+                    <label>Naturalidade</label>
+                    <input type="text" id="inpNaturalidade" class="m-input">
+                </div>
+                <div class="m-form-group" style="flex: 1;">
+                    <label>Nacionalidade</label>
+                    <input type="text" id="inpNacionalidade" class="m-input">
+                </div>
+            </div>
+            <div class="m-form-group">
+                <label>Nome da Mãe</label>
+                <input type="text" id="inpNomeMae" class="m-input">
+            </div>
+            <div class="m-form-group">
+                <label>Nome do Pai</label>
+                <input type="text" id="inpNomePai" class="m-input">
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <div class="m-form-group" style="flex: 1;">
+                    <label>Estado Civil</label>
+                    <select id="inpEstadoCivil" class="m-input">
+                        <option value=""></option>
+                        <option value="Solteiro(a)">Solteiro(a)</option>
+                        <option value="Casado(a)">Casado(a)</option>
+                        <option value="Divorciado(a)">Divorciado(a)</option>
+                        <option value="Viúvo(a)">Viúvo(a)</option>
+                        <option value="União Estável">União Estável</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+                <div class="m-form-group" style="flex: 1;">
+                    <label>Profissão</label>
+                    <input type="text" id="inpProfissao" class="m-input">
+                </div>
+            </div>
             <div class="m-section-title">Endereço</div>
             <div class="m-form-group">
                 <label>Endereço Completo</label>

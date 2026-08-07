@@ -50,7 +50,7 @@
         if (loading) loading.innerText = 'Buscando do banco...';
 
         try {
-            const { data, error } = await db.from('pessoas').select('id, nome_completo, nome_curto, tipo_pessoa, papeis, celular, email, cpf_cnpj, foto_url, created_at').order('nome_completo');
+            const { data, error } = await db.from('pessoas').select('id, nome_completo, nome_curto, tipo_pessoa, papeis, celular, email, cpf_cnpj, foto_url, created_at, status').order('nome_completo');
             
             if (loading) loading.style.display = 'none';
 
@@ -181,6 +181,12 @@
                 emailText = `<div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">✉️ ${p.email}</div>`;
             }
 
+            // Status Icon
+            const isAtivo = p.status !== 'Inativo' && p.status !== 'Inativa' && p.status !== false;
+            const statusIcon = isAtivo 
+                ? `<span style="display: inline-block; width: 10px; height: 10px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 6px rgba(34, 197, 94, 0.6); margin-right: 6px;" title="Ativo"></span>` 
+                : `<span style="display: inline-block; width: 10px; height: 10px; background: #9ca3af; border-radius: 50%; margin-right: 6px;" title="Inativo"></span>`;
+
             // Card HTML
             html += `
             <div class="m-card" onclick="window.location.href='m_perfil.html?id=${p.id}'" style="cursor: pointer; position: relative;">
@@ -189,7 +195,9 @@
                 </div>
                 <div class="m-card-content">
                     <div class="m-card-title" style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="display: block; max-width: 170px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${nomeExibicao}</span>
+                        <span style="display: flex; align-items: center; max-width: 170px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            ${statusIcon} ${nomeExibicao}
+                        </span>
                         <div style="display: flex; align-items: center;">
                             ${emailBtn}
                             ${whatsAppBtn}

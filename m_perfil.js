@@ -267,6 +267,15 @@
             }
         }
 
+        // Novos Campos
+        document.getElementById('lblSexo').innerText = p.sexo || '-';
+        document.getElementById('lblNaturalidade').innerText = p.naturalidade || '-';
+        document.getElementById('lblNacionalidade').innerText = p.nacionalidade || '-';
+        document.getElementById('lblNomePai').innerText = p.nome_pai || '-';
+        document.getElementById('lblNomeMae').innerText = p.nome_mae || '-';
+        document.getElementById('lblEstadoCivil').innerText = p.estado_civil || '-';
+        document.getElementById('lblProfissao').innerText = p.profissao || '-';
+
         const endereco = [];
         if (p.endereco) endereco.push(p.endereco);
         if (p.bairro) endereco.push(p.bairro);
@@ -286,6 +295,16 @@
         document.getElementById('inpCelular').value = p.celular || '';
         document.getElementById('inpEmail').value = p.email || '';
         document.getElementById('inpNascimento').value = p.data_nascimento || '';
+        
+        // Novos Campos
+        document.getElementById('inpStatus').value = p.status || 'Ativo';
+        document.getElementById('inpSexo').value = p.sexo || '';
+        document.getElementById('inpNaturalidade').value = p.naturalidade || '';
+        document.getElementById('inpNacionalidade').value = p.nacionalidade || '';
+        document.getElementById('inpNomePai').value = p.nome_pai || '';
+        document.getElementById('inpNomeMae').value = p.nome_mae || '';
+        document.getElementById('inpEstadoCivil').value = p.estado_civil || '';
+        document.getElementById('inpProfissao').value = p.profissao || '';
         document.getElementById('inpCep').value = p.cep || '';
         document.getElementById('inpEndereco').value = p.endereco || '';
         document.getElementById('inpBairro').value = p.bairro || '';
@@ -321,8 +340,7 @@
         btnSaveEdit.innerText = 'Salvando...';
         btnSaveEdit.disabled = true;
 
-        const checkboxes = document.querySelectorAll('input[name="mPapeis"]:checked');
-        const papeis = Array.from(checkboxes).map(cb => cb.value);
+        const papeis = Array.from(document.querySelectorAll('input[name="mPapeis"]:checked')).map(cb => cb.value);
 
         const dados = {
             nome_completo: document.getElementById('inpNome').value.trim(),
@@ -335,7 +353,15 @@
             bairro: document.getElementById('inpBairro').value.trim(),
             cidade: document.getElementById('inpCidade').value.trim(),
             estado: document.getElementById('inpEstado').value.trim().toUpperCase(),
-            papeis: papeis
+            papeis: papeis,
+            status: document.getElementById('inpStatus').value || 'Ativo',
+            sexo: document.getElementById('inpSexo').value || null,
+            naturalidade: document.getElementById('inpNaturalidade').value || null,
+            nacionalidade: document.getElementById('inpNacionalidade').value || null,
+            nome_pai: document.getElementById('inpNomePai').value || null,
+            nome_mae: document.getElementById('inpNomeMae').value || null,
+            estado_civil: document.getElementById('inpEstadoCivil').value || null,
+            profissao: document.getElementById('inpProfissao').value || null
         };
 
         try {
