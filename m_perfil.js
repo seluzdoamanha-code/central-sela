@@ -4,6 +4,7 @@
     const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let pessoaAtual = null;
+    let todasAsTags = [];
     let currentId = new URLSearchParams(window.location.search).get('id');
 
     document.addEventListener('DOMContentLoaded', async () => {
@@ -13,6 +14,7 @@
             return;
         }
 
+        await carregarTags();
         await carregarPerfil();
 
         // Modal de Edição
@@ -31,6 +33,29 @@
         });
 
         btnSaveEdit.addEventListener('click', salvarEdicao);
+
+        // Máscaras de Input
+        const inpCep = document.getElementById('inpCep');
+        if (inpCep) {
+            inpCep.addEventListener('input', (e) => {
+                let v = e.target.value.replace(/\D/g, '');
+                if (v.length > 5) v = v.replace(/^(\d{5})(\d)/, '$1-$2');
+                e.target.value = v;
+            });
+        }
+
+        const inpCelular = document.getElementById('inpCelular');
+        if (inpCelular) {
+            inpCelular.addEventListener('input', (e) => {
+                let v = e.target.value.replace(/\D/g, '');
+                if (v.length <= 10) {
+                    v = v.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+                } else {
+                    v = v.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+                }
+                e.target.value = v;
+            });
+        }
     });
 
     // Rascunho para futuras ACLs (Access Control List)
@@ -38,6 +63,36 @@
         // Futuro: Verificar perfil do usuarioLogado no banco
         // Por enquanto, liberado para testes da Diretoria.
         return true; 
+    }
+
+    async function carregarTags() {
+        let TAGS = [
+            "Presidente", "Vice-Presidente", "Secretário", "Tesoureiro", 
+            "Conselheiro", "Diretor", "Coordenador", "Associado Efetivo", 
+            "Associado Proponente", "Ex-Associado", "Voluntário", "Colaborador(a)", 
+            "Palestrante", "Evangelizando", "Estudante", "Assistido(a)", "Paciente", 
+            "Membro da Família", "Empresa Parceira", "Parceiro", "Fornecedor", 
+            "Passista", "Líder", "Outros"
+        ];
+        try {
+            const { data, error } = await db.from('configuracoes').select('valor').eq('chave', 'perfis_pessoas').single();
+            if (data && data.valor) {
+                TAGS = data.valor.split(',').map(s => s.trim()).filter(s => s !== '');
+            }
+        } catch(err) {
+            // Usa tags padrao
+        }
+        todasAsTags = [...TAGS].sort((a, b) => a.localeCompare(b));
+        
+        const container = document.getElementById('mTagsContainer');
+        if (container) {
+            container.innerHTML = todasAsTags.map(tag => `
+                <label style="display: flex; align-items: center; gap: 6px; background: var(--bg-card); border: 1px solid var(--border); padding: 8px 12px; border-radius: 8px; font-size: 13px; color: var(--text-main);">
+                    <input type="checkbox" name="mPapeis" value="${tag}" style="width: 16px; height: 16px; accent-color: var(--primary);">
+                    ${tag}
+                </label>
+            `).join('');
+        }
     }
 
     function obterIniciais(nome) {
@@ -161,12 +216,21 @@
         document.getElementById('inpBairro').value = p.bairro || '';
         document.getElementById('inpCidade').value = p.cidade || '';
         document.getElementById('inpEstado').value = p.estado || '';
+
+        // Checkboxes de Papeis
+        const checkboxes = document.querySelectorAll('input[name="mPapeis"]');
+        checkboxes.forEach(cb => {
+            cb.checked = (p.papeis && p.papeis.includes(cb.value));
+        });
     }
 
     async function salvarEdicao() {
         const btnSaveEdit = document.getElementById('btnSaveEdit');
         btnSaveEdit.innerText = 'Salvando...';
         btnSaveEdit.disabled = true;
+
+        const checkboxes = document.querySelectorAll('input[name="mPapeis"]:checked');
+        const papeis = Array.from(checkboxes).map(cb => cb.value);
 
         const dados = {
             nome_completo: document.getElementById('inpNome').value.trim(),
@@ -178,7 +242,8 @@
             endereco: document.getElementById('inpEndereco').value.trim(),
             bairro: document.getElementById('inpBairro').value.trim(),
             cidade: document.getElementById('inpCidade').value.trim(),
-            estado: document.getElementById('inpEstado').value.trim().toUpperCase()
+            estado: document.getElementById('inpEstado').value.trim().toUpperCase(),
+            papeis: papeis
         };
 
         try {
