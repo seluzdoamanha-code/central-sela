@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dashboard Visitas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-body: #0f172a; --text-main: #f8fafc; --text-muted: #94a3b8; --primary: #3b82f6; --bg-panel: #1e293b; --border: #334155; }
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { margin: 0; padding: 0; background: var(--bg-body); color: var(--text-main); display: flex; flex-direction: column; min-height: 100vh; }
+        .m-header { padding: 16px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); }
+        .m-back-btn { background: none; border: none; color: var(--text-main); padding: 8px; margin: -8px; cursor: pointer; }
+        .m-header-title { font-size: 18px; font-weight: 600; margin: 0; }
+        .m-container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; }
+        .m-icon-huge { color: var(--primary); margin-bottom: 16px; opacity: 0.2; }
+    </style>
+</head>
+<body>
+    <header class="m-header">
+        <button class="m-back-btn" onclick="window.location.href='m_hub.html'">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        <h1 class="m-header-title">Visitas</h1>
+    </header>
+    <div class="m-container">
+        <svg class="m-icon-huge" width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <h2 style="margin:0 0 8px 0; font-size:20px;">Em Breve</h2>
+        <p style="color:var(--text-muted); font-size:14px; margin:0; max-width:280px; line-height:1.5;">O módulo de Visitas está sendo planejado e entrará no ar nas próximas atualizações do aplicativo.</p>
+    </div>
+</body>
+</html>
