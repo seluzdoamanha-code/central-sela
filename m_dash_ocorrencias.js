@@ -30,7 +30,7 @@
     async function loadFamilias() {
         const { data, error } = await db.from('ass_familias')
             .select('id, codigo, nome_familia')
-            .eq('status', 'Ativo')
+            .eq('status', 'Ativa')
             .order('nome_familia');
             
         if (error) {
