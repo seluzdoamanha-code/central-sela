@@ -5,6 +5,7 @@ const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 document.addEventListener('DOMContentLoaded', () => {
     loadMetas();
     loadCestas();
+    loadItens();
 });
 
 // UI TABS
@@ -201,7 +202,6 @@ window.abrirModalItem = function() {
     document.getElementById('inpItemCodigo').value = '';
     document.getElementById('inpItemDesc').value = '';
     document.getElementById('inpItemEstoque').value = '0';
-    document.getElementById('inpItemMeta').value = '0';
     document.getElementById('inpItemUnd').value = '';
     document.getElementById('inpItemPeso').value = '0';
     document.getElementById('inpItemStatus').value = 'Ativo';
@@ -216,7 +216,6 @@ window.editarItem = async function(id) {
         document.getElementById('inpItemCodigo').value = data.codigo;
         document.getElementById('inpItemDesc').value = data.descricao;
         document.getElementById('inpItemEstoque').value = data.estoque_atual || 0;
-        document.getElementById('inpItemMeta').value = data.meta_estoque || 0;
         document.getElementById('inpItemUnd').value = data.unidade || '';
         document.getElementById('inpItemPeso').value = data.peso_kg || 0;
         document.getElementById('inpItemStatus').value = (data.status === 'Ativo' || data.status === 'Ativa') ? 'Ativo' : 'Inativo';
@@ -231,7 +230,6 @@ window.salvarItem = async function() {
         codigo: document.getElementById('inpItemCodigo').value,
         descricao: document.getElementById('inpItemDesc').value,
         estoque_atual: parseInt(document.getElementById('inpItemEstoque').value) || 0,
-        meta_estoque: parseInt(document.getElementById('inpItemMeta').value) || 0,
         unidade: document.getElementById('inpItemUnd').value,
         peso_kg: parseFloat(document.getElementById('inpItemPeso').value) || 0,
         status: document.getElementById('inpItemStatus').value
@@ -252,7 +250,8 @@ window.salvarItem = async function() {
     }
     
     if (error) {
-        Swal.fire('Erro', 'Não foi possível salvar.', 'error');
+        console.error(error);
+        Swal.fire('Erro', error.message || 'Não foi possível salvar.', 'error');
     } else {
         fecharModal('modalItemOverlay');
         Swal.fire({title: 'Sucesso', icon: 'success', toast: true, position: 'top', showConfirmButton: false, timer: 2000});
@@ -435,7 +434,8 @@ async function salvarCesta() {
     }
     
     if (error) {
-        Swal.fire('Erro', 'Não foi possível salvar o modelo.', 'error');
+        console.error(error);
+        Swal.fire('Erro', error.message || 'Não foi possível salvar o modelo.', 'error');
         return;
     }
     

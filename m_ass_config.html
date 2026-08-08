@@ -341,8 +341,11 @@
                     <input type="number" id="inpItemEstoque" class="m-input" placeholder="0">
                 </div>
                 <div class="m-form-group" style="width: 120px;">
-                    <label class="m-form-label">Meta/Mínimo</label>
-                    <input type="number" id="inpItemMeta" class="m-input" placeholder="0">
+                    <label class="m-form-label">Status</label>
+                    <select id="inpItemStatus" class="m-input">
+                        <option value="Ativo">Ativo</option>
+                        <option value="Inativo">Inativo</option>
+                    </select>
                 </div>
             </div>
             <div style="display:flex; gap:12px;">
@@ -354,13 +357,6 @@
                     <label class="m-form-label">Peso (kg)</label>
                     <input type="number" step="0.01" id="inpItemPeso" class="m-input" placeholder="5.00">
                 </div>
-            </div>
-            <div class="m-form-group">
-                <label class="m-form-label">Status</label>
-                <select id="inpItemStatus" class="m-input">
-                    <option value="Ativo">Ativo</option>
-                    <option value="Inativo">Inativo</option>
-                </select>
             </div>
             <button class="m-btn m-btn-primary" onclick="salvarItem()">Salvar Item</button>
         </div>
