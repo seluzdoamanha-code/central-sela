@@ -43,6 +43,14 @@
         
 
 
+        
+        document.getElementById('btnIrParaOcorrencia').addEventListener('click', () => {
+            if (selectedFamilia && selectedFamilia.id) {
+                let url = 'm_ass_ocorrencias.html?f_id=' + selectedFamilia.id + '&f_nome=' + encodeURIComponent(selectedFamilia.codigo + ' - ' + selectedFamilia.nome_familia);
+                window.location.href = url;
+            }
+        });
+
         await carregarFamilias();
         
         // Auto-open family if requested
@@ -238,6 +246,44 @@
         document.getElementById('mDetModal').classList.add('active');
         
         // Buscar Historico
+        
+
+        // Buscar Ocorrencias
+        const ocoEl = document.getElementById('mdOcorrenciasList');
+        if (ocoEl) {
+            ocoEl.innerHTML = 'Buscando ocorrências...';
+            db.from('ass_ocorrencias')
+              .select('*')
+              .eq('familia_id', f.id)
+              .order('data_ocorrencia', {ascending: false})
+              .then(({data: ocos, error}) => {
+                  if(error) {
+                      ocoEl.innerHTML = 'Erro ao buscar ocorrências';
+                      console.error(error);
+                      return;
+                  }
+                  if(!ocos || ocos.length === 0) {
+                      ocoEl.innerHTML = '<span style="font-size:13px; color:var(--text-muted);">Nenhuma ocorrência registrada.</span>';
+                  } else {
+                      ocoEl.innerHTML = ocos.map(o => {
+                          const dateStr = o.data_ocorrencia ? o.data_ocorrencia.split('-').reverse().join('/') : '';
+                          const corTipo = o.tipo === 'Grave' ? '#ef4444' : 'var(--text-main)';
+                          return `
+                            <div class="m-member-row" style="display: flex; flex-direction: column; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                    <div style="color:${corTipo}; font-weight:600; font-size:13px;">${o.codigo} - ${o.tipo}</div>
+                                    <div style="font-size:12px; color:var(--text-muted);">${dateStr}</div>
+                                </div>
+                                <div style="font-size:13px; color:var(--text-muted); line-height: 1.4;">
+                                    ${o.observacao}
+                                </div>
+                            </div>
+                          `;
+                      }).join('');
+                  }
+              });
+        }
+
         const histEl = document.getElementById('mdHistoricoList');
         if(histEl) {
             histEl.innerHTML = 'Buscando histórico...';
@@ -255,6 +301,8 @@
                       histEl.innerHTML = '<span style="font-size:13px; color:var(--text-muted);">Nenhuma entrega registrada.</span>';
                   } else {
                       window._currentFamilyEntregas = hist; // store globally for expand
+
+
                       renderEntregasList(3);
                   }
               });
@@ -457,7 +505,15 @@
             // Se estava editando, fecha o painel de detalhes tbm pra forçar refresh
             if (id) document.getElementById('mDetModal').classList.remove('active');
             
-            await carregarFamilias();
+            
+        document.getElementById('btnIrParaOcorrencia').addEventListener('click', () => {
+            if (selectedFamilia && selectedFamilia.id) {
+                let url = 'm_ass_ocorrencias.html?f_id=' + selectedFamilia.id + '&f_nome=' + encodeURIComponent(selectedFamilia.codigo + ' - ' + selectedFamilia.nome_familia);
+                window.location.href = url;
+            }
+        });
+
+        await carregarFamilias();
         } catch(e) {
             console.error(e);
             alert('Erro ao salvar família.');
@@ -471,7 +527,9 @@
 
 window.renderEntregasList = function(limit) {
     const hist = window._currentFamilyEntregas || [];
-    const histEl = document.getElementById('mdHistoricoList');
+    
+
+        const histEl = document.getElementById('mdHistoricoList');
     if (!histEl) return;
     
     let html = '';
