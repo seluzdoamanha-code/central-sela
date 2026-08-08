@@ -22,7 +22,7 @@
         }
         
         document.getElementById('btnVoltar').addEventListener('click', () => {
-            window.location.href = 'm_ass_familias.html'; // Or history.back()
+            window.history.back();
         });
         
         document.getElementById('btnSalvar').addEventListener('click', salvarEntrega);
@@ -34,7 +34,7 @@
         const sel = document.getElementById('inpModelo');
         try {
             const { data, error } = await db.from('ass_cestas_modelos')
-                .select('id, tipo')
+                .select('id, codigo, tipo')
                 .eq('status', 'Ativo')
                 .order('tipo');
                 
@@ -45,7 +45,7 @@
                 data.forEach(m => {
                     const opt = document.createElement('option');
                     opt.value = m.id;
-                    opt.innerText = m.tipo;
+                    opt.innerText = (m.codigo ? m.codigo + ' - ' : '') + m.tipo;
                     sel.appendChild(opt);
                 });
             } else {
@@ -66,7 +66,7 @@
         const dataEnt = document.getElementById('inpData').value;
         const modeloId = document.getElementById('inpModelo').value;
         const qtd = parseInt(document.getElementById('inpQtd').value) || 1;
-        const obs = document.getElementById('inpObs').value.trim();
+        // const obs = document.getElementById('inpObs').value.trim(); // The DB doesn't have an observacoes column
         
         if (!dataEnt || !modeloId) {
             mostrarFeed('Preencha a data e o tipo de cesta', true);
@@ -78,29 +78,36 @@
         btn.innerText = 'Salvando...';
         
         try {
+            const [ano, mes] = dataEnt.split('-');
+            
+            // 1. Inserir a entrega
             const { error } = await db.from('ass_entregas').insert([{
                 familia_id: familiaId,
-                cesta_modelo_id: modeloId,
+                cesta_id: modeloId,
                 data_entrega: dataEnt,
-                quantidade: qtd,
-                observacoes: obs
+                ano_ref: parseInt(ano),
+                mes_ref: parseInt(mes),
+                quantidade_entregue: qtd
             }]);
             
             if (error) throw error;
             
+            // 2. Dar baixa no estoque
+            const { data: composicao } = await db.from('ass_cesta_composicao').select('item_id, quantidade').eq('cesta_id', modeloId);
+            if (composicao) {
+                for (let c of composicao) {
+                    const qtdGasta = c.quantidade * qtd;
+                    const { data: item } = await db.from('ass_itens_cesta').select('estoque_atual').eq('id', c.item_id).single();
+                    if (item) {
+                        await db.from('ass_itens_cesta').update({estoque_atual: item.estoque_atual - qtdGasta}).eq('id', c.item_id);
+                    }
+                }
+            }
+            
             mostrarFeed('Entrega registrada com sucesso!');
             
-            // Subtrair do estoque seria feito por trigger no banco,
-            // ou poderíamos fazer a chamada aqui igual no assistencia.js, 
-            // mas o ideal é deixar o back-end cuidar se houver trigger.
-            // Para mantermos 100% igual ao PC que já tá rodando:
-            // O PC usa 'estoque_atual - quantidade' num update?
-            // PC: (assistencia.js) It fetches composicao and updates ass_itens_cesta.
-            // A gente avisou ao usuario que vai deixar isso no PC ou a gente faz aqui?
-            // Vamos apenas salvar na tabela ass_entregas agora.
-            
             setTimeout(() => {
-                window.location.href = 'm_ass_familias.html';
+                window.history.back();
             }, 1000);
             
         } catch (e) {
