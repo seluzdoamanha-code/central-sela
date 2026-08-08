@@ -140,6 +140,26 @@
         return n;
     }
 
+    function formatarCelular(numero) {
+        if (!numero) return '-';
+        let n = numero.replace(/\D/g, '');
+        if (n.length === 11) {
+            return `(${n.substring(0,2)}) ${n.substring(2,7)}-${n.substring(7,11)}`;
+        } else if (n.length === 10) {
+            return `(${n.substring(0,2)}) ${n.substring(2,6)}-${n.substring(6,10)}`;
+        }
+        return numero;
+    }
+
+    function formatarCEP(cep) {
+        if (!cep) return '';
+        let c = cep.replace(/\D/g, '');
+        if (c.length === 8) {
+            return `${c.substring(0,5)}-${c.substring(5,8)}`;
+        }
+        return cep;
+    }
+
     async function abrirDetalhes(f) {
         selectedFamilia = f;
         document.getElementById('mdNome').innerText = 'Família ' + (f.codigo || '');
@@ -149,7 +169,7 @@
         
         const resp = f.pessoas || {};
         const elCelular = document.getElementById('mdCelular');
-        if(elCelular) elCelular.innerText = resp.celular || '-';
+        if(elCelular) elCelular.innerText = formatarCelular(resp.celular) || '-';
         
         const elEmail = document.getElementById('mdEmail');
         if(elEmail) elEmail.innerText = resp.email || '-';
@@ -173,6 +193,7 @@
         if (r.bairro) endCompletoArr.push(r.bairro);
         if (r.cidade) endCompletoArr.push(r.cidade);
         if (r.estado) endCompletoArr.push(r.estado);
+        if (r.cep) endCompletoArr.push('CEP: ' + formatarCEP(r.cep));
         
         let endCompleto = endCompletoArr.join(', ');
         
