@@ -151,24 +151,21 @@ function renderLista() {
             `;
         }
         
-        let badge = '';
+        let progressText = '';
         if (currentTab === 'ativos' && item.semanas_alvo) {
-            let left = item.semanas_alvo - (item.leituras || 0);
-            if (left < 0) left = 0;
-            badge = `<div style="font-size: 11px; background: rgba(16, 185, 129, 0.2); color: var(--accent); padding: 2px 6px; border-radius: 4px;">Faltam ${left} semanas</div>`;
+            progressText = ` .... <strong style="font-size: 13px; color: var(--accent);">${item.leituras || 0}/${item.semanas_alvo}</strong>`;
         }
         
         html += `
             <div class="m-card">
                 <div class="m-card-header">
-                    <div>
+                    <div style="width: 100%;">
                         <div class="m-card-title">${item.nome_solicitado}</div>
                         <div class="m-card-subtitle">📍 ${endStr}</div>
                     </div>
-                    ${badge}
                 </div>
                 <div class="m-card-meta">
-                    Criado em: ${dataPed} | Dias: <strong style="color: var(--text-main);">${item.dias_semana}</strong>
+                    Em: ${dataPed} | Dias: <span style="color: var(--text-main);">${item.dias_semana}</span>${progressText}
                 </div>
                 <div class="m-card-actions">
                     ${actions}
