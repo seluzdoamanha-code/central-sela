@@ -322,7 +322,7 @@
             <div class="m-det-block">
                 <div class="m-det-title">Informações Principais</div>
                 <div class="m-det-item">
-                    <div class="m-det-label">Responsável / Nome da Família</div>
+                    <div class="m-det-label">Responsável pela Família</div>
                     <div class="m-det-value" id="mdResp" style="font-weight: 600;">-</div>
                 </div>
                 <div class="m-det-item" id="mdConjugeBlock" style="display:none; margin-top:8px;">
@@ -369,9 +369,32 @@
             </div>
             
             <div class="m-det-block">
-                <div class="m-det-title">Histórico de Entregas</div>
-                <div id="mdHistoricoList" style="font-size:14px; color:var(--text-muted);">
+                <div class="m-det-title" style="display: flex; align-items: center; gap: 6px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--primary);"><path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"/><circle cx="12" cy="12" r="10"/></svg>
+                    Histórico de Entregas
+                </div>
+                <div id="mdHistoricoList" style="display: flex; flex-direction: column; gap: 8px;">
                     Carregando histórico...
+                </div>
+            </div>
+
+            <div class="m-det-block">
+                <div class="m-det-title" style="display: flex; align-items: center; gap: 6px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#3b82f6;"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Histórico de Visitas
+                </div>
+                <div id="mdVisitasList" style="display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: var(--text-muted);">
+                    Nenhuma visita registrada.
+                </div>
+            </div>
+
+            <div class="m-det-block">
+                <div class="m-det-title" style="display: flex; align-items: center; gap: 6px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#ef4444;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+                    Ocorrências
+                </div>
+                <div id="mdOcorrenciasList" style="display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: var(--text-muted);">
+                    Nenhuma ocorrência registrada.
                 </div>
             </div>
             
