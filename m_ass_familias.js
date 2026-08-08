@@ -41,16 +41,31 @@
 
         document.getElementById('btnVerHistorico').addEventListener('click', abrirHistorico);
         
-        document.getElementById('btnIrParaEntrega').addEventListener('click', () => {
-            if (selectedFamilia && selectedFamilia.id) {
-                let url = 'm_ass_entregas.html?familia_id=' + selectedFamilia.id;
-                if (hubId) url += '&id=' + hubId;
-                window.location.href = url;
-            }
-        });
+
 
         await carregarFamilias();
+        
+        // Auto-open family if requested
+        const urlParams2 = new URLSearchParams(window.location.search);
+        const openId = urlParams2.get('open_id');
+        if (openId) {
+            autoOpenFamilia(openId);
+        }
     });
+    
+    async function autoOpenFamilia(id) {
+        try {
+            const { data, error } = await db.from('ass_familias')
+                .select('*, pessoas(*)')
+                .eq('id', id)
+                .single();
+            if (!error && data) {
+                abrirDetalhes(data);
+            }
+        } catch (e) {
+            console.error('Erro auto open', e);
+        }
+    }
 
     async function carregarFamilias() {
         document.getElementById('mLoadingState').style.display = 'block';
