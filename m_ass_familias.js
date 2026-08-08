@@ -162,7 +162,9 @@
 
     async function abrirDetalhes(f) {
         selectedFamilia = f;
-        document.getElementById('mdNome').innerText = 'Família ' + (f.codigo || '');
+        const cod = f.codigo || 'S/C';
+        const nomeFam = f.nome_familia || 'Sem Nome';
+        document.getElementById('mdNome').innerText = `${cod} - ${nomeFam}`;
         document.getElementById('mdResp').innerText = (f.pessoas && f.pessoas.nome_completo) ? f.pessoas.nome_completo : (f.nome_familia || '-');
         document.getElementById('mdCodigo').innerText = f.codigo || '-';
         document.getElementById('mdStatus').innerText = f.status || 'Ativa';
