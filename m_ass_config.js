@@ -379,11 +379,7 @@ async function editarCesta(id) {
         document.getElementById('inpCestaTipo').value = data.tipo;
         document.getElementById('inpCestaDesc').value = data.descricao;
         
-        let st = data.status;
-        if(st === 'Ativo') st = 'Ativa';
-        if(st === 'Inativo') st = 'Inativa';
-        
-        document.getElementById('inpCestaStatus').value = st;
+        document.getElementById('inpCestaStatus').value = data.status || 'Ativo';
         
         document.getElementById('mCestaComposicaoContainer').innerHTML = '';
         if(data.ass_cesta_composicao && data.ass_cesta_composicao.length > 0) {
