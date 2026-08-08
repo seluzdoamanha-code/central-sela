@@ -22,7 +22,7 @@
         }
         
         document.getElementById('btnVoltar').addEventListener('click', () => {
-            window.history.back();
+            window.location.href = familiaId ? 'm_ass_familias.html?open_id=' + familiaId : 'm_ass_familias.html';
         });
         
         document.getElementById('btnSalvar').addEventListener('click', salvarEntrega);
@@ -108,7 +108,7 @@
             mostrarFeed('Entrega registrada com sucesso!');
             
             setTimeout(() => {
-                window.history.back();
+                window.location.href = 'm_ass_familias.html?open_id=' + familiaId;
             }, 1000);
             
         } catch (e) {
