@@ -35,7 +35,7 @@
         try {
             const { data, error } = await db.from('ass_cestas_modelos')
                 .select('id, tipo')
-                .eq('ativo', true)
+                .eq('status', 'Ativo')
                 .order('tipo');
                 
             if (error) throw error;
