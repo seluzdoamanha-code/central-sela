@@ -10,6 +10,10 @@
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('inpData').value = today;
         
+        // Auto-generate code
+        const timestamp = new Date().getTime().toString().slice(-4);
+        document.getElementById('inpCodigo').value = 'RO' + timestamp;
+        
         // Parse URL params
         const urlParams = new URLSearchParams(window.location.search);
         familiaId = urlParams.get('f_id');

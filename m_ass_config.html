@@ -251,8 +251,9 @@
 
     <div class="m-content">
         <div class="m-tabs">
-            <button class="m-tab-btn active" onclick="switchTab('metas')">Metas Anuais</button>
-            <button class="m-tab-btn" onclick="switchTab('cestas')">Modelos de Cesta</button>
+            <button class="m-tab-btn active" onclick="switchTab('metas')">Metas</button>
+            <button class="m-tab-btn" onclick="switchTab('itens')">Itens (Estoque)</button>
+            <button class="m-tab-btn" onclick="switchTab('cestas')">Modelos (Cestas)</button>
         </div>
 
         <!-- SEÇÃO: METAS -->
@@ -261,6 +262,16 @@
                 <p style="color: var(--text-muted); text-align: center; margin-top: 40px;">Carregando metas...</p>
             </div>
             <button class="m-fab" onclick="abrirModalMeta()" title="Nova Meta">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+        </div>
+
+        <!-- SEÇÃO: ITENS -->
+        <div id="sec-itens" class="m-config-section">
+            <div id="itensList">
+                <p style="color: var(--text-muted); text-align: center; margin-top: 40px;">Carregando itens...</p>
+            </div>
+            <button class="m-fab" onclick="abrirModalItem()" title="Novo Item">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
         </div>
@@ -306,6 +317,55 @@
         </div>
     </div>
 
+    <!-- MODAL: ITEM -->
+    <div class="m-modal-overlay" id="modalItemOverlay">
+        <div class="m-modal-sheet">
+            <div class="m-modal-header">
+                <h3 class="m-modal-title" id="modalItemTitle">Novo Item</h3>
+                <button class="m-modal-close" onclick="fecharModal('modalItemOverlay')">&times;</button>
+            </div>
+            <input type="hidden" id="inpItemId">
+            <div style="display:flex; gap:12px;">
+                <div class="m-form-group" style="width: 100px;">
+                    <label class="m-form-label">Código</label>
+                    <input type="text" id="inpItemCodigo" class="m-input" placeholder="ARZ01">
+                </div>
+                <div class="m-form-group" style="flex:1;">
+                    <label class="m-form-label">Descrição</label>
+                    <input type="text" id="inpItemDesc" class="m-input" placeholder="Arroz Branco 5kg">
+                </div>
+            </div>
+            <div style="display:flex; gap:12px;">
+                <div class="m-form-group" style="flex:1;">
+                    <label class="m-form-label">Estoque Atual</label>
+                    <input type="number" id="inpItemEstoque" class="m-input" placeholder="0">
+                </div>
+                <div class="m-form-group" style="width: 120px;">
+                    <label class="m-form-label">Meta/Mínimo</label>
+                    <input type="number" id="inpItemMeta" class="m-input" placeholder="0">
+                </div>
+            </div>
+            <div style="display:flex; gap:12px;">
+                <div class="m-form-group" style="flex:1;">
+                    <label class="m-form-label">Unidade</label>
+                    <input type="text" id="inpItemUnd" class="m-input" placeholder="Pacote">
+                </div>
+                <div class="m-form-group" style="flex:1;">
+                    <label class="m-form-label">Peso (kg)</label>
+                    <input type="number" step="0.01" id="inpItemPeso" class="m-input" placeholder="5.00">
+                </div>
+            </div>
+            <div class="m-form-group">
+                <label class="m-form-label">Status</label>
+                <select id="inpItemStatus" class="m-input">
+                    <option value="Ativo">Ativo</option>
+                    <option value="Inativo">Inativo</option>
+                </select>
+            </div>
+            <button class="m-btn m-btn-primary" onclick="salvarItem()">Salvar Item</button>
+        </div>
+    </div>
+
     <!-- MODAL: CESTA -->
     <div class="m-modal-overlay" id="modalCestaOverlay">
         <div class="m-modal-sheet">
@@ -335,6 +395,18 @@
                     <option value="Inativa">Inativa</option>
                 </select>
             </div>
+            
+            <!-- Composição da Cesta -->
+            <div style="margin-top: 24px; margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <h4 style="margin: 0; color: var(--text-main); font-size: 15px;">Itens da Cesta</h4>
+                    <button type="button" onclick="adicionarLinhaComposicaoM()" style="background:none; border:none; color: var(--primary); font-weight: bold; cursor:pointer; font-size: 13px;">+ Adicionar</button>
+                </div>
+                <div id="mCestaComposicaoContainer" style="background: rgba(0,0,0,0.1); padding: 12px; border-radius: 8px;">
+                    <!-- Linhas adicionadas via JS -->
+                </div>
+            </div>
+
             <button class="m-btn m-btn-primary" onclick="salvarCesta()">Salvar Modelo</button>
         </div>
     </div>
