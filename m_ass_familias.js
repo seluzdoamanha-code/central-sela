@@ -227,7 +227,7 @@
         if(histEl) {
             histEl.innerHTML = 'Buscando histórico...';
             db.from('ass_entregas')
-              .select('id, data_entrega, quantidade, ass_cestas_modelos(nome)')
+              .select('id, data_entrega, quantidade, ass_cestas_modelos(tipo)')
               .eq('familia_id', f.id)
               .order('data_entrega', {ascending: false})
               .limit(10)
@@ -242,7 +242,7 @@
                   } else {
                       histEl.innerHTML = hist.map(h => {
                           const dateStr = h.data_entrega ? h.data_entrega.split('-').reverse().join('/') : '';
-                          const modeloNome = h.ass_cestas_modelos ? h.ass_cestas_modelos.nome : 'Cesta Desconhecida';
+                          const modeloNome = h.ass_cestas_modelos ? h.ass_cestas_modelos.tipo : 'Cesta Desconhecida';
                           const qtdStr = h.quantidade ? h.quantidade + 'x ' : '';
                           return `
                             <div class="m-member-row" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">

@@ -34,9 +34,9 @@
         const sel = document.getElementById('inpModelo');
         try {
             const { data, error } = await db.from('ass_cestas_modelos')
-                .select('id, nome')
+                .select('id, tipo')
                 .eq('ativo', true)
-                .order('nome');
+                .order('tipo');
                 
             if (error) throw error;
             
@@ -45,7 +45,7 @@
                 data.forEach(m => {
                     const opt = document.createElement('option');
                     opt.value = m.id;
-                    opt.innerText = m.nome;
+                    opt.innerText = m.tipo;
                     sel.appendChild(opt);
                 });
             } else {
