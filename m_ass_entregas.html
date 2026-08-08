@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Portal SELA - Entregas</title>
+    <title>Portal SELA - Registrar Entrega</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="m_style.css">
@@ -47,19 +47,17 @@
         .m-form-container {
             padding: 20px;
         }
-        
         .m-form-group {
             margin-bottom: 20px;
-            position: relative;
         }
         .m-form-label {
+            display: block;
             font-size: 13px;
-            font-weight: 600;
             color: var(--text-muted);
             margin-bottom: 8px;
-            display: block;
+            font-weight: 500;
         }
-        .m-input {
+        .m-input, .m-select {
             width: 100%;
             padding: 14px 16px;
             border-radius: 12px;
@@ -68,166 +66,75 @@
             color: var(--text-main);
             font-size: 16px;
             outline: none;
-            box-sizing: border-box;
+            transition: border-color 0.2s;
         }
-        .m-input:focus {
+        .m-input:focus, .m-select:focus {
             border-color: var(--primary);
         }
-        
-        /* Autocomplete Results */
-        .m-autocomplete-results {
-            position: absolute;
-            top: 100%; left: 0; right: 0;
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            margin-top: 4px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 100;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-            display: none;
-        }
-        .m-autocomplete-item {
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border);
-            cursor: pointer;
-            color: var(--text-main);
-            font-size: 14px;
-        }
-        .m-autocomplete-item:last-child { border-bottom: none; }
-        .m-autocomplete-item:active { background: rgba(255,255,255,0.05); }
-        .m-fam-sel-codigo { font-family: monospace; color: var(--primary); margin-right: 8px; }
-        
-        /* Botões de Tipo */
-        .m-type-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-        .m-type-btn {
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 16px;
-            text-align: center;
-            cursor: pointer;
-            color: var(--text-main);
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-        .m-type-btn.active {
-            background: rgba(99, 102, 241, 0.15);
-            border-color: var(--primary);
-            color: var(--primary);
+        .m-input:disabled {
+            background: rgba(255,255,255,0.03);
+            color: var(--text-muted);
         }
         
-        /* Botão Salvar Principal */
         .m-btn-save {
             width: 100%;
             padding: 16px;
             border-radius: 12px;
+            border: none;
             background: var(--primary);
             color: white;
-            border: none;
             font-size: 16px;
             font-weight: 600;
+            margin-top: 10px;
             cursor: pointer;
-            margin-top: 12px;
-            transition: transform 0.1s;
-        }
-        .m-btn-save:active {
-            transform: scale(0.98);
         }
         .m-btn-save:disabled {
-            background: var(--border);
-            color: var(--text-muted);
+            opacity: 0.5;
             cursor: not-allowed;
-        }
-        
-        /* Histórico Recente */
-        .m-history-section {
-            padding: 0 20px 80px 20px;
-        }
-        .m-history-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-muted);
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 8px;
-        }
-        .m-history-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .m-hist-fam {
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text-main);
-        }
-        .m-hist-type {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-        .m-hist-date {
-            font-size: 11px;
-            color: var(--text-muted);
-            font-family: monospace;
         }
     </style>
 </head>
 <body>
     
     <header class="m-header-nav">
-        <button class="m-back-btn" id="btnVoltarHub">
+        <button class="m-back-btn" id="btnVoltar">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
         </button>
-        <div class="m-title">Registro de Entregas</div>
+        <div class="m-title">Registrar Entrega</div>
     </header>
 
     <main class="m-viewport" style="overflow-y: auto;">
         <div class="m-form-container">
-            <!-- Seleção de Família -->
+            
             <div class="m-form-group">
                 <label class="m-form-label">Família</label>
-                <input type="text" id="inpBuscaFam" class="m-input" placeholder="Digite código ou nome..." autocomplete="off">
-                <input type="hidden" id="hdnFamId">
-                <div id="autocompleteResults" class="m-autocomplete-results"></div>
+                <input type="text" id="inpFamilia" class="m-input" disabled value="Carregando...">
             </div>
             
-            <!-- Tipo de Ocorrência -->
             <div class="m-form-group">
-                <label class="m-form-label">Tipo de Ocorrência</label>
-                <div class="m-type-grid">
-                    <div class="m-type-btn active" data-type="Cesta Entregue">Cesta Entregue</div>
-                    <div class="m-type-btn" data-type="Falta">Falta</div>
-                    <div class="m-type-btn" data-type="Visita Realizada">Visita Realizada</div>
-                    <div class="m-type-btn" data-type="Outro">Outro</div>
-                </div>
-                <input type="hidden" id="hdnTipoOco" value="Cesta Entregue">
+                <label class="m-form-label">Data da Entrega</label>
+                <input type="date" id="inpData" class="m-input" required>
             </div>
             
-            <!-- Observações -->
+            <div class="m-form-group">
+                <label class="m-form-label">Tipo de Cesta</label>
+                <select id="inpModelo" class="m-select" required>
+                    <option value="">Carregando modelos...</option>
+                </select>
+            </div>
+            
+            <div class="m-form-group">
+                <label class="m-form-label">Quantidade de Cestas</label>
+                <input type="number" id="inpQtd" class="m-input" value="1" min="1" required>
+            </div>
+            
             <div class="m-form-group">
                 <label class="m-form-label">Observações (Opcional)</label>
                 <input type="text" id="inpObs" class="m-input" placeholder="Algum recado ou nota?">
             </div>
             
-            <button id="btnSalvar" class="m-btn-save" disabled>Salvar Registro</button>
+            <button id="btnSalvar" class="m-btn-save">Salvar Entrega</button>
             <div id="mFeedback" style="text-align: center; font-size: 13px; margin-top: 12px; height: 18px; color: #10b981;"></div>
-        </div>
-        
-        <div class="m-history-section">
-            <div class="m-history-title">Últimos Registros (Hoje)</div>
-            <div id="mHistoryList">
-                <div style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 20px;">Carregando histórico...</div>
-            </div>
         </div>
     </main>
 

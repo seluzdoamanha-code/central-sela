@@ -211,8 +211,52 @@
         } else {
             btnMaps.style.display = 'none';
         }
+        
+        // Link Registrar Entrega
+        const btnIrEntrega = document.getElementById('btnIrParaEntrega');
+        if (btnIrEntrega) {
+            btnIrEntrega.onclick = () => {
+                window.location.href = `m_ass_entregas.html?f_id=${f.id}&f_nome=${encodeURIComponent(f.codigo + ' - ' + (f.nome_familia || ''))}`;
+            };
+        }
 
         document.getElementById('mDetModal').classList.add('active');
+        
+        // Buscar Historico
+        const histEl = document.getElementById('mdHistoricoList');
+        if(histEl) {
+            histEl.innerHTML = 'Buscando histórico...';
+            db.from('ass_entregas')
+              .select('id, data_entrega, quantidade, ass_cestas_modelos(nome)')
+              .eq('familia_id', f.id)
+              .order('data_entrega', {ascending: false})
+              .limit(10)
+              .then(({data: hist, error}) => {
+                  if(error) {
+                      histEl.innerHTML = 'Erro ao buscar histórico';
+                      console.error(error);
+                      return;
+                  }
+                  if(!hist || hist.length === 0) {
+                      histEl.innerHTML = 'Nenhuma entrega registrada.';
+                  } else {
+                      histEl.innerHTML = hist.map(h => {
+                          const dateStr = h.data_entrega ? h.data_entrega.split('-').reverse().join('/') : '';
+                          const modeloNome = h.ass_cestas_modelos ? h.ass_cestas_modelos.nome : 'Cesta Desconhecida';
+                          const qtdStr = h.quantidade ? h.quantidade + 'x ' : '';
+                          return `
+                            <div class="m-member-row" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <div>
+                                    <div style="color:var(--text-main); font-weight:500;">${qtdStr}${modeloNome}</div>
+                                    <div style="font-size:12px; color:var(--text-muted);">${dateStr}</div>
+                                </div>
+                            </div>
+                          `;
+                      }).join('');
+                  }
+              });
+        }
+
         
         // Buscar Membros (Assíncrono)
         const ml = document.getElementById('mdMembrosList');
