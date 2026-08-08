@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gestão de Irradiações - SELA</title>
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --accent: #10b981;
+            --accent-hover: #059669;
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .m-topbar {
+            height: 60px;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            flex-shrink: 0;
+        }
+
+        .m-btn-back {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            margin-right: 12px;
+        }
+
+        .m-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .m-tabs-container {
+            display: flex;
+            overflow-x: auto;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            scrollbar-width: none; /* Firefox */
+        }
+        .m-tabs-container::-webkit-scrollbar {
+            display: none; /* Chrome/Safari */
+        }
+
+        .m-tab {
+            padding: 16px 20px;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+        }
+        .m-tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .m-filters-container {
+            display: flex;
+            gap: 8px;
+            padding: 16px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .m-filters-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .m-filter-pill {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        .m-filter-pill.active {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--accent);
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        .m-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 16px 80px 16px;
+        }
+
+        .m-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .m-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .m-card-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 4px;
+        }
+
+        .m-card-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .m-card-meta {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        .m-card-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding-top: 12px;
+        }
+
+        .btn-action {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            flex: 1;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: var(--text-main);
+        }
+        .btn-danger {
+            background: transparent;
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+
+        /* Bottom Sheet Modal */
+        .bottom-sheet-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .bottom-sheet-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .bottom-sheet {
+            position: fixed;
+            bottom: -100%;
+            left: 0;
+            right: 0;
+            background: var(--bg-dark);
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            z-index: 1001;
+            padding: 24px 16px;
+            transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .bottom-sheet.active {
+            bottom: 0;
+        }
+
+        .bs-handle {
+            width: 40px;
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin: 0 auto 20px auto;
+        }
+
+        .input-field {
+            width: 100%;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+        }
+        .input-field:focus {
+            border-color: var(--accent);
+        }
+
+        .tag-checkbox-ui {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: inline-block;
+            margin-bottom: 8px;
+            margin-right: 8px;
+        }
+        .tag-checkbox-ui.selected {
+            border-color: var(--accent);
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="m-topbar">
+        <button class="m-btn-back" onclick="window.location.href='m_hub.html?tipo=irradiacao'">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <div class="m-title">Gestão de Irradiações</div>
+    </div>
+
+    <!-- Abas -->
+    <div class="m-tabs-container">
+        <div class="m-tab active" onclick="mudarAba('pendentes')" id="tab_pendentes">📥 Pendentes</div>
+        <div class="m-tab" onclick="mudarAba('ativos')" id="tab_ativos">📋 Leitura</div>
+        <div class="m-tab" onclick="mudarAba('historico')" id="tab_historico">🗄️ Histórico</div>
+    </div>
+
+    <!-- Filtros de Dia -->
+    <div class="m-filters-container" id="filtersContainer">
+        <div class="m-filter-pill active" onclick="setDia('')" id="pill_todos">Todos <span id="count_Todos" style="opacity:0.6;font-size:11px;margin-left:4px;">(0)</span></div>
+        <div class="m-filter-pill" onclick="setDia('Segunda-feira')" id="pill_segunda">Segunda <span id="count_Segunda-feira" style="opacity:0.6;font-size:11px;margin-left:4px;">(0)</span></div>
+        <div class="m-filter-pill" onclick="setDia('Terça-feira')" id="pill_terca">Terça <span id="count_Terça-feira" style="opacity:0.6;font-size:11px;margin-left:4px;">(0)</span></div>
+        <div class="m-filter-pill" onclick="setDia('Quarta-feira (Desobsessão)')" id="pill_qua_desob">Qua (Desob) <span id="count_Quarta-feira (Desobsessão)" style="opacity:0.6;font-size:11px;margin-left:4px;">(0)</span></div>
+        <div class="m-filter-pill" onclick="setDia('Quarta-feira (Desencarnado)')" id="pill_qua_desenc">Qua (Desenc) <span id="count_Quarta-feira (Desencarnado)" style="opacity:0.6;font-size:11px;margin-left:4px;">(0)</span></div>
+        <div class="m-filter-pill" onclick="setDia('Quinta-feira')" id="pill_quinta">Quinta <span id="count_Quinta-feira" style="opacity:0.6;font-size:11px;margin-left:4px;">(0)</span></div>
+    </div>
+
+    <!-- Lista de Cards -->
+    <div class="m-content" id="listaGestaoIrradiacoes">
+        <!-- Preenchido via JS -->
+    </div>
+
+    <!-- Bottom Sheet de Edição -->
+    <div class="bottom-sheet-overlay" id="bsOverlay" onclick="fecharBottomSheet()"></div>
+    <div class="bottom-sheet" id="bsEdicao">
+        <div class="bs-handle"></div>
+        <h3 style="margin-bottom: 16px; color: var(--text-main);">Editar Solicitação</h3>
+        
+        <input type="hidden" id="editId">
+        <input type="hidden" id="editSemanasRestantes">
+        
+        <div style="margin-bottom: 16px;">
+            <label style="display:block; font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">Nome Solicitado</label>
+            <input type="text" id="editNome" class="input-field">
+        </div>
+        
+        <div style="margin-bottom: 16px;">
+            <label style="display:block; font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">Endereço</label>
+            <input type="text" id="editEnd" class="input-field">
+        </div>
+        
+        <div style="margin-bottom: 24px;">
+            <label style="display:block; font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">Dias da Semana</label>
+            <div id="editDiasContainer">
+                <div class="tag-checkbox-ui edit-tag" data-val="Segunda-feira" onclick="toggleEditTag(this)">Segunda</div>
+                <div class="tag-checkbox-ui edit-tag" data-val="Terça-feira" onclick="toggleEditTag(this)">Terça</div>
+                <div class="tag-checkbox-ui edit-tag" data-val="Quarta-feira (Desobsessão)" onclick="toggleEditTag(this)">Qua (Desob)</div>
+                <div class="tag-checkbox-ui edit-tag" data-val="Quarta-feira (Desencarnado)" onclick="toggleEditTag(this)">Qua (Desenc)</div>
+                <div class="tag-checkbox-ui edit-tag" data-val="Quinta-feira" onclick="toggleEditTag(this)">Quinta</div>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 12px;">
+            <button class="btn-action btn-secondary" onclick="fecharBottomSheet()">Cancelar</button>
+            <button class="btn-action btn-primary" onclick="salvarEdicao()">Salvar Alterações</button>
+        </div>
+    </div>
+
+    <script src="m_irradiacao_gestao.js"></script>
+</body>
+</html>

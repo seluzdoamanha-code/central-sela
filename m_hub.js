@@ -125,10 +125,16 @@
         } else if (nome.includes('irradiação')) {
             html += `
                 <a href="m_irradiacao.html?id=${estruturaAtual.id}" class="m-app-card">
-                    <div class="m-app-icon" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
-                        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                    <div class="m-app-icon" style="background: rgba(139, 92, 246, 0.1); display: flex; align-items: center; justify-content: center;">
+                        <span style="font-size: 28px;">✨</span>
                     </div>
                     <div class="m-app-name">Irradiação Espiritual</div>
+                </a>
+                <a href="m_irradiacao_gestao.html" class="m-app-card">
+                    <div class="m-app-icon" style="background: rgba(16, 185, 129, 0.1); display: flex; align-items: center; justify-content: center;">
+                        <span style="font-size: 28px;">⚙️</span>
+                    </div>
+                    <div class="m-app-name">Gestão de Irradiações</div>
                 </a>
                 <a href="#" class="m-app-card" onclick="alert('Módulo em breve no celular!'); return false;">
                     <div class="m-app-icon">
