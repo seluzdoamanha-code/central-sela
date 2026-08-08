@@ -149,7 +149,7 @@
         
         const resp = f.pessoas || {};
         const elCelular = document.getElementById('mdCelular');
-        if(elCelular) elCelular.innerText = resp.telefone_celular || '-';
+        if(elCelular) elCelular.innerText = resp.celular || '-';
         
         const elEmail = document.getElementById('mdEmail');
         if(elEmail) elEmail.innerText = resp.email || '-';
@@ -159,9 +159,9 @@
         
         // Contato
         const btnZap = document.getElementById('btnWhatsApp');
-        if (resp.telefone_celular || f.telefone) {
+        if (resp.celular || f.telefone) {
             btnZap.style.display = 'flex';
-            btnZap.href = 'https://wa.me/' + formatarWhatsApp(resp.telefone_celular || f.telefone);
+            btnZap.href = 'https://wa.me/' + formatarWhatsApp(resp.celular || f.telefone);
         } else {
             btnZap.style.display = 'none';
         }
@@ -169,14 +169,10 @@
         // Endereço
         let endCompletoArr = [];
         let r = resp;
-        if (r.endereco_logradouro) {
-            let logNum = r.endereco_logradouro;
-            if (r.endereco_numero) logNum += ', ' + r.endereco_numero;
-            endCompletoArr.push(logNum);
-        }
-        if (r.endereco_bairro) endCompletoArr.push(r.endereco_bairro);
-        if (r.endereco_cidade) endCompletoArr.push(r.endereco_cidade);
-        if (r.endereco_estado) endCompletoArr.push(r.endereco_estado);
+        if (r.endereco) endCompletoArr.push(r.endereco);
+        if (r.bairro) endCompletoArr.push(r.bairro);
+        if (r.cidade) endCompletoArr.push(r.cidade);
+        if (r.estado) endCompletoArr.push(r.estado);
         
         let endCompleto = endCompletoArr.join(', ');
         
