@@ -60,7 +60,10 @@ async function carregarLista() {
             query = query.eq('estrutura_id', estruturaId);
         }
         
-        let targetStatus = currentTab === 'ativos' ? 'ativo' : currentTab;
+        let targetStatus = currentTab;
+        if (currentTab === 'ativos') targetStatus = 'ativo';
+        if (currentTab === 'pendentes') targetStatus = 'pendente';
+        
         query = query.eq('status', targetStatus).order('nome_solicitado', { ascending: true });
         
         const { data, error } = await query;
