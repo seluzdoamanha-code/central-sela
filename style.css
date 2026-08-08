@@ -232,15 +232,24 @@ body {
     border-bottom: 1px solid var(--border);
 }
 
-.input-field {
+.form-control, .input, .input-field {
     width: 100%;
-    padding: 10px 16px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
+    padding: 10px 14px;
     background-color: var(--bg-dark);
+    border: 1px solid var(--border);
+    border-radius: 8px;
     color: var(--text-main);
-    font-family: inherit;
-    font-size: 14px;
+    transition: all 0.2s;
+}
+.form-control:focus, .input:focus, .input-field:focus {
+    border-color: var(--primary);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+select option, select optgroup {
+    background-color: var(--bg-panel);
+    color: var(--text-main);
 }
 
 .data-table {

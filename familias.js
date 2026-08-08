@@ -762,7 +762,7 @@ window.salvarNovaFamiliaAss = async function(e) {
             codigo: document.getElementById('assFamCodigo').value.trim(),
             tipo: document.getElementById('assFamTipo').value,
             nome_familia: document.getElementById('assFamNome').value.trim(),
-            responsavel_id: document.getElementById('assFamResponsavel').value,
+            responsavel_id: document.getElementById('assFamResponsavel').value || null,
             status: document.getElementById('assFamStatus').value
         };
 
@@ -826,7 +826,7 @@ window.editarFamiliaAss = async function(id) {
         document.getElementById('assFamNome').value = familia.nome_familia;
         document.getElementById('assFamTipo').value = familia.tipo;
         document.getElementById('assFamStatus').value = familia.status;
-        document.getElementById('assFamResponsavel').value = familia.responsavel_id;
+        document.getElementById('assFamResponsavel').value = familia.responsavel_id || '';
         
         if (familia.ass_membros_familia) {
             familia.ass_membros_familia.forEach(m => {
