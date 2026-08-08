@@ -227,7 +227,7 @@
         if(histEl) {
             histEl.innerHTML = 'Buscando histórico...';
             db.from('ass_entregas')
-              .select('id, data_entrega, quantidade, ass_cestas_modelos(tipo)')
+              .select('id, data_entrega, quantidade_entregue, observacoes, ass_cestas_modelos(tipo)')
               .eq('familia_id', f.id)
               .order('data_entrega', {ascending: false})
               .limit(10)
@@ -243,12 +243,14 @@
                       histEl.innerHTML = hist.map(h => {
                           const dateStr = h.data_entrega ? h.data_entrega.split('-').reverse().join('/') : '';
                           const modeloNome = h.ass_cestas_modelos ? h.ass_cestas_modelos.tipo : 'Cesta Desconhecida';
-                          const qtdStr = h.quantidade ? h.quantidade + 'x ' : '';
+                          const qtdStr = h.quantidade_entregue ? h.quantidade_entregue + 'x ' : '';
+                          const obsHtml = h.observacoes ? `<div style="font-size:12px; color:var(--text-muted); margin-top:2px; font-style:italic;">Obs: ${h.observacoes}</div>` : '';
                           return `
                             <div class="m-member-row" style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
                                 <div>
                                     <div style="color:var(--text-main); font-weight:500;">${qtdStr}${modeloNome}</div>
                                     <div style="font-size:12px; color:var(--text-muted);">${dateStr}</div>
+                                    ${obsHtml}
                                 </div>
                             </div>
                           `;

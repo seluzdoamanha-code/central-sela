@@ -66,7 +66,7 @@
         const dataEnt = document.getElementById('inpData').value;
         const modeloId = document.getElementById('inpModelo').value;
         const qtd = parseInt(document.getElementById('inpQtd').value) || 1;
-        // const obs = document.getElementById('inpObs').value.trim(); // The DB doesn't have an observacoes column
+        const obs = document.getElementById('inpObs').value.trim();
         
         if (!dataEnt || !modeloId) {
             mostrarFeed('Preencha a data e o tipo de cesta', true);
@@ -87,7 +87,8 @@
                 data_entrega: dataEnt,
                 ano_ref: parseInt(ano),
                 mes_ref: parseInt(mes),
-                quantidade_entregue: qtd
+                quantidade_entregue: qtd,
+                observacoes: obs
             }]);
             
             if (error) throw error;
