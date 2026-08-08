@@ -22,7 +22,7 @@
         }
         
         document.getElementById('btnVoltar').addEventListener('click', () => {
-            window.location.href = familiaId ? 'm_ass_familias.html?open_id=' + familiaId : 'm_ass_familias.html';
+            window.history.back();
         });
         
         document.getElementById('btnSalvar').addEventListener('click', salvarOcorrencia);
@@ -62,7 +62,11 @@
             mostrarFeed('Ocorrência registrada com sucesso!');
             
             setTimeout(() => {
-                window.location.href = 'm_ass_familias.html?open_id=' + familiaId;
+                if (urlParams.get('from') === 'dash') {
+                    window.history.back();
+                } else {
+                    window.location.href = 'm_ass_familias.html?open_id=' + familiaId;
+                }
             }, 1000);
             
         } catch (e) {
