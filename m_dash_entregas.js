@@ -59,7 +59,8 @@
         
         // Calcular métricas
         let famSet = new Set();
-        let cestasNormais = 0; // CB01 e CB02
+        let cestasPequenas = 0; // CB01
+        let cestasGrandes = 0; // CB02
         let leiteLitros = 0; // CB10 * 12
         let ovosCartelas = 0; // CB11
         let ovosUnid = 0;
@@ -70,29 +71,17 @@
             const qtd = e.quantidade_entregue || 1;
             const cod = e.ass_cestas_modelos ? e.ass_cestas_modelos.codigo : '';
             
-            if (cod === 'CB01' || cod === 'CB02') {
-                cestasNormais += qtd;
+            if (cod === 'CB01') {
+                cestasPequenas += qtd;
+            } else if (cod === 'CB02') {
+                cestasGrandes += qtd;
             } else if (cod === 'CB10') { // Leite
                 leiteLitros += (qtd * 12);
             } else if (cod === 'CB11') { // Ovos
                 ovosCartelas += qtd;
-                ovosUnid += (qtd * 30); // assumindo 30 por cartela ou multiplicador a combinar
+                ovosUnid += (qtd * 18); // Baseado em 1 cartela = 18 unidades
             } else {
                 extras += qtd;
-            }
-        });
-        
-        // Note for user adjustment: se a conta for 180 por cartela, o cliente pediu "3240 (a conta de ovos) para 18 cartelas".
-        // 3240 / 18 = 180 ovos por cartela.
-        // Então ovosUnid += qtd * 180
-        ovosCartelas = 0;
-        ovosUnid = 0;
-        entregas.forEach(e => {
-            const qtd = e.quantidade_entregue || 1;
-            const cod = e.ass_cestas_modelos ? e.ass_cestas_modelos.codigo : '';
-            if (cod === 'CB11') {
-                ovosCartelas += qtd;
-                ovosUnid += (qtd * 180); 
             }
         });
         
@@ -100,7 +89,8 @@
         const fmt = (num) => num.toLocaleString('pt-BR');
         
         document.getElementById('valFamilias').innerText = famSet.size;
-        document.getElementById('valCestasNormais').innerText = fmt(cestasNormais);
+        document.getElementById('valCestasPeq').innerText = fmt(cestasPequenas);
+        document.getElementById('valCestasGde').innerText = fmt(cestasGrandes);
         document.getElementById('valLeite').innerText = fmt(leiteLitros) + 'L';
         document.getElementById('valOvosCartelas').innerText = fmt(ovosCartelas);
         document.getElementById('valOvosUnid').innerText = fmt(ovosUnid);
