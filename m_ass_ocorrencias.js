@@ -62,7 +62,8 @@
             mostrarFeed('Ocorrência registrada com sucesso!');
             
             setTimeout(() => {
-                if (urlParams.get('from') === 'dash') {
+                const params = new URLSearchParams(window.location.search);
+                if (params.get('from') === 'dash') {
                     window.history.back();
                 } else {
                     window.location.href = 'm_ass_familias.html?open_id=' + familiaId;
