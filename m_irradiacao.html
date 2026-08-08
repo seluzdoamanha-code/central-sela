@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Portal SELA - Irradiação</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="m_style.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth_guard.js"></script>
+    <link rel="icon" type="image/png" href="logo_sela.png">
+    <style>
+        .m-header-nav {
+            display: flex;
+            align-items: center;
+            height: 60px;
+            padding: 0 16px;
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .m-back-btn {
+            background: none;
+            border: none;
+            color: var(--text-main);
+            padding: 8px;
+            margin-left: -8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .m-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-left: 8px;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .m-content {
+            padding: 24px 16px;
+            padding-bottom: 90px;
+        }
+        
+        .input-field {
+            border: 2px solid rgba(148, 163, 184, 0.4);
+            padding: 14px 16px;
+            background-color: var(--bg-dark);
+            border-radius: 12px;
+            font-size: 15px;
+            color: var(--text-main);
+            width: 100%;
+            transition: all 0.2s;
+        }
+        .input-field:focus {
+            border-color: #8b5cf6;
+            outline: none;
+        }
+        
+        .tag-checkbox-ui {
+            background: var(--bg-dark);
+            border: 2px solid rgba(148, 163, 184, 0.4);
+            padding: 12px;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            text-align: center;
+            line-height: 1.4;
+            transition: all 0.2s;
+            cursor: pointer;
+            flex: 1;
+            min-width: calc(50% - 8px);
+        }
+        .tag-checkbox-ui:hover, .tag-checkbox-ui:has(input:checked) {
+            border-color: #8b5cf6;
+            background: rgba(139, 92, 246, 0.1);
+        }
+        .tag-checkbox-ui.selected {
+            border-color: #8b5cf6;
+            background: rgba(139, 92, 246, 0.1);
+        }
+        .tag-checkbox-ui input {
+            display: none;
+        }
+        
+        .m-success-panel {
+            text-align: center;
+            padding: 32px 16px;
+        }
+        
+        /* Checkbox Desencarnado custom style */
+        .checkbox-desencarnado {
+            width: 20px;
+            height: 20px;
+            accent-color: #facc15;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="mobile-layout">
+    <div class="m-header-nav">
+        <button class="m-back-btn" onclick="voltarParaHub()">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <div class="m-title">Irradiação Espiritual</div>
+    </div>
+
+    <div class="m-content">
+        <!-- Formulário -->
+        <div id="formContainer">
+            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">Preencha os dados abaixo para fazer uma nova solicitação de tratamento espiritual.</p>
+            
+            <form id="formIrradiacao" style="display: flex; flex-direction: column; gap: 20px;">
+                <div>
+                    <label style="display: block; color: var(--text-main); font-size: 14px; font-weight: 500; margin-bottom: 8px;">Nome(s) Completo(s) *</label>
+                    <input type="text" id="inIrrNome" required class="input-field" placeholder="Ex: MARIA DA SILVA" style="text-transform: uppercase;" list="listaNomesIrr" autocomplete="off">
+                    <datalist id="listaNomesIrr"></datalist>
+                    
+                    <label style="display: flex; align-items: center; gap: 10px; margin-top: 16px; cursor: pointer; background: rgba(250, 204, 21, 0.05); padding: 12px; border-radius: 8px; border: 1px solid rgba(250, 204, 21, 0.2);">
+                        <input type="checkbox" id="chkIrrDesencarnado" onchange="toggleDesencarnadoIrr(this.checked)" class="checkbox-desencarnado">
+                        <span style="font-size: 14px; font-weight: 500; color: #facc15;">É desencarnado (falecido)</span>
+                    </label>
+                </div>
+                
+                <div id="groupIrrEndereco">
+                    <label style="display: block; color: var(--text-main); font-size: 14px; font-weight: 500; margin-bottom: 8px;">Endereço Completo</label>
+                    <input type="text" id="inIrrEndereco" class="input-field" placeholder="Rua, Número, Bairro, Cidade" style="text-transform: uppercase;" autocomplete="off">
+                </div>
+                
+                <div>
+                    <label style="display: block; color: var(--text-main); font-size: 14px; font-weight: 500; margin-bottom: 12px;">Dias para Irradiação *</label>
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                        <label class="tag-checkbox-ui">
+                            <input type="checkbox" class="chk-dia" value="Segunda-feira" onchange="this.parentElement.classList.toggle('selected', this.checked)"> 
+                            <div style="font-weight: 600; margin-bottom: 4px;">Segunda-feira</div>
+                            <small style="font-weight: normal; font-size: 11px; opacity: 0.8; color: var(--text-muted);">Influênciação espiritual</small>
+                        </label>
+                        <label class="tag-checkbox-ui">
+                            <input type="checkbox" class="chk-dia" value="Terça-feira" onchange="this.parentElement.classList.toggle('selected', this.checked)"> 
+                            <div style="font-weight: 600; margin-bottom: 4px;">Terça-feira</div>
+                            <small style="font-weight: normal; font-size: 11px; opacity: 0.8; color: var(--text-muted);">Saúde física/espiritual</small>
+                        </label>
+                        <label class="tag-checkbox-ui">
+                            <input type="checkbox" class="chk-dia" value="Quarta-feira (Desobsessão)" onchange="this.parentElement.classList.toggle('selected', this.checked)"> 
+                            <div style="font-weight: 600; margin-bottom: 4px;">Quarta-feira</div>
+                            <small style="font-weight: normal; font-size: 11px; opacity: 0.8; color: var(--text-muted);">Desobsessão</small>
+                        </label>
+                        <label class="tag-checkbox-ui">
+                            <input type="checkbox" class="chk-dia" value="Quarta-feira (Desencarnado)" onchange="this.parentElement.classList.toggle('selected', this.checked)"> 
+                            <div style="font-weight: 600; margin-bottom: 4px;">Quarta-feira</div>
+                            <small style="font-weight: normal; font-size: 11px; opacity: 0.8; color: var(--text-muted);">Desencarnado</small>
+                        </label>
+                        <label class="tag-checkbox-ui" style="min-width: 100%;">
+                            <input type="checkbox" class="chk-dia" value="Quinta-feira" onchange="this.parentElement.classList.toggle('selected', this.checked)"> 
+                            <div style="font-weight: 600; margin-bottom: 4px;">Quinta-feira</div>
+                            <small style="font-weight: normal; font-size: 11px; opacity: 0.8; color: var(--text-muted);">Saúde física/espiritual</small>
+                        </label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="m-btn m-btn-primary" id="btnSaveIrr" style="margin-top: 16px; width: 100%; height: 50px; font-size: 16px;">Enviar Solicitação</button>
+            </form>
+        </div>
+
+        <!-- Painel de Sucesso -->
+        <div id="panelSuccess" class="m-success-panel" style="display: none;">
+            <div style="font-size: 56px; margin-bottom: 16px;">✨</div>
+            <h3 style="color: #8b5cf6; margin-bottom: 12px; font-size: 22px;">Pedido Enviado!</h3>
+            <p style="color: var(--text-muted); font-size: 15px; margin-bottom: 24px;">O nome foi incluído na lista de irradiação para os dias selecionados.</p>
+            
+            <div id="resumeContent" style="background: var(--bg-panel); padding: 20px; border-radius: 12px; font-size: 14px; color: var(--text-main); text-align: left; margin-bottom: 32px; border: 1px solid var(--border);">
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                <button onclick="novaSolicitacaoIrr()" class="m-btn m-btn-primary" style="height: 50px; font-size: 16px;">Fazer Novo Pedido</button>
+                <button onclick="cancelarSolicitacaoIrr()" id="btnCancelIrr" class="m-btn m-btn-secondary" style="height: 50px; border: 1px solid #ef4444; color: #ef4444; background: transparent;">Cancelar (Apagar Pedido)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation Component -->
+    <nav class="m-bottom-nav">
+        <a href="m_index.html" class="m-nav-item">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            <span>Início</span>
+        </a>
+        <a href="#" class="m-nav-item active" onclick="voltarParaHub(); return false;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            <span>Irradiação</span>
+        </a>
+        <a href="m_perfil.html" class="m-nav-item">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <span>Perfil</span>
+        </a>
+    </nav>
+
+    <script src="config.js"></script>
+    <script src="m_irradiacao.js"></script>
+</body>
+</html>
