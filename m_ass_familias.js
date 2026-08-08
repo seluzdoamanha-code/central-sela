@@ -163,7 +163,7 @@
     async function abrirDetalhes(f) {
         selectedFamilia = f;
         document.getElementById('mdNome').innerText = 'Família ' + (f.codigo || '');
-        document.getElementById('mdResp').innerText = f.nome_familia || '-';
+        document.getElementById('mdResp').innerText = (f.pessoas && f.pessoas.nome_completo) ? f.pessoas.nome_completo : (f.nome_familia || '-');
         document.getElementById('mdCodigo').innerText = f.codigo || '-';
         document.getElementById('mdStatus').innerText = f.status || 'Ativa';
         
@@ -186,24 +186,19 @@
             btnZap.style.display = 'none';
         }
 
-        // Endereço
-        let endCompletoArr = [];
+        // Endereço Formatado: endereco - bairro. cep. cidade-estado
         let r = resp;
-        if (r.endereco) endCompletoArr.push(r.endereco);
-        if (r.bairro) endCompletoArr.push(r.bairro);
-        if (r.cidade) endCompletoArr.push(r.cidade);
-        if (r.estado) endCompletoArr.push(r.estado);
-        if (r.cep) endCompletoArr.push('CEP: ' + formatarCEP(r.cep));
+        let endCompleto = r.endereco || '';
+        if (r.bairro) endCompleto += (endCompleto ? ' - ' : '') + r.bairro;
+        if (r.cep) endCompleto += (endCompleto ? '. ' : '') + formatarCEP(r.cep);
         
-        let endCompleto = endCompletoArr.join(', ');
+        let cidEst = '';
+        if (r.cidade && r.estado) cidEst = r.cidade + '-' + r.estado;
+        else if (r.cidade) cidEst = r.cidade;
+        else if (r.estado) cidEst = r.estado;
         
-        // Fallback for old forms
-        if (!endCompleto && f.endereco_logradouro) {
-            endCompleto = f.endereco_logradouro;
-            if(f.endereco_numero) endCompleto += ', ' + f.endereco_numero;
-            if(f.endereco_bairro) endCompleto += ' - ' + f.endereco_bairro;
-        }
-
+        if (cidEst) endCompleto += (endCompleto ? '. ' : '') + cidEst;
+        
         document.getElementById('mdEndereco').innerText = endCompleto || 'Não informado';
         
         const btnMaps = document.getElementById('btnGoogleMaps');
@@ -219,31 +214,87 @@
         
         // Buscar Membros (Assíncrono)
         const ml = document.getElementById('mdMembrosList');
+        const cjBlock = document.getElementById('mdConjugeBlock');
+        const cjVal = document.getElementById('mdConjuge');
+        cjBlock.style.display = 'none'; // Reset conjuge
+        
         ml.innerHTML = 'Buscando membros...';
         try {
-            const { data: membros, error } = await db.from('ass_membros_familia')
+            const { data: membrosOrig, error } = await db.from('ass_membros_familia')
                 .select('parentesco, pessoas(nome_completo, data_nascimento)')
                 .eq('familia_id', f.id);
                 
             if (error) throw error;
-            if (!membros || membros.length === 0) {
-                ml.innerHTML = 'Nenhum membro cadastrado.';
+            
+            let allMembers = [];
+            
+            // 1. Responsável
+            if (resp.nome_completo) {
+                allMembers.push({
+                    nome: resp.nome_completo,
+                    parentesco: 'Responsável',
+                    nascimento: resp.data_nascimento,
+                    is_resp: true
+                });
             } else {
-                ml.innerHTML = membros.map(m => {
-                    let idadeStr = '';
-                    const p = m.pessoas || {};
-                    if (p.data_nascimento) {
-                        const age = new Date().getFullYear() - new Date(p.data_nascimento).getFullYear();
-                        idadeStr = `(${age} anos)`;
-                    }
-                    return `
-                        <div class="m-member-row">
-                            <span style="color:var(--text-main); font-weight:500;">${p.nome_completo || 'Sem Nome'}</span>
-                            <span>${m.parentesco || ''} ${idadeStr}</span>
-                        </div>
-                    `;
-                }).join('');
+                 allMembers.push({
+                    nome: f.nome_familia || 'Responsável',
+                    parentesco: 'Responsável',
+                    nascimento: null,
+                    is_resp: true
+                });
             }
+            
+            let membros = [];
+            if (membrosOrig) {
+                membros = membrosOrig.map(m => {
+                    const p = m.pessoas || {};
+                    return {
+                        nome: p.nome_completo || 'Sem Nome',
+                        parentesco: m.parentesco || '',
+                        nascimento: p.data_nascimento,
+                        is_conjuge: (m.parentesco && m.parentesco.toLowerCase().includes('cônjuge'))
+                    };
+                });
+            }
+            
+            // Cônjuge logic
+            const conjuge = membros.find(m => m.is_conjuge);
+            if (conjuge) {
+                cjBlock.style.display = 'block';
+                cjVal.innerText = conjuge.nome;
+            }
+            
+            // Sort
+            membros.sort((a, b) => {
+                if (a.is_conjuge && !b.is_conjuge) return -1;
+                if (!a.is_conjuge && b.is_conjuge) return 1;
+                
+                // Compare by oldest (asc)
+                if (a.nascimento && b.nascimento) {
+                    return new Date(a.nascimento) - new Date(b.nascimento);
+                }
+                if (a.nascimento && !b.nascimento) return -1;
+                if (!a.nascimento && b.nascimento) return 1;
+                return 0;
+            });
+            
+            allMembers = allMembers.concat(membros);
+
+            ml.innerHTML = allMembers.map(m => {
+                let idadeStr = '';
+                if (m.nascimento) {
+                    const age = new Date().getFullYear() - new Date(m.nascimento).getFullYear();
+                    idadeStr = ` - ${age} a.`;
+                }
+                return `
+                    <div class="m-member-row" style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0;">
+                        <span style="color:var(--text-main); font-weight:500;">${m.nome}</span>
+                        <span style="font-size: 13px;">${m.parentesco}${idadeStr}</span>
+                    </div>
+                `;
+            }).join('');
+            
         } catch (e) {
             console.error('Erro buscar membros', e);
             ml.innerHTML = 'Erro ao buscar membros.';
