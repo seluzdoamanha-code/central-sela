@@ -57,51 +57,60 @@ window.toggleDesencarnadoIrr = function(isChecked) {
     }
 };
 
+let searchTimeout = null;
+window.sugestoesIrradiacao = {};
+
 async function carregarSugestoes() {
-    try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const estruturaId = urlParams.get('id') || localStorage.getItem('estrutura_atual');
+    const inNome = document.getElementById('inIrrNome');
+    const inEnd = document.getElementById('inIrrEndereco');
+    const chkDesencarnado = document.getElementById('chkIrrDesencarnado');
+    const datalist = document.getElementById('listaNomesIrr');
+
+    inNome.addEventListener('input', (e) => {
+        const val = e.target.value.toUpperCase();
         
-        // Em hub.js a tabela tinha coluna "criado_em"
-        let query = supabase.from('app_irradiacao_solicitacoes')
-            .select('nome_solicitado, endereco');
-            
-        if (estruturaId) {
-            query = query.eq('estrutura_id', estruturaId);
+        // Se selecionou algo que já está no dicionário
+        if (window.sugestoesIrradiacao[val] !== undefined) {
+            if (!chkDesencarnado.checked) {
+                inEnd.value = window.sugestoesIrradiacao[val];
+            }
+            return;
         }
-        
-        const { data, error } = await query.order('criado_em', { ascending: false }).limit(100);
-            
-        if (!error && data) {
-            window.sugestoesIrradiacao = {};
-            const datalist = document.getElementById('listaNomesIrr');
-            data.forEach(item => {
-                const n = item.nome_solicitado.toUpperCase();
-                if (!window.sugestoesIrradiacao[n]) {
-                    window.sugestoesIrradiacao[n] = item.endereco ? item.endereco.toUpperCase() : '';
-                    const opt = document.createElement('option');
-                    opt.value = n;
-                    datalist.appendChild(opt);
+
+        if (val.length < 3) return;
+
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('pessoal')
+                    .select('nome, logradouro, numero, bairro, municipio')
+                    .ilike('nome', `%${val}%`)
+                    .limit(10);
+                
+                if (!error && data) {
+                    datalist.innerHTML = '';
+                    data.forEach(p => {
+                        const n = p.nome.toUpperCase();
+                        // Montar endereço resumido
+                        let enderecoParts = [];
+                        if (p.logradouro) enderecoParts.push(p.logradouro);
+                        if (p.numero) enderecoParts.push(p.numero);
+                        if (p.bairro) enderecoParts.push(p.bairro);
+                        if (p.municipio) enderecoParts.push(p.municipio);
+                        
+                        window.sugestoesIrradiacao[n] = enderecoParts.join(', ').toUpperCase();
+                        
+                        const opt = document.createElement('option');
+                        opt.value = n;
+                        datalist.appendChild(opt);
+                    });
                 }
-            });
-            
-            // Event listener para autocompletar endereço ao selecionar nome
-            const inNome = document.getElementById('inIrrNome');
-            const inEnd = document.getElementById('inIrrEndereco');
-            const chkDesencarnado = document.getElementById('chkIrrDesencarnado');
-            
-            inNome.addEventListener('input', (e) => {
-                const val = e.target.value.toUpperCase();
-                if (window.sugestoesIrradiacao && window.sugestoesIrradiacao[val] !== undefined) {
-                    if (!chkDesencarnado.checked) {
-                        inEnd.value = window.sugestoesIrradiacao[val];
-                    }
-                }
-            });
-        }
-    } catch(e) { 
-        console.error('Erro ao carregar sugestões', e); 
-    }
+            } catch (err) {
+                console.error(err);
+            }
+        }, 500);
+    });
 }
 
 async function salvarIrradiacao(e) {
