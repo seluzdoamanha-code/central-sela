@@ -11,7 +11,8 @@
         document.getElementById('btnNovaEntrega').addEventListener('click', () => {
             const sel = document.getElementById('selFamilia');
             if (sel.value) {
-                window.location.href = 'm_ass_entregas.html?id=' + sel.value + '&from=dash';
+                const fNome = sel.options[sel.selectedIndex].text;
+                window.location.href = 'm_ass_entregas.html?f_id=' + sel.value + '&f_nome=' + encodeURIComponent(fNome) + '&from=dash';
             } else {
                 alert('Selecione uma família primeiro!');
             }

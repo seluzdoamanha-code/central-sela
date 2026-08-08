@@ -850,7 +850,7 @@ window.abrirModalNovaEntrega = async function() {
     
     try {
         // Fetch famílias
-        const { data: familias } = await db.from('ass_familias').select('id, nome_familia, codigo').eq('status', 'Ativo').order('nome_familia');
+        const { data: familias } = await db.from('ass_familias').select('id, nome_familia, codigo').eq('status', 'Ativa').order('nome_familia');
         document.getElementById('assEntFamilia').innerHTML = '<option value="">-- Selecione a família --</option>' + 
             (familias || []).map(f => `<option value="${f.id}">${f.codigo} - ${f.nome_familia}</option>`).join('');
 
